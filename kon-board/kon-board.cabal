@@ -21,7 +21,8 @@ library
   -- other-extensions:     
   exposed-modules:      KonBoard
   -- other-modules:        
-  build-depends:        base
+  build-depends:        base >=4.10 && <4.13,
+                        text
 
 -- executable kon-board
 --   default-language:     Haskell2010
