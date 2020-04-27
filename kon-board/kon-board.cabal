@@ -19,10 +19,11 @@ library
   ghc-options:          -Wall -fno-warn-unused-imports
   default-extensions:   OverloadedStrings, StrictData
   -- other-extensions:     
-  exposed-modules:      KonBoard
+  exposed-modules:      KonBoard.Recipe
   -- other-modules:        
   build-depends:        base >=4.10 && <4.13,
-                        text
+                        text,
+                        yaml
 
 -- executable kon-board
 --   default-language:     Haskell2010
@@ -42,8 +43,8 @@ test-suite spec
   main-is:              Spec.hs
   default-extensions:   OverloadedStrings, StrictData
   -- other-extensions:     
-  other-modules:        KonBoardSpec
-  build-depends:        base, kon-board,
+  other-modules:        KonBoard.RecipeSpec
+  build-depends:        base, kon-board, yaml,
                         hspec
 
 test-suite doctest

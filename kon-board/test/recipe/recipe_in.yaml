@@ -1,0 +1,22 @@
+name: internal recipe with ingredient groups
+ings:
+  - tomato, 1
+  - carrot, 1/2
+  - pepper, 3
+  - pork, 200g
+  - g: *
+    i: - soy source, 1/2 spoon
+       - miso, 1 spoon
+  - g: **
+    i: - sake, 2 spoon
+       - mirin, 2 spoon
+       - soy source, 2 spoon
+  - oil, 1 spoon
+desc: |
+  1. Cut the vegetables.
+  2. Cut the pork.
+  3. Soak the pork in (**).
+  4. Stir-fry all ingredients in a pan with oil.
+  5. Put (*).
+
+

@@ -6,7 +6,6 @@
 -- 
 module KonBoard.Recipe
   ( Recipe(..),
-    ID,
     Name,
     RecipeBody(..),
     URL,
@@ -19,9 +18,7 @@ module KonBoard.Recipe
   ) where
 
 import Data.Text (Text)
-
--- | URL-friendly ID for a recipe.
-type ID = Text
+import Data.Yaml (FromJSON(..))
 
 -- | Human-friendly name for a recipe.
 type Name = Text
@@ -35,18 +32,20 @@ type Desc = Text
 -- | A recipe.
 data Recipe =
   Recipe
-  { recipeId :: ID,
-    recipeName :: Name,
+  { recipeName :: Name,
     recipeBody :: RecipeBody
   }
   deriving (Show,Eq,Ord)
 
+instance FromJSON Recipe where
+  parseJSON = undefined -- TODO
+
 -- | Main content of a recipe.
 data RecipeBody =
   -- | Internal recipe.
-  RecipeIn RecipeIn
+  RecipeBodyIn RecipeIn
   -- | External recipe, pointing to the URL.
-  | RecipeURL URL
+  | RecipeBodyURL URL
   deriving (Show,Eq,Ord)
 
 -- | Body of an internal recipe.
@@ -54,8 +53,10 @@ data RecipeIn =
   RecipeIn
   { recipeIngs :: [IngDesc],
     -- ^ Ingredients
-    recipeDesc :: Text
+    recipeDesc :: Desc,
     -- ^ Description of how to cook the dish.
+    recipeRefURL :: Maybe URL
+    -- ^ Reference URL of the internal recipe.
   }
   deriving (Show,Eq,Ord)
 
