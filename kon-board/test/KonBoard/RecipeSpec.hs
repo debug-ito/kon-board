@@ -1,29 +1,83 @@
 module KonBoard.RecipeSpec (main,spec) where
 
-import Data.Monoid ((<>))
-import Data.Yaml (decodeFileThrow)
+import qualified Data.ByteString as BS
+import Data.Monoid ((<>), mconcat)
 import Test.Hspec
 
 import KonBoard.Recipe
-  ( Recipe(..), RecipeBody(..), RecipeIn(..), IngDesc(..), Ingredient(..)
+  ( Recipe(..), RecipeBody(..), RecipeIn(..), IngDesc(..), Ingredient(..),
+    splitLineBS, loadYAML
   )
 
 main :: IO ()
 main = hspec spec
 
-loadRecipe :: String -> IO Recipe
-loadRecipe filename = decodeFileThrow ("test/recipe/" ++ filename)
+loadRecipes :: String -> IO [Recipe]
+loadRecipes filename = do
+  doc <- BS.readFile ("test/recipe/" ++ filename)
+  either (fail . show) return $ loadYAML doc
 
 spec :: Spec
-spec = describe "Recipe" $ do
+spec = do
+  spec_split
+  spec_recipe
+
+spec_split :: Spec
+spec_split = describe "splitLineBS" $ do
+  specify "empty" $ do
+    splitLineBS "---" "" `shouldBe` [""]
+  specify "line delimiter" $ do
+    let input = mconcat $ map (<> "\n")
+                [ "foo",
+                  "---",
+                  "bar",
+                  "buzz",
+                  "---",
+                  "---",
+                  "quux",
+                  "hoge---",
+                  ""
+                ]
+        expected = [ "foo\n",
+                     "bar\nbuzz\n",
+                     "",
+                     "quux\nhoge---\n\n"
+                   ]
+    splitLineBS "---" input `shouldBe` expected
+  specify "line delimiter at the head" $ do
+    let input = mconcat $ map (<> "\n")
+                [ "---",
+                  "---",
+                  "foo"
+                ]
+        expected = [ "",
+                     "",
+                     "foo\n"
+                   ]
+    splitLineBS "---" input `shouldBe` expected
+  specify "line delimiter at the end" $ do
+    let input = mconcat
+                [ "foo\n",
+                  "bar\n",
+                  "---\n",
+                  "buzz\n",
+                  "---"
+                ]
+        expected = [ "foo\nbar\n",
+                     "buzz\n",
+                     ""
+                   ]
+    splitLineBS "---" input `shouldBe` expected
+
+spec_recipe :: Spec
+spec_recipe = describe "Recipe" $ do
   specify "load RecipeURL from YAML" $ do
     let expected =
           Recipe
           { recipeName = "external recipe with URL",
             recipeBody = RecipeBodyURL "https://example.com/recipe/1102203"
           }
-    got <- loadRecipe "recipe_url.yaml"
-    got `shouldBe` expected
+    loadRecipes "recipe_url.yaml" `shouldReturn` [expected]
   specify "load RecipeIn from YAML" $ do
     let expected =
           Recipe
@@ -58,8 +112,7 @@ spec = describe "Recipe" $ do
             ],
             IngSingle $ Ingredient "oil" "1 spoon"
           ]
-    got <- loadRecipe "recipe_in.yaml"
-    got `shouldBe` expected
+    loadRecipes "recipe_in.yaml" `shouldReturn` [expected]
   specify "load RecipeIn with reference URL from YAML" $ do
     let expected =
           Recipe
@@ -72,6 +125,17 @@ spec = describe "Recipe" $ do
             recipeDesc = "Roast the beef.\n",
             recipeRefURL = Just "http://example.com/reference/recipe/100"
           }
-    got <- loadRecipe "recipe_in_url.yaml"
-    got `shouldBe` expected
+    loadRecipes "recipe_in_url.yaml" `shouldReturn` [expected]
+  specify "load multiple recipes from YAML file" $ do
+    let expected =
+          [ Recipe
+            { recipeName = "recipe 1",
+              recipeBody = RecipeBodyURL "http://example.com/1"
+            },
+            Recipe
+            { recipeName = "recipe 2",
+              recipeBody = RecipeBodyURL "http://example.com/2"
+            }
+          ]
+    loadRecipes "recipe_multi.yaml" `shouldReturn` expected
 
