@@ -60,4 +60,18 @@ spec = describe "Recipe" $ do
           ]
     got <- loadRecipe "recipe_in.yaml"
     got `shouldBe` expected
+  specify "load RecipeIn with reference URL from YAML" $ do
+    let expected =
+          Recipe
+          { recipeName = "internal recipe with URL",
+            recipeBody = RecipeBodyIn exp_body
+          }
+        exp_body =
+          RecipeIn
+          { recipeIngs = [IngSingle $ Ingredient "beef" "300g"],
+            recipeDesc = "Roast the beef.",
+            recipeRefURL = Just "http://example.com/reference/recipe/100"
+          }
+    got <- loadRecipe "recipe_in.yaml"
+    got `shouldBe` expected
 

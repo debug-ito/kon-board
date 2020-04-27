@@ -1,0 +1,6 @@
+name: internal recipe with URL
+ings:
+  - beef, 300g
+desc: |
+  Roast the beef.
+url: http://example.com/reference/recipe/100
