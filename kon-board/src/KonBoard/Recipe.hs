@@ -17,8 +17,14 @@ module KonBoard.Recipe
     Quantity
   ) where
 
+import Control.Monad (when)
+import Control.Applicative ((<$>), (<*>), empty)
+import Data.Aeson (FromJSON(..), (.:), (.:?))
+import qualified Data.Aeson as Aeson
+import qualified Data.HashMap.Strict as HS
 import Data.Text (Text)
-import Data.Yaml (FromJSON(..))
+import qualified Data.Text as T
+
 
 -- | Human-friendly name for a recipe.
 type Name = Text
@@ -38,7 +44,9 @@ data Recipe =
   deriving (Show,Eq,Ord)
 
 instance FromJSON Recipe where
-  parseJSON = undefined -- TODO
+  parseJSON v@(Aeson.Object o) =
+    Recipe <$> (o .: "name") <*> parseJSON v
+  parseJSON _ = empty
 
 -- | Main content of a recipe.
 data RecipeBody =
@@ -47,6 +55,13 @@ data RecipeBody =
   -- | External recipe, pointing to the URL.
   | RecipeBodyURL URL
   deriving (Show,Eq,Ord)
+
+instance FromJSON RecipeBody where
+  parseJSON v@(Aeson.Object o) = 
+    if HS.member "desc" o
+    then RecipeBodyIn <$> parseJSON v
+    else RecipeBodyURL <$> (o .: "url")
+  parseJSON _ = empty
 
 -- | Body of an internal recipe.
 data RecipeIn =
@@ -60,6 +75,12 @@ data RecipeIn =
   }
   deriving (Show,Eq,Ord)
 
+instance FromJSON RecipeIn where
+  parseJSON (Aeson.Object o) =
+    RecipeIn <$> (o .: "ings") <*> (o .: "desc") <*> (o .:? "url")
+  parseJSON _ = empty
+    
+
 -- | Human-recognizable symbol for a group of ingredients.
 type IngGroupSymbol = Text
 
@@ -71,6 +92,11 @@ data IngDesc =
   -- ^ Single ingredient
   deriving (Show,Eq,Ord)
 
+instance FromJSON IngDesc where
+  parseJSON (Aeson.Object o) =
+    IngGroup <$> (o .: "g") <*> (o .: "i")
+  parseJSON v = IngSingle <$> parseJSON v
+
 -- | Human-readable name of food item.
 type FoodItem = Text
 
@@ -80,3 +106,14 @@ type Quantity = Text
 -- | Ingredient.
 data Ingredient = Ingredient FoodItem Quantity
                 deriving (Show,Eq,Ord)
+
+instance FromJSON Ingredient where
+  parseJSON (Aeson.String s) = do
+    let (food, comma_qtty) = T.break (== ',') s
+    when (food == "") $ do
+      fail "Empty food item name."
+    when (comma_qtty == "") $ do
+      fail "Empty quantity."
+    let qtty = T.drop 1 comma_qtty
+    return $ Ingredient food qtty
+  parseJSON _ = empty
