@@ -1,4 +1,4 @@
-# kon-board
+# kon-board backend server
 
 
 ## Author
