@@ -39,19 +39,19 @@ spec = describe "Recipe" $ do
         exp_desc = 
           "1. Cut the vegetables.\n"
           <> "2. Cut the pork.\n"
-          <> "3. Soak the pork in (**).\n"
+          <> "3. Soak the pork in (G2).\n"
           <> "4. Stir-fry all ingredients in a pan with oil.\n"
-          <> "5. Put (*)."
+          <> "5. Put (G1).\n"
         exp_ings =
           [ IngSingle $ Ingredient "tomato" "1",
             IngSingle $ Ingredient "carrot" "1/2",
             IngSingle $ Ingredient "pepper" "3",
             IngSingle $ Ingredient "pork" "200g",
-            IngGroup "*"
+            IngGroup "G1"
             [ Ingredient "soy source" "1/2 spoon",
               Ingredient "miso" "1 spoon"
             ],
-            IngGroup "**"
+            IngGroup "G2"
             [ Ingredient "sake" "2 spoon",
               Ingredient "mirin" "2 spoon",
               Ingredient "soy source" "2 spoon"
@@ -69,9 +69,9 @@ spec = describe "Recipe" $ do
         exp_body =
           RecipeIn
           { recipeIngs = [IngSingle $ Ingredient "beef" "300g"],
-            recipeDesc = "Roast the beef.",
+            recipeDesc = "Roast the beef.\n",
             recipeRefURL = Just "http://example.com/reference/recipe/100"
           }
-    got <- loadRecipe "recipe_in.yaml"
+    got <- loadRecipe "recipe_in_url.yaml"
     got `shouldBe` expected
 

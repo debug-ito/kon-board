@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 -- |
 -- Module: KonBoard.Recipe
 -- Description: Recipe data model
@@ -94,7 +95,7 @@ data IngDesc =
 
 instance FromJSON IngDesc where
   parseJSON (Aeson.Object o) =
-    IngGroup <$> (o .: "g") <*> (o .: "i")
+    IngGroup <$> (o .: "g") <*> (o .: "ings")
   parseJSON v = IngSingle <$> parseJSON v
 
 -- | Human-readable name of food item.
@@ -115,5 +116,5 @@ instance FromJSON Ingredient where
     when (comma_qtty == "") $ do
       fail "Empty quantity."
     let qtty = T.drop 1 comma_qtty
-    return $ Ingredient food qtty
+    return $ Ingredient (T.strip food) (T.strip qtty)
   parseJSON _ = empty
