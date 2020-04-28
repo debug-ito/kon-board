@@ -22,7 +22,7 @@ import Control.Exception (Exception, throwIO)
 import Control.Monad (when, forM_, mapM_)
 import qualified Crypto.Hash.MD5 as MD5
 import qualified Data.ByteString as BS
-import qualified Data.ByteString.Base64.URL as Base64
+import qualified Data.ByteString.Base16 as Base16
 import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HM
 import Data.IORef (newIORef, readIORef, writeIORef)
@@ -68,7 +68,7 @@ emptyStore :: RecipeStore
 emptyStore = RecipeStore HM.empty HM.empty
 
 makeID :: Name -> ID
-makeID = decodeUtf8 . Base64.encode . MD5.hash . encodeUtf8
+makeID = decodeUtf8 . Base16.encode . MD5.hash . encodeUtf8
 
 -- | Exception about 'RecipeStore'.
 data RecipeStoreException =
