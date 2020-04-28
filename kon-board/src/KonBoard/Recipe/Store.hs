@@ -19,7 +19,7 @@ module KonBoard.Recipe.Store
     RecipeStoreException(..)
   ) where
 
-import Control.Exception (Exception, throwIO)
+import Control.Exception.Safe (Exception, throwIO)
 import Control.Monad (when, forM_, mapM_)
 import qualified Crypto.Hash.MD5 as MD5
 import qualified Data.ByteString as BS

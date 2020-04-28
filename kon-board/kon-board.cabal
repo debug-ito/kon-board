@@ -35,7 +35,8 @@ library
                         bytestring,
                         time,
                         cryptohash-md5,
-                        base16-bytestring
+                        base16-bytestring,
+                        safe-exceptions
 
 -- executable kon-board
 --   default-language:     Haskell2010
