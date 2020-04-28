@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveGeneric #-}
 -- |
 -- Module: KonBoard.Recipe.Store
 -- Description: Storage service for Recipes
@@ -22,14 +23,18 @@ module KonBoard.Recipe.Store
 import Control.Exception.Safe (Exception, throwIO)
 import Control.Monad (when, forM_, mapM_)
 import qualified Crypto.Hash.MD5 as MD5
+import Data.Aeson (FromJSON(..), ToJSON(..))
+import qualified Data.Aeson as Aeson
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Base16 as Base16
+import Data.Char (toLower)
 import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HM
 import Data.IORef (newIORef, readIORef, writeIORef)
 import Data.Text (Text)
 import Data.Text.Encoding (encodeUtf8, decodeUtf8)
 import Data.Traversable (Traversable(..))
+import GHC.Generics (Generic)
 
 import KonBoard.Recipe
   ( Recipe(recipeName),
@@ -46,7 +51,19 @@ data RecipeSummary =
   { rsID :: ID,
     rsName :: Name
   }
-  deriving (Show,Eq,Ord)
+  deriving (Show,Eq,Ord,Generic)
+
+aesonOpt :: Aeson.Options
+aesonOpt = Aeson.defaultOptions { Aeson.fieldLabelModifier = lmod }
+  where
+    lmod l = map toLower $ drop 2 l
+
+instance FromJSON RecipeSummary where
+  parseJSON = Aeson.genericParseJSON aesonOpt
+
+instance ToJSON RecipeSummary where
+  toJSON = Aeson.genericToJSON aesonOpt
+  toEncoding = Aeson.genericToEncoding aesonOpt
 
 data RecipeWithID =
   RecipeWithID
