@@ -49,7 +49,8 @@ test-suite spec
   main-is:              Spec.hs
   default-extensions:   OverloadedStrings, StrictData
   -- other-extensions:     
-  other-modules:        KonBoard.RecipeSpec
+  other-modules:        KonBoard.RecipeSpec,
+                        KonBoard.Recipe.StoreSpec
   build-depends:        base, kon-board, yaml, bytestring,
                         hspec
 
