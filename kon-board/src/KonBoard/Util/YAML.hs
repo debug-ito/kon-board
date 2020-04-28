@@ -6,9 +6,11 @@
 -- __This module is for internal use. End-users should not use this.__
 module KonBoard.Util.YAML
   ( decodeYAMLDocs,
+    readYAMLDocs,
     splitLineBS
   ) where
 
+import Control.Exception.Safe (throwIO)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BSC
@@ -34,3 +36,6 @@ decodeYAMLDocs doc = traverse decodeEither' $ filter (not . isEmptyDoc) $ splitL
   where
     isEmptyDoc bs = BS.null $ BS.dropWhile isSpaceW8 bs
     isSpaceW8 w = w == 0x09 || w == 0x0a || w == 0x0d || w == 0x20
+
+readYAMLDocs :: FromJSON a => FilePath -> IO [a]
+readYAMLDocs file = (either throwIO return . decodeYAMLDocs) =<< BS.readFile file
