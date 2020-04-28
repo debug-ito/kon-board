@@ -20,7 +20,7 @@ library
   hs-source-dirs:       src
   ghc-options:          -Wall -fno-warn-unused-imports
   default-extensions:   OverloadedStrings, StrictData
-  -- other-extensions:     
+  other-extensions:     DeriveGeneric
   exposed-modules:      KonBoard.Recipe,
                         KonBoard.Recipe.Store,
                         KonBoard.MealPlan,

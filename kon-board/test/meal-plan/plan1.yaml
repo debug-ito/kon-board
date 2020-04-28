@@ -1,5 +1,6 @@
 ---
-ym: 2020-04
+year: 2020
+month: 4
 plan:
   - d: 1
     p: lunch
@@ -8,7 +9,8 @@ plan:
     p: dinner
     m: external recipe with URL
 ---
-ym: 2020-05
+year: 2020
+month: 5
 plan:
   - d: 15
     p: breakfast
