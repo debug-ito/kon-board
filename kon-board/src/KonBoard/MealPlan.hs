@@ -12,7 +12,7 @@ module KonBoard.MealPlan
 import Data.Text (Text)
 import Data.Time (Day)
 
-import KonBoard.Recipe (Recipe)
+import KonBoard.Recipe.Store (RecipeSummary)
 
 -- | Meal in a day.
 data MealPhase =
@@ -26,6 +26,6 @@ data MealPlan =
   MealPlan
   { mealDay :: Day,
     mealPhase :: MealPhase,
-    mealRecipe :: Recipe -- TODO: maybe we should keep the ID for the recipe?
+    mealRecipe :: RecipeSummary
   }
   deriving (Show,Eq,Ord)
