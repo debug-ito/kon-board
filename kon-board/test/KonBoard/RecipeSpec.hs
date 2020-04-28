@@ -1,12 +1,12 @@
 module KonBoard.RecipeSpec (main,spec) where
 
 import qualified Data.ByteString as BS
-import Data.Monoid ((<>), mconcat)
+import Data.Monoid ((<>))
 import Test.Hspec
 
 import KonBoard.Recipe
   ( Recipe(..), RecipeBody(..), RecipeIn(..), IngDesc(..), Ingredient(..),
-    splitLineBS, loadYAML
+    loadYAML
   )
 
 main :: IO ()
@@ -19,55 +19,7 @@ loadRecipes filename = do
 
 spec :: Spec
 spec = do
-  spec_split
   spec_recipe
-
-spec_split :: Spec
-spec_split = describe "splitLineBS" $ do
-  specify "empty" $ do
-    splitLineBS "---" "" `shouldBe` [""]
-  specify "line delimiter" $ do
-    let input = mconcat $ map (<> "\n")
-                [ "foo",
-                  "---",
-                  "bar",
-                  "buzz",
-                  "---",
-                  "---",
-                  "quux",
-                  "hoge---",
-                  ""
-                ]
-        expected = [ "foo\n",
-                     "bar\nbuzz\n",
-                     "",
-                     "quux\nhoge---\n\n"
-                   ]
-    splitLineBS "---" input `shouldBe` expected
-  specify "line delimiter at the head" $ do
-    let input = mconcat $ map (<> "\n")
-                [ "---",
-                  "---",
-                  "foo"
-                ]
-        expected = [ "",
-                     "",
-                     "foo\n"
-                   ]
-    splitLineBS "---" input `shouldBe` expected
-  specify "line delimiter at the end" $ do
-    let input = mconcat
-                [ "foo\n",
-                  "bar\n",
-                  "---\n",
-                  "buzz\n",
-                  "---"
-                ]
-        expected = [ "foo\nbar\n",
-                     "buzz\n",
-                     ""
-                   ]
-    splitLineBS "---" input `shouldBe` expected
 
 spec_recipe :: Spec
 spec_recipe = describe "Recipe" $ do
