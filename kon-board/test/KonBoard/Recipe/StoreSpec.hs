@@ -1,6 +1,10 @@
 module KonBoard.Recipe.StoreSpec (main,spec) where
 
+import Data.List (reverse, nub)
+import Data.Maybe (fromJust)
 import Data.Monoid ((<>))
+import Data.Text (unpack)
+import Data.Traversable (traverse)
 import Test.Hspec
 
 import KonBoard.Recipe
@@ -12,7 +16,8 @@ import KonBoard.Recipe.Store
     openYAMLs,
     loadRecipeByName,
     RecipeSummary(..),
-    loadRecipe
+    loadRecipe,
+    ID
   )
 
 main :: IO ()
@@ -27,12 +32,18 @@ openStore = openYAMLs $ map ("test/recipe/" <>) files
               "recipe_url.yaml"
             ]
 
+idForStore :: Name -> [FilePath] -> IO ID
+idForStore name files = do
+  store <- openYAMLs $ map ("test/recipe/" <>) files
+  fmap (rsID . fromJust) $ loadRecipeByName store name
+
 loadAndCheckName :: RecipeStore -> Name -> IO ()
 loadAndCheckName store name = do
-  store <- openStore
   (Just rsummary) <- loadRecipeByName store name
   rsName rsummary `shouldBe` name
-  recipe <- loadRecipe store $ rsID rsummary
+  let rid = rsID rsummary
+  recipe <- loadRecipe store $ rid
+  putStrLn ("Recipe: '" <> unpack name <> "' -> ID: " <> unpack rid)
   recipeName recipe `shouldBe` name
   
   
@@ -47,3 +58,10 @@ spec = describe "RecipeStore" $ do
     store <- openStore
     got <- loadRecipeByName store "this should not exist"
     got `shouldBe` Nothing
+  specify "recipeID has to be stable regardless of store" $ do
+    let input = [ ["recipe_multi.yaml"],
+                  ["recipe_in.yaml", "recipe_url.yaml", "recipe_in_url.yaml", "recipe_multi.yaml"],
+                  ["recipe_url.yaml", "recipe_in.yaml", "recipe_multi.yaml", "recipe_in_url.yaml"]
+                ]
+    got <- traverse (idForStore "recipe 2") $ input
+    (length $ nub got) `shouldBe` 1
