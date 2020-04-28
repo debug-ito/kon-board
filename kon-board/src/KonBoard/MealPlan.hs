@@ -17,7 +17,7 @@ import Data.Time (Day)
 
 import KonBoard.Recipe.Store (RecipeSummary)
 
--- | Meal in a day.
+-- | Time of a meal in a day.
 data MealPhase =
     Breakfast
   | Lunch
@@ -43,6 +43,7 @@ instance ToJSON MealPhase where
       Dinner -> Aeson.String "dinner"
       MealOther p -> Aeson.object ["meal_phase" .= p]
 
+-- | Plan of a meal.
 data MealPlan =
   MealPlan
   { mealDay :: Day,
