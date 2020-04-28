@@ -13,7 +13,7 @@ plan:
     m: internal recipe with ingredient groups
   - d: 23
     p: dinner
-    m :recipe 2
+    m: recipe 2
 
   - d: 20
     p: lunch
