@@ -13,6 +13,7 @@ module KonBoard.Recipe.Store
     RecipeStore,
     openYAMLs,
     loadRecipeByName,
+    loadRecipeByName',
     loadRecipe,
     loadRecipeSummary,
     RecipeStoreException(..)
@@ -75,6 +76,7 @@ data RecipeStoreException =
     ConflictingID ID -- ^ ID conflict in the store.
   | ConflictingName Name -- ^ Name conflict in the store.
   | IDNotFound ID -- ^ ID is not found in the store.
+  | NameNotFound Name -- ^ Recipe name is not found in the store.
   deriving (Show,Eq,Ord)
 
 instance Exception RecipeStoreException
@@ -98,6 +100,11 @@ toRecipeSummary rid r = RecipeSummary rid $ recipeName r
 
 loadRecipeByName :: RecipeStore -> Name -> IO (Maybe RecipeSummary)
 loadRecipeByName store name = return $ fmap withIDToSummary $ HM.lookup name $ fromName store
+
+-- | Same as 'loadRecipeByName' except that 'Nothing' is converted to
+-- 'NameNotFound' exception.
+loadRecipeByName' :: RecipeStore -> Name -> IO RecipeSummary
+loadRecipeByName' rs n = maybe (throwIO $ NameNotFound n) return =<< loadRecipeByName rs n
 
 loadRecipe :: RecipeStore -> ID -> IO Recipe
 loadRecipe store rid = maybe (throwIO $ IDNotFound rid) return $ fmap rwRecipe $ HM.lookup rid $ fromID store
