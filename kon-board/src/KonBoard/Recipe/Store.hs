@@ -11,6 +11,8 @@ module KonBoard.Recipe.Store
     toRecipeSummary,
     -- * RecipeStore
     RecipeStore,
+    openYAMLs,
+    loadRecipeByName,
     loadRecipe,
     loadRecipeSummary
   ) where
@@ -36,8 +38,15 @@ data RecipeSummary =
 toRecipeSummary :: ID -> Recipe -> RecipeSummary
 toRecipeSummary rid r = RecipeSummary rid $ recipeName r
 
+loadRecipeByName :: RecipeStore -> Name -> IO (Maybe RecipeSummary)
+loadRecipeByName = undefined -- TODO
+
 loadRecipe :: RecipeStore -> ID -> IO Recipe
 loadRecipe = undefined -- TODO
 
 loadRecipeSummary :: RecipeStore -> ID -> IO RecipeSummary
 loadRecipeSummary store rid = fmap (toRecipeSummary rid) $ loadRecipe store rid
+
+-- | Open YAML files and make a 'RecipeStore'.
+openYAMLs :: [FilePath] -> IO RecipeStore
+openYAMLs = undefined
