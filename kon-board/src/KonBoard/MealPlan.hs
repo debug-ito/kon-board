@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, TemplateHaskell #-}
 -- |
 -- Module: KonBoard.MealPlan
 -- Description: Meal plan associated with recipes
@@ -15,6 +15,7 @@ import Data.Aeson (FromJSON(..), ToJSON(..), (.:), (.=))
 import qualified Data.Aeson as Aeson
 import Data.Text (Text)
 import Data.Time (Day)
+import qualified Elm.Derive as Elm
 
 import KonBoard.Recipe.Store (RecipeSummary)
 
@@ -52,3 +53,5 @@ data MealPlan =
     mealRecipe :: RecipeSummary
   }
   deriving (Show,Eq,Ord)
+
+$(Elm.deriveBoth Elm.defaultOptions ''MealPlan)
