@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 -- |
 -- Module: KonBoard.MealPlan
 -- Description: Meal plan associated with recipes

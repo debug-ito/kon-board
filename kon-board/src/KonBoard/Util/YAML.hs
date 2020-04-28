@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 -- |
 -- Module: KonBoard.Util.YAML
 -- Description: (Internal) Utilities related to YAML
