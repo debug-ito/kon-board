@@ -1,0 +1,19 @@
+---
+ym: 2020-04
+plan:
+  - d: 1
+    p: lunch
+    m: recipe 1
+  - d: 2
+    p: dinner
+    m: external recipe with URL
+---
+ym: 2020-05
+plan:
+  - d: 15
+    p: breakfast
+    m: internal recipe with ingredient groups
+  - d: 15
+    p: lunch
+    m: recipe 2
+---

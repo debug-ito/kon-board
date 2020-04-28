@@ -1,0 +1,29 @@
+---
+ym: 2020-04
+plan:
+  - d: 20
+    p: dinner
+    m: internal recipe with ingredient groups
+  - d: 21
+    p: dinner
+    m: recipe 2
+  - d: 22
+    p: dinner
+    m: internal recipe with ingredient groups
+  - d: 23
+    p: dinner
+    m :recipe 2
+
+  - d: 20
+    p: lunch
+    m: recipe 1
+  - d: 21
+    p: lunch
+    m: recipe 2
+  - d: 22
+    p: lunch
+    m: recipe 1
+  - d: 23
+    p: lunch
+    m: recipe 2
+

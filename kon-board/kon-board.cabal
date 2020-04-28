@@ -9,7 +9,9 @@ description:            kon-board backend server that manages meal recipes and c
 category:               Web
 cabal-version:          >= 1.10
 build-type:             Simple
-extra-source-files:     README.md, ChangeLog.md
+extra-source-files:     README.md, ChangeLog.md,
+                        test/recipe/*.yaml,
+                        test/meal-plan/*.yaml
 homepage:               https://github.com/debug-ito/kon-board
 bug-reports:            https://github.com/debug-ito/kon-board/issues
 
@@ -21,7 +23,8 @@ library
   -- other-extensions:     
   exposed-modules:      KonBoard.Recipe,
                         KonBoard.Recipe.Store,
-                        KonBoard.MealPlan
+                        KonBoard.MealPlan,
+                        KonBoard.MealPlan.Store
   -- other-modules:        
   build-depends:        base >=4.10 && <4.13,
                         text,
@@ -52,8 +55,9 @@ test-suite spec
   default-extensions:   OverloadedStrings, StrictData
   -- other-extensions:     
   other-modules:        KonBoard.RecipeSpec,
-                        KonBoard.Recipe.StoreSpec
-  build-depends:        base, kon-board, yaml, bytestring, text,
+                        KonBoard.Recipe.StoreSpec,
+                        KonBoard.MealPlan.StoreSpec
+  build-depends:        base, kon-board, yaml, bytestring, text, time,
                         hspec
 
 test-suite doctest

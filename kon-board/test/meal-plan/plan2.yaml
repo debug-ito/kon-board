@@ -1,0 +1,8 @@
+ym: 2020-04
+plan:
+  - d: 10
+    p: lunch
+    m: recipe 1
+  - d: 10
+    p: dinner
+    m: recipe 2
