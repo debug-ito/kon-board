@@ -14,10 +14,15 @@ import Control.Applicative (empty)
 import Data.Aeson (FromJSON(..), ToJSON(..), (.:), (.=))
 import qualified Data.Aeson as Aeson
 import Data.Text (Text)
+import qualified Data.Text as T
 import Data.Time (Day)
 import qualified Elm.Derive as Elm
 
 import KonBoard.Recipe.Store (RecipeSummary)
+
+-- $setup
+--
+-- >>> :set -XOverloadedStrings
 
 -- | Time of a meal in a day.
 data MealPhase =
@@ -27,23 +32,40 @@ data MealPhase =
   | MealOther Text
   deriving (Show,Eq,Ord)
 
+-- | Parse 'Text' into 'MealPhase'.
+--
+-- >>> toMealPhase "breakfast"
+-- Right Breakfast
+-- >>> toMealPhase "lunch"
+-- Right Lunch
+-- >>> toMealPhase "dinner"
+-- Right Dinner
+-- >>> toMealPhase "other:foo bar"
+-- Right (MealOther "foo bar")
+toMealPhase :: Text -> Either String MealPhase
+toMealPhase t =
+  case t of
+    "breakfast" -> Right Breakfast
+    "lunch" -> Right Lunch
+    "dinner" -> Right Dinner
+    _ -> maybe (Left ("Unknown MealPhase string: " <> show t)) (Right . MealOther)
+         $ T.stripPrefix "other:" t
+
+-- | Encode 'MealPhase' into 'Text'.
+fromMealPhase :: MealPhase -> Text
+fromMealPhase mp =
+  case mp of
+    Breakfast -> "breakfast"
+    Lunch -> "lunch"
+    Dinner -> "dinner"
+    MealOther t -> "other:" <> t
+
 instance FromJSON MealPhase where
-  parseJSON (Aeson.String s) =
-    case s of
-      "breakfast" -> return Breakfast
-      "lunch" -> return Lunch
-      "dinner" -> return Dinner
-      _ -> empty
-  parseJSON (Aeson.Object o) = MealOther <$> (o .: "meal_phase")
+  parseJSON (Aeson.String s) = either fail return $ toMealPhase s
   parseJSON _ = empty
 
 instance ToJSON MealPhase where
-  toJSON mp =
-    case mp of
-      Breakfast -> Aeson.String "breakfast"
-      Lunch -> Aeson.String "lunch"
-      Dinner -> Aeson.String "dinner"
-      MealOther p -> Aeson.object ["meal_phase" .= p]
+  toJSON mp = Aeson.String $ fromMealPhase mp
 
 -- | Plan of a meal.
 data MealPlan =
