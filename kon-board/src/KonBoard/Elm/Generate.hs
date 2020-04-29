@@ -11,9 +11,11 @@ module KonBoard.Elm.Generate
 import Data.Proxy (Proxy(..))
 import qualified Elm.Module as Elm
 
-import KonBoard.MealPlan (MealPlan)
+import KonBoard.Bridge.MealPlan (BMealPlan)
+import KonBoard.Bridge.Recipe (BRecipeSummary)
 
 main :: IO ()
-main = putStrLn $ Elm.makeElmModule "MealPlan" $
-       [ Elm.DefineElm (Proxy :: Proxy MealPlan)
+main = putStrLn $ Elm.makeElmModule "Bridge" $
+       [ Elm.DefineElm (Proxy :: Proxy BMealPlan),
+         Elm.DefineElm (Proxy :: Proxy BRecipeSummary)
        ]

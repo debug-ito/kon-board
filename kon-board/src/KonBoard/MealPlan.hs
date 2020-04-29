@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, TemplateHaskell #-}
+{-# LANGUAGE OverloadedStrings #-}
 -- |
 -- Module: KonBoard.MealPlan
 -- Description: Meal plan associated with recipes
@@ -53,5 +53,3 @@ data MealPlan =
     mealRecipe :: RecipeSummary
   }
   deriving (Show,Eq,Ord)
-
-$(Elm.deriveBoth Elm.defaultOptions ''MealPlan)

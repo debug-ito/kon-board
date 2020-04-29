@@ -25,6 +25,9 @@ library
                         KonBoard.Recipe.Store,
                         KonBoard.MealPlan,
                         KonBoard.MealPlan.Store,
+                        KonBoard.Bridge.MealPlan,
+                        KonBoard.Bridge.Recipe,
+                        KonBoard.Bridge.Util,
                         KonBoard.Util.YAML,
                         KonBoard.Elm.Generate
   -- other-modules:        

@@ -53,18 +53,6 @@ data RecipeSummary =
   }
   deriving (Show,Eq,Ord,Generic)
 
-aesonOpt :: Aeson.Options
-aesonOpt = Aeson.defaultOptions { Aeson.fieldLabelModifier = lmod }
-  where
-    lmod l = map toLower $ drop 2 l
-
-instance FromJSON RecipeSummary where
-  parseJSON = Aeson.genericParseJSON aesonOpt
-
-instance ToJSON RecipeSummary where
-  toJSON = Aeson.genericToJSON aesonOpt
-  toEncoding = Aeson.genericToEncoding aesonOpt
-
 data RecipeWithID =
   RecipeWithID
   { rwID :: ID,
