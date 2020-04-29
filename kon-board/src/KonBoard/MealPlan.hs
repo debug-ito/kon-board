@@ -6,8 +6,10 @@
 --
 -- 
 module KonBoard.MealPlan
-  ( MealPhase(..),
-    MealPlan(..)
+  ( MealPlan(..),
+    MealPhase(..),
+    toMealPhase,
+    fromMealPhase
   ) where
 
 import Control.Applicative (empty)

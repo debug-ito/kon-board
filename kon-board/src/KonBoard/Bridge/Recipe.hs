@@ -7,7 +7,8 @@
 -- 
 module KonBoard.Bridge.Recipe
   ( BRecipeSummary(..),
-    toBRecipeSummary
+    toBRecipeSummary,
+    fromBRecipeSummary
   ) where
 
 import Data.Text (Text)
@@ -18,6 +19,7 @@ import KonBoard.Recipe.Store
   ( RecipeSummary(..)
   )
 
+-- | Easy-to-encode version of 'RecipeSummary'.
 data BRecipeSummary =
   BRecipeSummary
   { br_id :: Text,
@@ -29,3 +31,6 @@ $(Elm.deriveBoth (dropLabelOptions 3) ''BRecipeSummary)
 
 toBRecipeSummary :: RecipeSummary -> BRecipeSummary
 toBRecipeSummary (RecipeSummary i n) = BRecipeSummary i n
+
+fromBRecipeSummary :: BRecipeSummary -> RecipeSummary
+fromBRecipeSummary (BRecipeSummary i n) = RecipeSummary i n
