@@ -6,9 +6,10 @@ module Main exposing
 import Browser
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
-import Html exposing (Html, div, text)
+import Html exposing (Html, div, text, ul, li)
 import Time
 import Date exposing (Date)
+import Date
 import Url exposing (Url)
 import String
 
@@ -30,6 +31,14 @@ type MealPhase = Breakfast
                | Lunch
                | Dinner
                | MealOther String
+
+mealPhaseString : MealPhase -> String
+mealPhaseString mp =
+    case mp of
+        Breakfast -> "朝"
+        Lunch -> "昼"
+        Dinner -> "夜"
+        MealOther s -> s
 
 {-| Calendar entry
 -}
@@ -55,8 +64,13 @@ type alias Msg = ()
 appInit : () -> Url -> Nav.Key -> (Model, Cmd Msg)
 appInit _ _ _ = ( { curTime = Time.millisToPosix 0
                   , timeZone = Time.utc
-                  , calendar = []
-                  }
+                  , calendar =
+                        [ { day = Date.fromCalendarDate 2020 Time.Apr 29
+                          , phase = Lunch
+                          , recipeSummary = Just {id = "foo", name = "ほげほげ"}
+                        }
+                        ]
+                  }  ---- This is just an example
                 , Cmd.none   
                 )
 
@@ -92,5 +106,16 @@ viewCurTime zone time =
     in text (hour ++ ":" ++ minute)
 
 viewCalendar : CalEntry -> List (Html Msg)
-viewCalendar _ = [text "TODO: CalEntry"]
+viewCalendar centry =
+    let divbody =
+            [ ul [] fieldlist
+            ]
+        fieldlist =
+            [ li [] [text ("day: " ++ Date.toIsoString centry.day)]
+            , li [] [text ("phase: " ++ mealPhaseString centry.phase)]
+            ]
+            ++ case centry.recipeSummary of
+                   Nothing -> []
+                   Just rs -> [li [] [text ("meal: " ++ rs.name)]]
+    in [div [] divbody]
 
