@@ -14,6 +14,8 @@ import Url exposing (Url)
 import String
 
 import Bridge exposing (BRecipeSummary)
+import MealPhase exposing (MealPhase(..))
+import MealPhase
 
 ---- Types
 
@@ -24,21 +26,6 @@ type alias Model =
     , timeZone : Time.Zone
     , calendar : List CalEntry
     }
-
-{-| Phase of a meal.
--}
-type MealPhase = Breakfast
-               | Lunch
-               | Dinner
-               | MealOther String
-
-mealPhaseString : MealPhase -> String
-mealPhaseString mp =
-    case mp of
-        Breakfast -> "朝"
-        Lunch -> "昼"
-        Dinner -> "夜"
-        MealOther s -> s
 
 {-| Calendar entry
 -}
@@ -112,7 +99,7 @@ viewCalendar centry =
             ]
         fieldlist =
             [ li [] [text ("day: " ++ Date.toIsoString centry.day)]
-            , li [] [text ("phase: " ++ mealPhaseString centry.phase)]
+            , li [] [text ("phase: " ++ MealPhase.toString centry.phase)]
             ]
             ++ case centry.recipeSummary of
                    Nothing -> []
