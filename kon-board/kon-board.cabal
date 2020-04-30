@@ -30,7 +30,6 @@ library
                         KonBoard.Bridge.Recipe,
                         KonBoard.Bridge.Util,
                         KonBoard.Util.YAML,
-                        KonBoard.Exec.ElmGenerate,
                         KonBoard.Web.API
   -- other-modules:        
   build-depends:        base >=4.10 && <4.13,
@@ -44,7 +43,6 @@ library
                         base16-bytestring,
                         safe-exceptions,
                         elm-bridge,
-                        servant-elm,
                         servant-server
 
 executable kon-board-gen-elm
@@ -55,7 +53,9 @@ executable kon-board-gen-elm
   -- other-modules:        
   default-extensions:   OverloadedStrings, StrictData
   -- other-extensions:     
-  build-depends:        base, kon-board
+  build-depends:        base, kon-board,
+                        -- servant-elm has a little heavy dependency.
+                        servant-elm
 
 test-suite spec
   type:                 exitcode-stdio-1.0
