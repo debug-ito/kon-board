@@ -3,4 +3,4 @@
 thisdir=`dirname "$0"`
 
 stack test \
-    && stack run kon-board-gen-elm > "$thisdir/kon-elm/src/Bridge.elm"
+    && stack run kon-board-gen-elm "$thisdir/kon-elm/src"

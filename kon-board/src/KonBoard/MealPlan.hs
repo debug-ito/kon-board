@@ -18,7 +18,6 @@ import qualified Data.Aeson as Aeson
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time (Day)
-import qualified Elm.Derive as Elm
 
 import KonBoard.Recipe.Store (RecipeSummary)
 

@@ -44,6 +44,7 @@ library
                         base16-bytestring,
                         safe-exceptions,
                         elm-bridge,
+                        servant-elm,
                         servant-server
 
 executable kon-board-gen-elm

@@ -42,6 +42,7 @@ packages:
 #
 extra-deps:
 - elm-bridge-0.6.0
+- servant-elm-0.7.2
 
 # Override default flag values for local packages and extra-deps
 # flags: {}
