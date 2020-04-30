@@ -39,7 +39,7 @@ type AppAPI = DataAPI
 data Server where
   Server ::
     ( AMealPlanStore s
-    )=>
+    ) =>
     { sMealPlanStore :: s,
       sDirStatic :: FilePath
     } -> Server
