@@ -20,7 +20,8 @@ library
   hs-source-dirs:       src
   ghc-options:          -Wall -fno-warn-unused-imports
   default-extensions:   OverloadedStrings, StrictData
-  other-extensions:     DeriveGeneric, TemplateHaskell
+  other-extensions:     DeriveGeneric, TemplateHaskell,
+                        DataKinds, TypeOperators
   exposed-modules:      KonBoard.Recipe,
                         KonBoard.Recipe.Store,
                         KonBoard.MealPlan,
@@ -42,7 +43,8 @@ library
                         cryptohash-md5,
                         base16-bytestring,
                         safe-exceptions,
-                        elm-bridge
+                        elm-bridge,
+                        servant-server
 
 executable kon-board-gen-elm
   default-language:     Haskell2010
