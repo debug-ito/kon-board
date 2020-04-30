@@ -21,16 +21,13 @@ type alias CalEntry =
 
 fromBMealPlan : BMealPlan -> Result String CalEntry
 fromBMealPlan mp =
-    MealPhase.parseString mp.phase
-        |> Result.andThen
-           ( \p -> parseMonth mp.month
-           |> Result.andThen
-              ( \m -> Ok { day = Date.fromCalendarDate mp.year m mp.day
-                         , phase = p
-                         , recipeSummary = Just mp.recipe_summary
-                         }
-              )
-           )
+    MealPhase.parseString mp.phase |> Result.andThen
+    ( \p -> parseMonth mp.month |> Result.andThen
+    ( \m -> Ok { day = Date.fromCalendarDate mp.year m mp.day
+               , phase = p
+               , recipeSummary = Just mp.recipe_summary
+               }
+    ))
 
 parseMonth : Int -> Result String Time.Month
 parseMonth m =
