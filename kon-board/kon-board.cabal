@@ -59,7 +59,7 @@ executable kon-board-gen-elm
   -- other-modules:        
   default-extensions:   OverloadedStrings, StrictData
   -- other-extensions:     
-  build-depends:        base, kon-board,
+  build-depends:        base, kon-board, elm-bridge,
                         -- servant-elm has a little heavy dependency.
                         servant-elm
 

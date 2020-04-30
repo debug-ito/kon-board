@@ -4,7 +4,7 @@ module Main
 
 import Data.Proxy (Proxy(..))
 import qualified Servant.Elm as Elm
--- import qualified Elm.TyRep as ElmT
+import qualified Elm.TyRep as ElmT
 import System.Environment (getArgs)
 
 import KonBoard.Bridge.MealPlan (BMealPlan)
@@ -17,7 +17,8 @@ main = do
   (dir : _) <- getArgs
   Elm.generateElmModuleWith opts namespaces elm_imports dir defs api_proxy
   where
-    opts = Elm.defElmOptions { Elm.elmTypeAlterations = typeAlt
+    opts = Elm.defElmOptions { Elm.elmTypeAlterations = typeAlt,
+                               Elm.elmToString = customToString
                              }
     namespaces = ["Bridge"]
     defs =
@@ -28,5 +29,5 @@ main = do
     api_proxy = Proxy :: Proxy DataAPI
     elm_imports = Elm.defElmImports
     typeAlt = Elm.defaultTypeAlterations
-    -- typeAlt (Elm.ETyCon (ElmT.ETCon "Day")) = Elm.ETyCon (ElmT.ETCon "SDay")
-    -- typeAlt t = 
+    customToString (Elm.ETyCon (ElmT.ETCon "BDay")) = "identity"
+    customToString t = Elm.defaultElmToString t
