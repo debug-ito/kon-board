@@ -47,8 +47,13 @@ main = Browser.application
        , onUrlChange = appOnUrlChange
        }
 
+{-| Main program msg
+-}
 type Msg = NoOp
+         -- | Initiallize the current time
          | InitTime Time.Posix Time.Zone
+         -- | Update the current time
+         | TickTime Time.Posix
 
 appInit : () -> Url -> Nav.Key -> (Model, Cmd Msg)
 appInit _ _ _ = ( { curTime = Time.millisToPosix 0
@@ -73,9 +78,10 @@ appUpdate msg model =
     case msg of
         NoOp -> (model, Cmd.none)
         InitTime t z -> ({ model | curTime = t, timeZone = z }, Cmd.none)
+        TickTime t -> ({ model | curTime = t }, Cmd.none)
 
 appSub : Model -> Sub Msg
-appSub _ = Sub.none
+appSub _ = Time.every 5000 TickTime
 
 appOnUrlRequest : UrlRequest -> Msg
 appOnUrlRequest _ = NoOp
