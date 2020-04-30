@@ -1,4 +1,4 @@
-{-# LANGUAGE GADTs #-}
+{-# LANGUAGE GADTs, TypeOperators, DataKinds #-}
 -- |
 -- Module: KonBoard.Web.App
 -- Description: Web application of KonBoard
@@ -19,7 +19,8 @@ import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TL
 import Servant
   ( Application, Handler,
-    ServantErr(errBody)
+    ServantErr(errBody),
+    (:>), (:<|>)(..), Raw
   )
 import qualified Servant as Sv
 import System.FilePath.Glob (glob)
@@ -31,12 +32,16 @@ import qualified KonBoard.MealPlan.Store as MealPlan
 import qualified KonBoard.Recipe.Store as Recipe
 import KonBoard.Web.API (DataAPI)
 
+type AppAPI = DataAPI
+              :<|> "static" :> Raw
+
 -- | Everything you need run the Web application.
 data Server where
   Server ::
     ( AMealPlanStore s
     )=>
-    { sMealPlanStore :: s
+    { sMealPlanStore :: s,
+      sDirStatic :: FilePath
     } -> Server
 
 toHandler :: Show e => ServantErr -> Either e a -> Handler a
@@ -58,10 +63,13 @@ handleGetMealPlans store bs be = do
 
 -- | Make 'Application' from 'Server'.
 appWith :: Server -> Application
-appWith Server { sMealPlanStore = mp_store } = Sv.serve api service
+appWith Server { sMealPlanStore = mp_store,
+                 sDirStatic = dir_static
+               } = Sv.serve api service
   where
-    api = Proxy :: Proxy DataAPI
+    api = Proxy :: Proxy AppAPI
     service = handleGetMealPlans mp_store
+              :<|> Sv.serveDirectoryWebApp dir_static
 
 makeDefaultServer :: IO Server
 makeDefaultServer = do
@@ -69,5 +77,6 @@ makeDefaultServer = do
   mealplan_files <- glob "meal-plans/*.yaml"
   rstore <- Recipe.openYAMLs recipe_files
   mstore <- MealPlan.openYAMLs rstore mealplan_files
-  return $ Server { sMealPlanStore = mstore
+  return $ Server { sMealPlanStore = mstore,
+                    sDirStatic = "static"
                   }
