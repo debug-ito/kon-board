@@ -10,7 +10,7 @@ import System.Environment (getArgs)
 import KonBoard.Bridge.MealPlan (BMealPlan)
 import KonBoard.Bridge.Recipe (BRecipeSummary)
 import KonBoard.Bridge.Time (BDay)
-import KonBoard.Web.API (GetMealPlans)
+import KonBoard.Web.API (DataAPI)
 
 main :: IO ()
 main = do
@@ -25,7 +25,7 @@ main = do
         Elm.DefineElm (Proxy :: Proxy BRecipeSummary),
         Elm.DefineElm (Proxy :: Proxy BDay)
       ]
-    api_proxy = Proxy :: Proxy GetMealPlans
+    api_proxy = Proxy :: Proxy DataAPI
     elm_imports = Elm.defElmImports
     typeAlt = Elm.defaultTypeAlterations
     -- typeAlt (Elm.ETyCon (ElmT.ETCon "Day")) = Elm.ETyCon (ElmT.ETCon "SDay")

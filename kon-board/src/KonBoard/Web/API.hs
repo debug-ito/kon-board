@@ -6,7 +6,7 @@
 --
 -- 
 module KonBoard.Web.API
-  ( GetMealPlans
+  ( DataAPI
   ) where
 
 -- import Servant.API
@@ -14,6 +14,8 @@ import Servant
 
 import KonBoard.Bridge.MealPlan (BMealPlan)
 import KonBoard.Bridge.Time (BDay)
+
+type DataAPI = GetMealPlans
 
 type GetMealPlans =
   "meal-plans"
