@@ -53,16 +53,14 @@ type Msg = NoOp
          | MealPlansLoaded (List BMealPlan)
          | BackendError String
 
+calendarPeriodDays : Int
+calendarPeriodDays = 9
+        
 appInit : () -> Url -> Nav.Key -> (Model, Cmd Msg)
 appInit _ _ _ = ( { curTime = Time.millisToPosix 0
                   , timeZone = Time.utc
-                  , calendar =
-                        [ { day = Date.fromCalendarDate 2020 Time.Apr 29
-                          , phase = Lunch
-                          , recipeSummary = Just {id = "foo", name = "ほげほげ"}
-                        }
-                        ]
-                  }  ---- This is just an example
+                  , calendar = []
+                  }
                 , initTime
                 )
 
@@ -75,7 +73,11 @@ appUpdate : Msg -> Model -> (Model, Cmd Msg)
 appUpdate msg model =
     case msg of
         NoOp -> (model, Cmd.none)
-        InitTime t z -> ( { model | curTime = t, timeZone = z }
+        InitTime t z -> ( { model |
+                            curTime = t
+                          , timeZone = z
+                          , calendar = CalEntry.forDays (Date.fromPosix z t) calendarPeriodDays
+                          }
                         , loadMealPlans t z
                         )
         TickTime t -> ({ model | curTime = t }, Cmd.none)
@@ -95,9 +97,6 @@ initTime : Cmd Msg
 initTime =
     Task.perform identity <| Task.map2 InitTime Time.now Time.here
 
-calendarPeriodDays : Int
-calendarPeriodDays = 9
-        
 loadMealPlans : Time.Posix -> Time.Zone -> Cmd Msg
 loadMealPlans time zone =
     let start_day = Date.fromPosix zone time

@@ -1,14 +1,17 @@
 module CalEntry exposing
-    ( CalEntry,
-      fromBMealPlan
+    ( CalEntry
+    , fromBMealPlan
+    , forDays
     )
 
 import Date exposing (Date)
+import Date
+import List
 import Result
 import Time
 
 import Bridge exposing (BMealPlan, BRecipeSummary)
-import MealPhase exposing (MealPhase)
+import MealPhase exposing (MealPhase(..))
 import MealPhase
         
 {-| Calendar entry
@@ -46,3 +49,9 @@ parseMonth m =
         12 -> Ok Time.Dec
         _ ->  Err ("Invalid month: " ++ String.fromInt m)
 
+forDays : Date -> Int -> List CalEntry
+forDays start days =
+    let makeEnd dif = Date.add Date.Days dif start
+        makeCalEntries dif = List.map (\p -> { day = makeEnd dif, phase = p, recipeSummary = Nothing })
+                             <| [Lunch, Dinner]
+    in List.concatMap makeCalEntries <| List.range 0 days
