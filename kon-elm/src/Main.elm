@@ -51,7 +51,7 @@ type Msg = NoOp
          -- | Update the current time
          | TickTime Time.Posix
          | MealPlansLoaded (List BMealPlan)
-         | BackendError String
+         | ErrorMsg String
 
 calendarPeriodDays : Int
 calendarPeriodDays = 9
@@ -81,8 +81,11 @@ appUpdate msg model =
                         , loadMealPlans t z
                         )
         TickTime t -> ({ model | curTime = t }, Cmd.none)
-        MealPlansLoaded mps -> (model, Cmd.none) -- TODO
-        BackendError _ -> (model, Cmd.none) -- TODO
+        MealPlansLoaded mps ->
+            case CalEntry.mergeList mps model.calendar of
+                Err _ -> (model, Cmd.none) -- TODO: show error somehow
+                Ok new_cals -> ({ model | calendar = new_cals }, Cmd.none)
+        ErrorMsg _ -> (model, Cmd.none) -- TODO: show error somehow
 
 appSub : Model -> Sub Msg
 appSub _ = Time.every 5000 TickTime
@@ -104,7 +107,7 @@ loadMealPlans time zone =
         handle ret =
             case ret of
                 Ok mps -> MealPlansLoaded mps
-                Err _ -> BackendError "Error in loadMealPlans" -- TODO: encode the HTTP error
+                Err _ -> ErrorMsg "Error in loadMealPlans" -- TODO: encode the HTTP error
     in Bridge.getMealplans (Date.toIsoString start_day) (Date.toIsoString end_day) handle
 
 ---- View
