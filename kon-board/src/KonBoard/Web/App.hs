@@ -7,7 +7,8 @@
 -- 
 module KonBoard.Web.App
   ( appWith,
-    Server(..)
+    Server(..),
+    makeDefaultServer
   ) where
 
 import Control.Applicative ((<$>), (<*>))
@@ -21,10 +22,13 @@ import Servant
     ServantErr(errBody)
   )
 import qualified Servant as Sv
+import System.FilePath.Glob (glob)
 
 import KonBoard.Bridge.Time (BDay, fromBDay)
 import KonBoard.Bridge.MealPlan (BMealPlan, toBMealPlan)
 import KonBoard.MealPlan.Store (AMealPlanStore(..))
+import qualified KonBoard.MealPlan.Store as MealPlan
+import qualified KonBoard.Recipe.Store as Recipe
 import KonBoard.Web.API (DataAPI)
 
 -- | Everything you need run the Web application.
@@ -58,3 +62,12 @@ appWith Server { sMealPlanStore = mp_store } = Sv.serve api service
   where
     api = Proxy :: Proxy DataAPI
     service = handleGetMealPlans mp_store
+
+makeDefaultServer :: IO Server
+makeDefaultServer = do
+  recipe_files <- glob "recipes/*.yaml"
+  mealplan_files <- glob "meal-plans/*.yaml"
+  rstore <- Recipe.openYAMLs recipe_files
+  mstore <- MealPlan.openYAMLs rstore mealplan_files
+  return $ Server { sMealPlanStore = mstore
+                  }

@@ -47,7 +47,8 @@ library
                         base16-bytestring,
                         safe-exceptions,
                         elm-bridge,
-                        servant-server
+                        servant-server,
+                        Glob
 
 executable kon-board-gen-elm
   default-language:     Haskell2010
