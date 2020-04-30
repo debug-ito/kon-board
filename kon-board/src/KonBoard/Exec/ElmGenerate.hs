@@ -1,10 +1,10 @@
 -- |
--- Module: KonBoard.Elm.Generate
+-- Module: KonBoard.Exec.ElmGenerate
 -- Description: Generate Elm sources
 -- Maintainer: Toshio Ito <debug.ito@gmail.com>
 --
 -- 
-module KonBoard.Elm.Generate
+module KonBoard.Exec.ElmGenerate
   ( main
   ) where
 

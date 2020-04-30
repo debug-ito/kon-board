@@ -29,7 +29,8 @@ library
                         KonBoard.Bridge.Recipe,
                         KonBoard.Bridge.Util,
                         KonBoard.Util.YAML,
-                        KonBoard.Elm.Generate
+                        KonBoard.Exec.ElmGenerate,
+                        KonBoard.Web.API
   -- other-modules:        
   build-depends:        base >=4.10 && <4.13,
                         text,
