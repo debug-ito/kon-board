@@ -1,6 +1,7 @@
 module MealPhase exposing
     ( MealPhase(..)
     , toString
+    , parseString
     )
 
 {-| MealPhase type. -}
@@ -20,3 +21,10 @@ toString mp =
         Dinner -> "夜"
         MealOther s -> s
 
+parseString : String -> Result String MealPhase
+parseString s =
+    case s of
+        "breakfast" -> Ok Breakfast
+        "lunch" -> Ok Lunch
+        "dinner" -> Ok Dinner
+        _ -> Err ("Unknown MealPhase: " ++ s) -- TODO: parser for MealOther
