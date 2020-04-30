@@ -11,10 +11,12 @@ import Time
 import Date exposing (Date)
 import Date
 import Url exposing (Url)
+import Result
 import String
 import Task
 
-import Bridge exposing (BRecipeSummary)
+import Bridge exposing (BRecipeSummary, BMealPlan)
+import Bridge
 import MealPhase exposing (MealPhase(..))
 import MealPhase
 
@@ -36,6 +38,36 @@ type alias CalEntry =
     , recipeSummary : Maybe BRecipeSummary
     }
 
+parseMonth : Int -> Result String Time.Month
+parseMonth m =
+    case m of
+        1 ->  Ok Time.Jan
+        2 ->  Ok Time.Feb
+        3 ->  Ok Time.Mar
+        4 ->  Ok Time.Apr
+        5 ->  Ok Time.May
+        6 ->  Ok Time.Jun
+        7 ->  Ok Time.Jul
+        8 ->  Ok Time.Aug
+        9 ->  Ok Time.Sep
+        10 -> Ok Time.Oct
+        11 -> Ok Time.Nov
+        12 -> Ok Time.Dec
+        _ ->  Err ("Invalid month: " ++ String.fromInt m)
+    
+makeCalEntry : BMealPlan -> Result String CalEntry
+makeCalEntry mp =
+    MealPhase.parseString mp.phase
+        |> Result.andThen
+           ( \p -> parseMonth mp.month
+           |> Result.andThen
+              ( \m -> Ok { day = Date.fromCalendarDate mp.year m mp.day
+                         , phase = p
+                         , recipeSummary = Just mp.recipe_summary
+                         }
+              )
+           )
+
 ---- Main
 
 main = Browser.application
@@ -54,6 +86,8 @@ type Msg = NoOp
          | InitTime Time.Posix Time.Zone
          -- | Update the current time
          | TickTime Time.Posix
+         | MealPlansLoaded (List BMealPlan)
+         | BackendError String
 
 appInit : () -> Url -> Nav.Key -> (Model, Cmd Msg)
 appInit _ _ _ = ( { curTime = Time.millisToPosix 0
@@ -77,8 +111,12 @@ appUpdate : Msg -> Model -> (Model, Cmd Msg)
 appUpdate msg model =
     case msg of
         NoOp -> (model, Cmd.none)
-        InitTime t z -> ({ model | curTime = t, timeZone = z }, Cmd.none)
+        InitTime t z -> ( { model | curTime = t, timeZone = z }
+                        , loadMealPlans t z
+                        )
         TickTime t -> ({ model | curTime = t }, Cmd.none)
+        MealPlansLoaded mps -> (model, Cmd.none) -- TODO
+        BackendError _ -> (model, Cmd.none) -- TODO
 
 appSub : Model -> Sub Msg
 appSub _ = Time.every 5000 TickTime
@@ -92,6 +130,19 @@ appOnUrlChange _ = NoOp
 initTime : Cmd Msg
 initTime =
     Task.perform identity <| Task.map2 InitTime Time.now Time.here
+
+calendarPeriodDays : Int
+calendarPeriodDays = 9
+        
+loadMealPlans : Time.Posix -> Time.Zone -> Cmd Msg
+loadMealPlans time zone =
+    let start_day = Date.fromPosix zone time
+        end_day = Date.add Date.Days calendarPeriodDays start_day
+        handle ret =
+            case ret of
+                Ok mps -> MealPlansLoaded mps
+                Err _ -> BackendError "Error in loadMealPlans" -- TODO: encode the HTTP error
+    in Bridge.getMealplans (Date.toIsoString start_day) (Date.toIsoString end_day) handle
 
 ---- View
 
