@@ -1,4 +1,4 @@
-{-# LANGUAGE GADTs, TypeOperators, DataKinds #-}
+{-# LANGUAGE GADTs, TypeOperators, DataKinds, OverloadedStrings #-}
 -- |
 -- Module: KonBoard.Web.App
 -- Description: Web application of KonBoard
@@ -17,6 +17,7 @@ import Control.Monad.Trans (liftIO)
 import Data.Proxy (Proxy(..))
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TL
+import Network.Wai.Middleware.Rewrite (rewritePureWithQueries)
 import Servant
   ( Application, Handler,
     ServantErr(errBody),
@@ -65,11 +66,16 @@ handleGetMealPlans store bs be = do
 appWith :: Server -> Application
 appWith Server { sMealPlanStore = mp_store,
                  sDirStatic = dir_static
-               } = Sv.serve api service
+               } = application
   where
+    application = rewriteRoot $ Sv.serve api service
     api = Proxy :: Proxy AppAPI
     service = handleGetMealPlans mp_store
               :<|> Sv.serveDirectoryWebApp dir_static
+    rewriteRoot = rewritePureWithQueries rewrite
+      where
+        rewrite ([], q) _ = (["static", "index.html"], q)
+        rewrite pq _ = pq
 
 makeDefaultServer :: IO Server
 makeDefaultServer = do

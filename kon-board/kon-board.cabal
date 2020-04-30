@@ -48,6 +48,7 @@ library
                         safe-exceptions,
                         elm-bridge,
                         servant-server,
+                        wai-extra,
                         Glob
 
 executable kon-board-gen-elm
