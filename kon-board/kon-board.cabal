@@ -29,6 +29,7 @@ library
                         KonBoard.Bridge.MealPlan,
                         KonBoard.Bridge.Recipe,
                         KonBoard.Bridge.Util,
+                        KonBoard.Bridge.Time,
                         KonBoard.Util.YAML,
                         KonBoard.Web.API
   -- other-modules:        

@@ -9,14 +9,14 @@ module KonBoard.Web.API
   ( GetMealPlans
   ) where
 
-import Data.Time (Day)
 -- import Servant.API
 import Servant
 
 import KonBoard.Bridge.MealPlan (BMealPlan)
+import KonBoard.Bridge.Time (BDay)
 
 type GetMealPlans =
   "meal-plans"
-  :> QueryParam' [Required, Strict] "start" Day
-  :> QueryParam' [Required, Strict] "end" Day
+  :> QueryParam' [Required, Strict] "start" BDay
+  :> QueryParam' [Required, Strict] "end" BDay
   :> Get '[JSON] [BMealPlan]
