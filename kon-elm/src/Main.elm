@@ -17,6 +17,8 @@ import Task
 
 import Bridge exposing (BRecipeSummary, BMealPlan)
 import Bridge
+import CalEntry exposing (CalEntry)
+import CalEntry
 import MealPhase exposing (MealPhase(..))
 import MealPhase
 
@@ -29,45 +31,7 @@ type alias Model =
     , timeZone : Time.Zone
     , calendar : List CalEntry
     }
-
-{-| Calendar entry
--}
-type alias CalEntry =
-    { day : Date
-    , phase : MealPhase
-    , recipeSummary : Maybe BRecipeSummary
-    }
-
-parseMonth : Int -> Result String Time.Month
-parseMonth m =
-    case m of
-        1 ->  Ok Time.Jan
-        2 ->  Ok Time.Feb
-        3 ->  Ok Time.Mar
-        4 ->  Ok Time.Apr
-        5 ->  Ok Time.May
-        6 ->  Ok Time.Jun
-        7 ->  Ok Time.Jul
-        8 ->  Ok Time.Aug
-        9 ->  Ok Time.Sep
-        10 -> Ok Time.Oct
-        11 -> Ok Time.Nov
-        12 -> Ok Time.Dec
-        _ ->  Err ("Invalid month: " ++ String.fromInt m)
     
-makeCalEntry : BMealPlan -> Result String CalEntry
-makeCalEntry mp =
-    MealPhase.parseString mp.phase
-        |> Result.andThen
-           ( \p -> parseMonth mp.month
-           |> Result.andThen
-              ( \m -> Ok { day = Date.fromCalendarDate mp.year m mp.day
-                         , phase = p
-                         , recipeSummary = Just mp.recipe_summary
-                         }
-              )
-           )
-
 ---- Main
 
 main = Browser.application
