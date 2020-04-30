@@ -21,7 +21,8 @@ library
   ghc-options:          -Wall -fno-warn-unused-imports
   default-extensions:   OverloadedStrings, StrictData
   other-extensions:     DeriveGeneric, TemplateHaskell,
-                        DataKinds, TypeOperators
+                        DataKinds, TypeOperators,
+                        GADTs, GeneralizedNewtypeDeriving
   exposed-modules:      KonBoard.Recipe,
                         KonBoard.Recipe.Store,
                         KonBoard.MealPlan,
@@ -31,7 +32,8 @@ library
                         KonBoard.Bridge.Util,
                         KonBoard.Bridge.Time,
                         KonBoard.Util.YAML,
-                        KonBoard.Web.API
+                        KonBoard.Web.API,
+                        KonBoard.Web.App
   -- other-modules:        
   build-depends:        base >=4.10 && <4.13,
                         text,
@@ -39,6 +41,7 @@ library
                         aeson,
                         unordered-containers,
                         bytestring,
+                        mtl,
                         time,
                         cryptohash-md5,
                         base16-bytestring,
