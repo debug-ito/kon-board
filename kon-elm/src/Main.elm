@@ -12,6 +12,7 @@ import Date exposing (Date)
 import Date
 import Url exposing (Url)
 import String
+import Task
 
 import Bridge exposing (BRecipeSummary)
 import MealPhase exposing (MealPhase(..))
@@ -46,7 +47,8 @@ main = Browser.application
        , onUrlChange = appOnUrlChange
        }
 
-type alias Msg = ()
+type Msg = NoOp
+         | InitTime Time.Posix Time.Zone
 
 appInit : () -> Url -> Nav.Key -> (Model, Cmd Msg)
 appInit _ _ _ = ( { curTime = Time.millisToPosix 0
@@ -58,7 +60,7 @@ appInit _ _ _ = ( { curTime = Time.millisToPosix 0
                         }
                         ]
                   }  ---- This is just an example
-                , Cmd.none   
+                , initTime
                 )
 
 appView : Model -> Document Msg
@@ -67,16 +69,23 @@ appView m = { title = "kon-board"
             }
 
 appUpdate : Msg -> Model -> (Model, Cmd Msg)
-appUpdate _ cur_model = (cur_model, Cmd.none)
+appUpdate msg model =
+    case msg of
+        NoOp -> (model, Cmd.none)
+        InitTime t z -> ({ model | curTime = t, timeZone = z }, Cmd.none)
 
 appSub : Model -> Sub Msg
 appSub _ = Sub.none
 
 appOnUrlRequest : UrlRequest -> Msg
-appOnUrlRequest _ = ()
+appOnUrlRequest _ = NoOp
 
 appOnUrlChange : Url -> Msg
-appOnUrlChange _ = ()
+appOnUrlChange _ = NoOp
+
+initTime : Cmd Msg
+initTime =
+    Task.perform identity <| Task.map2 InitTime Time.now Time.here
 
 ---- View
 
