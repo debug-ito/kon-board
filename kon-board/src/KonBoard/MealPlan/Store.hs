@@ -61,7 +61,7 @@ fromMonthPlan rstore mp = traverse toMP $ mp_plan mp
       return $ MealPlan
                { mealDay = fromGregorian (mp_year mp) (mp_month mp) (dp_d dp),
                  mealPhase = dp_p dp,
-                 mealRecipe = rsummary
+                 mealRecipes = return rsummary
                }
 
 data MonthPlan =

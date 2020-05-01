@@ -1,5 +1,6 @@
 module KonBoard.MealPlan.StoreSpec (main,spec) where
 
+import Data.Foldable (toList)
 import Data.Time (fromGregorian, Day)
 import Test.Hspec
 
@@ -39,8 +40,11 @@ spec_YAMLStore = before makeStore $ specForStore "YAMLStore"
                    "plan3.yaml"
                  ]
 
-planWithoutID :: MealPlan -> (Day, MealPhase, Name)
-planWithoutID mp = (mealDay mp, mealPhase mp, rsName $ mealRecipe mp)
+planWithoutID :: MealPlan -> (Day, MealPhase, [Name])
+planWithoutID mp = ( mealDay mp,
+                     mealPhase mp,
+                     map rsName $ toList $ mealRecipes mp
+                   )
 
 specForStore :: AMealPlanStore s => String -> SpecWith s
 specForStore store_name = describe store_name $ do
@@ -49,25 +53,25 @@ specForStore store_name = describe store_name $ do
       searchMealPlans s (day 2020 3 1) (day 2020 3 20) `shouldReturn` []
     specify "exclusive range" $ \s -> do
       let expected =
-            [ (day 2020 4 1, Lunch, "recipe 1"),
-              (day 2020 4 2, Dinner, "external recipe with URL")
+            [ (day 2020 4 1, Lunch, ["recipe 1"]),
+              (day 2020 4 2, Dinner, ["external recipe with URL"])
             ]
       got <- searchMealPlans s (day 2020 4 1) (day 2020 4 10)
       map planWithoutID got `shouldBe` expected
     specify "lunch and dinner" $ \s -> do
       let expected =
-            [ (day 2020 4 2, Dinner, "external recipe with URL"),
-              (day 2020 4 10, Lunch, "recipe 1"),
-              (day 2020 04 10, Dinner, "recipe 2")
+            [ (day 2020 4 2, Dinner, ["external recipe with URL"]),
+              (day 2020 4 10, Lunch, ["recipe 1"]),
+              (day 2020 04 10, Dinner, ["recipe 2"])
             ]
       got <- searchMealPlans s (day 2020 4 2) (day 2020 4 11)
       map planWithoutID got `shouldBe` expected
     specify "sorted by day and phase" $ \s -> do
       let expected =
-            [ (day 2020 4 23, Lunch, "recipe 2"),
-              (day 2020 4 23, Dinner, "recipe 2"),
-              (day 2020 5 15, Breakfast, "internal recipe with ingredient groups"),
-              (day 2020 5 15, Lunch, "recipe 2")
+            [ (day 2020 4 23, Lunch, ["recipe 2"]),
+              (day 2020 4 23, Dinner, ["recipe 2"]),
+              (day 2020 5 15, Breakfast, ["internal recipe with ingredient groups"]),
+              (day 2020 5 15, Lunch, ["recipe 2"])
             ]
       got <- searchMealPlans s (day 2020 4 23) (day 2020 5 16)
       map planWithoutID got `shouldBe` expected
