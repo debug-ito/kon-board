@@ -1,5 +1,6 @@
 module CalEntry exposing
     ( CalEntry
+    , DayMeal
     , fromBMealPlan
     , forDays
     , merge
@@ -16,13 +17,19 @@ import Time
 import Bridge exposing (BMealPlan, BRecipeSummary)
 import MealPhase exposing (MealPhase(..))
 import MealPhase
+
+{-| Meal in a day.
+-}
+type alias DayMeal =
+    { phase : MealPhase
+    , recipes : List BRecipeSummary
+    }
         
 {-| Calendar entry
 -}
 type alias CalEntry =
     { day : Date
-    , phase : MealPhase
-    , recipeSummaries : List BRecipeSummary
+    , meals : List DayMeal
     }
 
 fromBMealPlan : BMealPlan -> Result String CalEntry
@@ -30,10 +37,18 @@ fromBMealPlan mp =
     MealPhase.parseString mp.phase |> Result.andThen
     ( \p -> parseMonth mp.month |> Result.andThen
     ( \m -> Ok { day = Date.fromCalendarDate mp.year m mp.day
-               , phase = p
-               , recipeSummaries = mp.recipes
+               , recipes = [{phase = p, recipes = mp.recipes}]
                }
     ))
+
+mealFor : Date -> MealPhase -> CalEntry -> Maybe DayMeal
+mealFor d mp cal =
+    if cal.day != d
+    then Nothing
+    else List.head <| List.filter (\dm -> dm.phase == mp) cal.meals
+
+setDayMeal : DayMeal -> CalEntry -> CalEntry
+setDayMeal =  -- TODO
 
 parseMonth : Int -> Result String Time.Month
 parseMonth m =
@@ -55,10 +70,12 @@ parseMonth m =
 forDays : Date -> Int -> List CalEntry
 forDays start days =
     let makeEnd dif = Date.add Date.Days dif start
-        makeCalEntries dif = List.map (\p -> { day = makeEnd dif, phase = p, recipeSummaries = [] })
-                             <| [Lunch, Dinner]
+        makeCalEntries dif = [{ day = makeEnd dif, meals = [] }]
+        -- makeCalEntries dif = List.map (\p -> { day = makeEnd dif, phase = p, recipeSummaries = [] })
+        --                      <| [Lunch, Dinner]
     in List.concatMap makeCalEntries <| List.range 0 (days - 1)
 
+-- TODO: fix this! use mealFor and setDayMeal.
 merge : BMealPlan -> List CalEntry -> Result String (List CalEntry)
 merge bm cals  =
     fromBMealPlan bm |> Result.map
