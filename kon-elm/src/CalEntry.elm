@@ -57,7 +57,7 @@ forDays start days =
     let makeEnd dif = Date.add Date.Days dif start
         makeCalEntries dif = List.map (\p -> { day = makeEnd dif, phase = p, recipeSummary = Nothing })
                              <| [Lunch, Dinner]
-    in List.concatMap makeCalEntries <| List.range 0 days
+    in List.concatMap makeCalEntries <| List.range 0 (days - 1)
 
 merge : BMealPlan -> List CalEntry -> Result String (List CalEntry)
 merge bm cals  =
