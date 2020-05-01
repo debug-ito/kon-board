@@ -8,8 +8,8 @@ $(ELM_SRC)/Bridge.elm:
 static/main.js: $(ELM_SRC)/Bridge.elm
 	cd kon-elm && elm make src/Main.elm --output=../$@
 
-test:
-	stack test
+test: $(ELM_SRC)/Bridge.elm
+	stack test && ( cd kon-elm && elm-test )
 
 clean:
 	rm -rf $(ELM_SRC)/Bridge.elm static/main.js; stack clean
