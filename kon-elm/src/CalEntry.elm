@@ -47,8 +47,40 @@ mealFor d mp cal =
     then Nothing
     else List.head <| List.filter (\dm -> dm.phase == mp) cal.meals
 
+{-| Insert a new item to the list. If the original list already
+  contains similar items (the ones that the predicate returns 'True'),
+  it replaces those items with the new item. If none of the elements
+  in the list are not similar to the new item, it prepends the new
+  item to the list.
+-}
+replaceOrAdd : (a -> Bool) -> a -> List a -> List a
+replaceOrAdd pred new_item old_list =
+    let result = finalize <| foldr f ([], False) old_list
+        f cur_item (acc, replaced) =
+            if pred cur_item
+            then (new_item :: acc, True)
+            else (cur_item :: acc, replaced)
+        finalize (ret, replaced) =
+            if replaced
+            then ret
+            else (new_item :: ret)
+
 setDayMeal : DayMeal -> CalEntry -> CalEntry
-setDayMeal =  -- TODO
+setDayMeal new_dm cal =
+    let new_cal = { cal | meals = new_meals }
+        new_meals = replaceOrAdd p new_dm cal.meals
+        p cur_dm = cur_dm.phase == new_dm.phase
+
+---         finalize <| foldr f ([], False) cal.meals
+---         f dm (acc, replaced) =
+---             if dm.phase == new_dm.phase
+---             then (new_dm :: acc, True)
+---             else (dm     :: acc, replaced)
+---         finalize (ret, replaced) =
+---             if replaced
+---             then ret
+---             else (new_dm :: ret)
+---     in new_cal
 
 parseMonth : Int -> Result String Time.Month
 parseMonth m =
@@ -76,17 +108,21 @@ forDays start days =
     in List.concatMap makeCalEntries <| List.range 0 (days - 1)
 
 -- TODO: fix this! use mealFor and setDayMeal.
+
+-- maybe we should make: fromBMealPlan : BMealPlan -> Result String (Date, DayMeal) ??
+
 merge : BMealPlan -> List CalEntry -> Result String (List CalEntry)
 merge bm cals  =
     fromBMealPlan bm |> Result.map
     ( \new_cal ->
-          let f cal (acc, replaced) = if cal.day == new_cal.day && cal.phase == new_cal.phase
-                                      then (new_cal :: acc, True)
-                                      else (cal :: acc, replaced)
-              finalize (ret, replaced) = if replaced
-                                         then ret
-                                         else new_cal :: ret
-          in finalize <| List.foldr f ([], False) cals
+
+---           let f cal (acc, replaced) = if cal.day == new_cal.day && cal.phase == new_cal.phase
+---                                       then (new_cal :: acc, True)
+---                                       else (cal :: acc, replaced)
+---               finalize (ret, replaced) = if replaced
+---                                          then ret
+---                                          else new_cal :: ret
+---           in finalize <| List.foldr f ([], False) cals
     )
 
 mergeList : List BMealPlan -> List CalEntry -> Result String (List CalEntry)
