@@ -7,6 +7,7 @@ import Browser
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
 import Html exposing (Html, div, text, ul, li)
+import List
 import Time
 import Date exposing (Date)
 import Date
@@ -129,12 +130,11 @@ viewCalendar centry =
     let divbody =
             [ ul [] fieldlist
             ]
+        mkMeal rs = li [] [text ("meal: " ++ rs.name)]
         fieldlist =
             [ li [] [text ("day: " ++ Date.toIsoString centry.day)]
             , li [] [text ("phase: " ++ MealPhase.toString centry.phase)]
             ]
-            ++ case centry.recipeSummary of
-                   Nothing -> []
-                   Just rs -> [li [] [text ("meal: " ++ rs.name)]]
+            ++ List.map mkMeal centry.recipeSummaries
     in [div [] divbody]
 

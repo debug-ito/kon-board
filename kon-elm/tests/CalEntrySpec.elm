@@ -21,12 +21,12 @@ suite =
                     \_ ->
                     let input = { year = 2019, month = 4, day = 20
                                 , phase = "lunch"
-                                , recipe_summary = {id = "foo", name = "foo name"}
+                                , recipes = [{id = "foo", name = "foo name"}]
                                 }
                         expected = Ok <|
                                    [ { day = fromCalendarDate 2019 Time.Apr 20
                                      , phase = Lunch
-                                     , recipeSummary = Just {id = "foo", name = "foo name"}
+                                     , recipeSummaries = [{id = "foo", name = "foo name"}]
                                      }
                                    ]
                         got = CalEntry.merge input []
@@ -35,72 +35,72 @@ suite =
                   \_ ->
                       let bm = { year = 2019, month = 4, day = 20
                                , phase = "lunch"
-                               , recipe_summary = {id = "foo", name = "foo name"}
+                               , recipes = [{id = "foo", name = "foo name"}]
                                }
                           cals = [ { day = fromCalendarDate 2019 Time.Apr 15
                                    , phase = Lunch
-                                   , recipeSummary = Nothing
+                                   , recipeSummaries = []
                                    }
                                  , { day = fromCalendarDate 2019 Time.Apr 15
                                    , phase = Dinner
-                                   , recipeSummary = Nothing
+                                   , recipeSummaries = []
                                    }
                                  , { day = fromCalendarDate 2019 Time.Apr 16
                                    , phase = Lunch
-                                   , recipeSummary = Nothing
+                                   , recipeSummaries = []
                                    }
                                  , { day = fromCalendarDate 2019 Time.Apr 16
                                    , phase = Dinner
-                                   , recipeSummary = Nothing
+                                   , recipeSummaries = []
                                    }
                                  , { day = fromCalendarDate 2019 Time.Apr 20
                                    , phase = Lunch
-                                   , recipeSummary = Nothing
+                                   , recipeSummaries = []
                                    }
                                  , { day = fromCalendarDate 2019 Time.Apr 20
                                    , phase = Dinner
-                                   , recipeSummary = Nothing
+                                   , recipeSummaries = []
                                    }
                                  , { day = fromCalendarDate 2019 Time.Apr 21
                                    , phase = Lunch
-                                   , recipeSummary = Nothing
+                                   , recipeSummaries = []
                                    }
                                  , { day = fromCalendarDate 2019 Time.Apr 21
                                    , phase = Dinner
-                                   , recipeSummary = Nothing
+                                   , recipeSummaries = []
                                    }
                                  ]
                           expected = [ { day = fromCalendarDate 2019 Time.Apr 15
                                        , phase = Lunch
-                                       , recipeSummary = Nothing
+                                       , recipeSummaries = []
                                        }
                                      , { day = fromCalendarDate 2019 Time.Apr 15
                                        , phase = Dinner
-                                       , recipeSummary = Nothing
+                                       , recipeSummaries = []
                                        }
                                      , { day = fromCalendarDate 2019 Time.Apr 16
                                        , phase = Lunch
-                                       , recipeSummary = Nothing
+                                       , recipeSummaries = []
                                        }
                                      , { day = fromCalendarDate 2019 Time.Apr 16
                                        , phase = Dinner
-                                       , recipeSummary = Nothing
+                                       , recipeSummaries = []
                                        }
                                      , { day = fromCalendarDate 2019 Time.Apr 20
                                        , phase = Lunch
-                                       , recipeSummary = Just {id = "foo", name = "foo name"}
+                                       , recipeSummaries = [{id = "foo", name = "foo name"}]
                                        }
                                      , { day = fromCalendarDate 2019 Time.Apr 20
                                        , phase = Dinner
-                                       , recipeSummary = Nothing
+                                       , recipeSummaries = []
                                        }
                                      , { day = fromCalendarDate 2019 Time.Apr 21
                                        , phase = Lunch
-                                       , recipeSummary = Nothing
+                                       , recipeSummaries = []
                                        }
                                      , { day = fromCalendarDate 2019 Time.Apr 21
                                        , phase = Dinner
-                                       , recipeSummary = Nothing
+                                       , recipeSummaries = []
                                        }
                                      ]
                           got = CalEntry.merge bm cals

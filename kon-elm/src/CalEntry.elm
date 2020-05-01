@@ -22,7 +22,7 @@ import MealPhase
 type alias CalEntry =
     { day : Date
     , phase : MealPhase
-    , recipeSummary : Maybe BRecipeSummary
+    , recipeSummaries : List BRecipeSummary
     }
 
 fromBMealPlan : BMealPlan -> Result String CalEntry
@@ -31,7 +31,7 @@ fromBMealPlan mp =
     ( \p -> parseMonth mp.month |> Result.andThen
     ( \m -> Ok { day = Date.fromCalendarDate mp.year m mp.day
                , phase = p
-               , recipeSummary = Just mp.recipe_summary
+               , recipeSummaries = mp.recipes
                }
     ))
 
@@ -55,7 +55,7 @@ parseMonth m =
 forDays : Date -> Int -> List CalEntry
 forDays start days =
     let makeEnd dif = Date.add Date.Days dif start
-        makeCalEntries dif = List.map (\p -> { day = makeEnd dif, phase = p, recipeSummary = Nothing })
+        makeCalEntries dif = List.map (\p -> { day = makeEnd dif, phase = p, recipeSummaries = [] })
                              <| [Lunch, Dinner]
     in List.concatMap makeCalEntries <| List.range 0 (days - 1)
 
