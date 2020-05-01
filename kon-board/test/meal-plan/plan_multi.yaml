@@ -1,0 +1,8 @@
+year: 2019
+month: 11
+plan:
+  - d: 21
+    p: dinner
+    m:
+      - recipe 1
+      - recipe 2

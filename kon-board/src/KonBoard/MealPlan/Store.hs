@@ -13,9 +13,11 @@ module KonBoard.MealPlan.Store
     openYAMLs
   ) where
 
+import Control.Applicative ((<|>), (<$>))
 import Data.Aeson (FromJSON(..), ToJSON(..))
 import qualified Data.Aeson as Aeson
 import Data.List (sort)
+import Data.List.NonEmpty (NonEmpty)
 import Data.Text (Text)
 import Data.Time (Day, fromGregorian)
 import Data.Traversable (Traversable(..))
@@ -57,11 +59,11 @@ fromMonthPlan :: RecipeStore -> MonthPlan -> IO [MealPlan]
 fromMonthPlan rstore mp = traverse toMP $ mp_plan mp
   where
     toMP dp = do
-      rsummary <- loadRecipeByName' rstore $ dp_m dp
+      rsummaries <- traverse (loadRecipeByName' rstore) $ nonEmptyMeals $ dp_m dp
       return $ MealPlan
                { mealDay = fromGregorian (mp_year mp) (mp_month mp) (dp_d dp),
                  mealPhase = dp_p dp,
-                 mealRecipes = return rsummary
+                 mealRecipes = rsummaries
                }
 
 data MonthPlan =
@@ -83,7 +85,7 @@ data DayPlan =
   DayPlan
   { dp_d :: Int,
     dp_p :: MealPhase,
-    dp_m :: Name
+    dp_m :: Meals
   }
   deriving (Show,Eq,Ord,Generic)
 
@@ -94,4 +96,19 @@ instance ToJSON DayPlan where
   toJSON = Aeson.genericToJSON aesonOpt
   toEncoding = Aeson.genericToEncoding aesonOpt
 
+data Meals =
+    MealsSingle Name
+  | MealsMulti (NonEmpty Name)
+  deriving (Show,Eq,Ord,Generic)
 
+nonEmptyMeals :: Meals -> NonEmpty Name
+nonEmptyMeals (MealsSingle n) = return n
+nonEmptyMeals (MealsMulti ns) = ns
+
+instance FromJSON Meals where
+  parseJSON v = (MealsSingle <$> parseJSON v)
+                <|> (MealsMulti <$> parseJSON v)
+
+instance ToJSON Meals where
+  toJSON (MealsSingle n) = toJSON n
+  toJSON (MealsMulti ns) = toJSON ns
