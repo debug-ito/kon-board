@@ -1,7 +1,6 @@
 module CalEntry exposing
     ( CalEntry
     , DayMeal
-    , fromBMealPlan
     , forDays
     , merge
     , mergeList
@@ -33,14 +32,14 @@ type alias CalEntry =
     , meals : List DayMeal
     }
 
-fromBMealPlan : BMealPlan -> Result String CalEntry
+fromBMealPlan : BMealPlan -> Result String (Date, DayMeal)
 fromBMealPlan mp =
     MealPhase.parseString mp.phase |> Result.andThen
     ( \p -> parseMonth mp.month |> Result.andThen
-    ( \m -> Ok { day = Date.fromCalendarDate mp.year m mp.day
-               , recipes = [{phase = p, recipes = mp.recipes}]
-               }
-    ))
+    ( \m ->
+          let day = Date.fromCalendarDate mp.year m mp.day
+              dm = { phase = p, recipes = mp.recipes }
+          in Ok (day, dm)
 
 mealFor : Date -> MealPhase -> CalEntry -> Maybe DayMeal
 mealFor d mp cal =
