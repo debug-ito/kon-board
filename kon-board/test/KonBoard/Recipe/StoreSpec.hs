@@ -20,11 +20,13 @@ import KonBoard.Recipe.Store
     ID
   )
 
+import KonBoard.TestLogger (basicLogging)
+
 main :: IO ()
 main = hspec spec
 
 openStore :: IO RecipeStore
-openStore = openYAMLs $ map ("test/recipe/" <>) files
+openStore = basicLogging $ openYAMLs $ map ("test/recipe/" <>) files
   where
     files = [ "recipe_in.yaml",
               "recipe_in_url.yaml",
@@ -34,7 +36,7 @@ openStore = openYAMLs $ map ("test/recipe/" <>) files
 
 idForStore :: Name -> [FilePath] -> IO ID
 idForStore name files = do
-  store <- openYAMLs $ map ("test/recipe/" <>) files
+  store <- basicLogging $ openYAMLs $ map ("test/recipe/" <>) files
   fmap (rsID . fromJust) $ loadRecipeByName store name
 
 loadAndCheckName :: RecipeStore -> Name -> IO ()

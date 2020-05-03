@@ -12,6 +12,8 @@ import KonBoard.MealPlan.Store
   ( AMealPlanStore(..), openYAMLs
   )
 
+import KonBoard.TestLogger (basicLogging)
+
 main :: IO ()
 main = hspec spec
 
@@ -25,7 +27,7 @@ day = fromGregorian
 spec_YAMLStore :: Spec
 spec_YAMLStore = before makeStore $ specForStore "YAMLStore"
   where
-    makeStore = do
+    makeStore = basicLogging $ do
       rs <- RStore.openYAMLs recipe_files
       openYAMLs rs plan_files
     recipe_files = map ("test/recipe/" <>)

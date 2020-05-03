@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveGeneric, OverloadedStrings #-}
 -- |
 -- Module: KonBoard.Recipe.Store
 -- Description: Storage service for Recipes
@@ -22,6 +22,8 @@ module KonBoard.Recipe.Store
 
 import Control.Exception.Safe (Exception, throwIO)
 import Control.Monad (when, forM_, mapM_)
+import Control.Monad.Logger (MonadLogger, logInfoN)
+import Control.Monad.Trans (MonadIO(..))
 import qualified Crypto.Hash.MD5 as MD5
 import Data.Aeson (FromJSON(..), ToJSON(..))
 import qualified Data.Aeson as Aeson
@@ -31,7 +33,8 @@ import Data.Char (toLower)
 import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HM
 import Data.IORef (newIORef, readIORef, writeIORef)
-import Data.Text (Text)
+import Data.Monoid ((<>))
+import Data.Text (Text, pack)
 import Data.Text.Encoding (encodeUtf8, decodeUtf8)
 import Data.Traversable (Traversable(..))
 import GHC.Generics (Generic)
@@ -122,13 +125,14 @@ toIO (Right a) = return a
 toIO (Left e) = throwIO e
 
 -- | Open YAML files and make a 'RecipeStore'.
-openYAMLs :: [FilePath] -> IO RecipeStore
+openYAMLs :: (MonadLogger m, MonadIO m) => [FilePath] -> m RecipeStore
 openYAMLs files = do
-  ref_store <- newIORef emptyStore
+  ref_store <- liftIO $ newIORef emptyStore
   forM_ files $ \file -> do
-    rs <- readRecipes file
-    mapM_ (addR ref_store) rs
-  readIORef ref_store
+    logInfoN ("Read recipe YAML: " <> pack file)
+    rs <- liftIO $ readRecipes file
+    liftIO $ mapM_ (addR ref_store) rs
+  liftIO $ readIORef ref_store
   where
     readRecipes file = (toIO . loadYAML) =<< BS.readFile file
     addR ref_store r = do

@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveGeneric, OverloadedStrings #-}
 -- |
 -- Module: KonBoard.MealPlan.Store
 -- Description: Storage service for MealPlans.
@@ -14,11 +14,14 @@ module KonBoard.MealPlan.Store
   ) where
 
 import Control.Applicative ((<|>), (<$>))
+import Control.Monad (forM)
+import Control.Monad.Logger (MonadLogger, logInfoN)
+import Control.Monad.Trans (MonadIO(..))
 import Data.Aeson (FromJSON(..), ToJSON(..))
 import qualified Data.Aeson as Aeson
 import Data.List (sort)
 import Data.List.NonEmpty (NonEmpty)
-import Data.Text (Text)
+import Data.Text (Text, pack)
 import Data.Time (Day, fromGregorian)
 import Data.Traversable (Traversable(..))
 import GHC.Generics (Generic)
@@ -46,9 +49,12 @@ instance AMealPlanStore YAMLStore where
           mp_day = mealDay mp
 
 -- | Read YAML files to make a 'YAMLStore'.
-openYAMLs :: RecipeStore -> [FilePath] -> IO YAMLStore
-openYAMLs rstore files = (fmap (YAMLStore . concat) . traverse (fromMonthPlan rstore))
-                         =<< (fmap concat $ traverse readYAMLDocs files)
+openYAMLs :: (MonadLogger m, MonadIO m) => RecipeStore -> [FilePath] -> m YAMLStore
+openYAMLs rstore files = do
+  yaml_docs <- fmap concat $ forM files $ \file -> do
+    logInfoN ("Read meal plan YAML file: " <> pack file)
+    liftIO $ readYAMLDocs file
+  liftIO $ fmap (YAMLStore . concat) $ traverse (fromMonthPlan rstore) $ yaml_docs
 
 aesonOpt :: Aeson.Options
 aesonOpt = Aeson.defaultOptions { Aeson.fieldLabelModifier = lmod }
