@@ -73,7 +73,7 @@ executable kon-board-server
   -- other-modules:        
   default-extensions:   OverloadedStrings, StrictData
   -- other-extensions:     
-  build-depends:        base, kon-board,
+  build-depends:        base, kon-board, monad-logger, text,
                         warp
 
 test-suite spec

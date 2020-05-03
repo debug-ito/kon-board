@@ -6,15 +6,18 @@
 --
 -- 
 module KonBoard.Web.App
-  ( appWith,
+  ( -- * Application
+    appWith,
+    -- * Server
     Server(..),
-    makeDefaultServer
+    makeDefaultServer,
+    runLogging
   ) where
 
 import Control.Applicative ((<$>), (<*>))
 import Control.Monad.Except (throwError)
 import Control.Monad.Logger (LoggingT, runStderrLoggingT, logInfoN, logDebugN)
-import Control.Monad.Trans (liftIO)
+import Control.Monad.Trans (MonadIO(liftIO))
 import Data.Monoid ((<>))
 import Data.Proxy (Proxy(..))
 import Data.Text (pack)
@@ -82,6 +85,9 @@ appWith Server { sMealPlanStore = mp_store,
 
 makeDefaultServer :: IO Server
 makeDefaultServer = runStderrLoggingT makeDefaultServer'
+
+runLogging :: MonadIO m => Server -> LoggingT m a -> m a
+runLogging _ = runStderrLoggingT
 
 makeDefaultServer' :: LoggingT IO Server
 makeDefaultServer' =  do
