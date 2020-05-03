@@ -45,10 +45,11 @@ fromBMealPlan mp =
           let day = Date.fromCalendarDate mp.year m mp.day
               dm = { phase = p, recipes = mp.recipes }
           in Ok (day, dm)
+    ) )
 
 mealFor : Date -> MealPhase -> CalEntry -> Maybe DayMeal
 mealFor d mp cal =
-    if cal.day != d
+    if cal.day /= d
     then Nothing
     else List.head <| List.filter (\dm -> dm.phase == mp) cal.meals
 
@@ -57,6 +58,7 @@ setDayMeal new_dm cal =
     let new_cal = { cal | meals = new_meals }
         new_meals = replaceOrAdd p new_dm cal.meals
         p cur_dm = cur_dm.phase == new_dm.phase
+    in new_cal
 
 ---         finalize <| foldr f ([], False) cal.meals
 ---         f dm (acc, replaced) =
@@ -96,9 +98,9 @@ forDays start days =
 
 addMealPlan : BMealPlan -> Calendar -> Result String Calendar
 addMealPlan bm cals  =
-    fromBMealPlan bm |> Result.map
+    fromBMealPlan bm |> Result.andThen
     ( \(new_date, new_dm) ->
-          let result = finalize <| foldr f ([], False) cals
+          let result = finalize <| List.foldr f ([], False) cals
               f cur_cal (acc, is_complete) =
                   if is_complete
                   then (cur_cal :: acc, is_complete)
@@ -119,5 +121,5 @@ addMealPlans bps cals =
     let f bp eret =
             case eret of
                 Err e -> Err e
-                Ok cur_cals -> merge bp cur_cals
+                Ok cur_cals -> addMealPlan bp cur_cals
     in List.foldr f (Ok cals) bps

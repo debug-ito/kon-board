@@ -18,7 +18,7 @@ import Task
 
 import Bridge exposing (BRecipeSummary, BMealPlan)
 import Bridge
-import CalEntry exposing (CalEntry)
+import CalEntry exposing (CalEntry, Calendar, DayMeal)
 import CalEntry
 import MealPhase exposing (MealPhase(..))
 import MealPhase
@@ -30,7 +30,7 @@ import MealPhase
 type alias Model =
     { curTime : Time.Posix
     , timeZone : Time.Zone
-    , calendar : List CalEntry
+    , calendar : Calendar
     }
     
 ---- Main
@@ -83,7 +83,7 @@ appUpdate msg model =
                         )
         TickTime t -> ({ model | curTime = t }, Cmd.none)
         MealPlansLoaded mps ->
-            case CalEntry.mergeList mps model.calendar of
+            case CalEntry.addMealPlans mps model.calendar of
                 Err _ -> (model, Cmd.none) -- TODO: show error somehow
                 Ok new_cals -> ({ model | calendar = new_cals }, Cmd.none)
         ErrorMsg _ -> (model, Cmd.none) -- TODO: show error somehow
@@ -117,7 +117,7 @@ viewBody : Model -> List (Html Msg)
 viewBody model =
     [ div [] [viewCurTime model.timeZone model.curTime]
     ]
-    ++ (List.concat <| List.map viewCalendar model.calendar)
+    ++ (List.concat <| List.map viewCalEntry model.calendar)
 
 viewCurTime : Time.Zone -> Time.Posix -> Html Msg
 viewCurTime zone time =
@@ -125,16 +125,24 @@ viewCurTime zone time =
         minute = String.padLeft 2 '0' <| String.fromInt <| Time.toMinute zone time
     in text (hour ++ ":" ++ minute)
 
-viewCalendar : CalEntry -> List (Html Msg)
-viewCalendar centry =
-    let divbody =
-            [ ul [] fieldlist
+viewDayMeal : DayMeal -> List (Html Msg)
+viewDayMeal dm =
+    let result = 
+            [ li [] [text ("phase: " ++ MealPhase.toString dm.phase)]
             ]
-        mkMeal rs = li [] [text ("meal: " ++ rs.name)]
+            ++ List.map mkRecipe dm.recipes
+        mkRecipe r =
+            [ li [] [text ("meal: " ++ r.name)]
+            ]
+    in result
+
+viewCalEntry : CalEntry -> List (Html Msg)
+viewCalEntry centry =
+    let result = [div [] [ul [] fieldlist]]
         fieldlist =
             [ li [] [text ("day: " ++ Date.toIsoString centry.day)]
-            , li [] [text ("phase: " ++ MealPhase.toString centry.phase)]
             ]
-            ++ List.map mkMeal centry.recipeSummaries
-    in [div [] divbody]
+            ++ List.map mkMeal centry.meals
+        mkMeal ml = ul [] (viewDayMeal ml)
+    in result
 

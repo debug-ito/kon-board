@@ -3,7 +3,7 @@ module ListUtilSpec exposing
     )
 
 import Expect as Exp
-import Test exposing (Test, describe)
+import Test exposing (Test, describe, test)
 import Tuple exposing (first)
 
 import ListUtil exposing (replaceOrAdd)

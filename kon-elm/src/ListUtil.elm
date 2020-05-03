@@ -2,9 +2,11 @@ module ListUtil exposing
     ( replaceOrAdd
     )
 
-{-| Extra utility about List -}
+import List exposing (foldr)
 
-{-| Insert a new item to the list. If the original list already
+{- | Extra utility about List -}
+
+{- | Insert a new item to the list. If the original list already
   contains similar items (the ones that the predicate returns 'True'),
   it replaces those items with the new item. If none of the elements
   in the list are not similar to the new item, it prepends the new
@@ -21,3 +23,4 @@ replaceOrAdd pred new_item old_list =
             if replaced
             then ret
             else (new_item :: ret)
+    in result
