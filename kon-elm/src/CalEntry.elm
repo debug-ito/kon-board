@@ -1,9 +1,10 @@
 module CalEntry exposing
-    ( CalEntry
+    ( Calendar
+    , CalEntry
     , DayMeal
     , forDays
-    , merge
-    , mergeList
+    , addMealPlan
+    , addMealPlans
     )
 
 import Date exposing (Date)
@@ -31,6 +32,10 @@ type alias CalEntry =
     { day : Date
     , meals : List DayMeal
     }
+
+{-| Calendar
+-}
+type alias Calendar = List CalEntry
 
 fromBMealPlan : BMealPlan -> Result String (Date, DayMeal)
 fromBMealPlan mp =
@@ -81,7 +86,7 @@ parseMonth m =
         12 -> Ok Time.Dec
         _ ->  Err ("Invalid month: " ++ String.fromInt m)
 
-forDays : Date -> Int -> List CalEntry
+forDays : Date -> Int -> Calendar
 forDays start days =
     let makeEnd dif = Date.add Date.Days dif start
         makeCalEntries dif = [{ day = makeEnd dif, meals = [] }]
@@ -89,26 +94,28 @@ forDays start days =
         --                      <| [Lunch, Dinner]
     in List.concatMap makeCalEntries <| List.range 0 (days - 1)
 
--- TODO: fix this! use mealFor and setDayMeal.
-
--- maybe we should make: fromBMealPlan : BMealPlan -> Result String (Date, DayMeal) ??
-
-merge : BMealPlan -> List CalEntry -> Result String (List CalEntry)
-merge bm cals  =
+addMealPlan : BMealPlan -> Calendar -> Result String Calendar
+addMealPlan bm cals  =
     fromBMealPlan bm |> Result.map
-    ( \new_cal ->
-
----           let f cal (acc, replaced) = if cal.day == new_cal.day && cal.phase == new_cal.phase
----                                       then (new_cal :: acc, True)
----                                       else (cal :: acc, replaced)
----               finalize (ret, replaced) = if replaced
----                                          then ret
----                                          else new_cal :: ret
----           in finalize <| List.foldr f ([], False) cals
+    ( \(new_date, new_dm) ->
+          let result = finalize <| foldr f ([], False) cals
+              f cur_cal (acc, is_complete) =
+                  if is_complete
+                  then (cur_cal :: acc, is_complete)
+                  else if cur_cal.day == new_date 
+                       then (setDayMeal new_dm cur_cal :: acc, True)
+                       else (cur_cal :: acc, is_complete)
+              finalize (ret, is_complete) =
+                  if is_complete
+                  then Ok ret
+                  else
+                      let err_msg = "Cannot find CalEntry for " ++ Date.toIsoString new_date
+                      in Err err_msg
+          in result
     )
 
-mergeList : List BMealPlan -> List CalEntry -> Result String (List CalEntry)
-mergeList bps cals =
+addMealPlans : List BMealPlan -> Calendar -> Result String Calendar
+addMealPlans bps cals =
     let f bp eret =
             case eret of
                 Err e -> Err e
