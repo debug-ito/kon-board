@@ -131,9 +131,7 @@ viewDayMeal dm =
             [ li [] [text ("phase: " ++ MealPhase.toString dm.phase)]
             ]
             ++ List.map mkRecipe dm.recipes
-        mkRecipe r =
-            [ li [] [text ("meal: " ++ r.name)]
-            ]
+        mkRecipe r = li [] [text ("meal: " ++ r.name)]
     in result
 
 viewCalEntry : CalEntry -> List (Html Msg)
