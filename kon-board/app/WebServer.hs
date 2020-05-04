@@ -11,7 +11,7 @@ import KonBoard.Web.App
 main :: IO ()
 main = do
   server <- makeDefaultServer
-  let port = 8888
+  let port = 8888 :: Int
   runLogging server $ do
     logInfoN ("Listen on port " <> (pack $ show port))
   run 8888 $ appWith server
