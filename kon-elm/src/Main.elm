@@ -80,6 +80,7 @@ main = Browser.application
 {- | Main program msg
 -}
 type Msg = NoOp
+         | InitModel
          -- | Initiallize the current time
          | InitTime Time.Posix Time.Zone
          -- | Update the current time
@@ -91,17 +92,17 @@ calendarPeriodDays : Int
 calendarPeriodDays = 9
         
 appInit : () -> Url -> Nav.Key -> (Model, Cmd Msg)
-appInit _ _ _ = ( { clock = { loaded = False
-                            , curTime = Time.millisToPosix 0
-                            , timeZone = Time.utc
-                            }
-                  , calendar = { loaded = False
-                               , calendar = []
-                               }
-                  , errorMsg = Nothing
-                  }
-                , initTime
-                )
+appInit _ _ _ =
+    let model = { clock = { loaded = False
+                          , curTime = Time.millisToPosix 0
+                          , timeZone = Time.utc
+                          }
+                , calendar = { loaded = False
+                             , calendar = []
+                             }
+                , errorMsg = Nothing
+                }
+    in (model, Cmd.batch <| appUpdateCmd InitModel model)
 
 appView : Model -> Document Msg
 appView m = { title = "kon-board"
@@ -115,22 +116,28 @@ appUpdate msg model =
     in (new_model, Cmd.batch cmds)
 
 appUpdateModel : Msg -> Model -> Model
-appUpdateModel = Debug.todo "todo"
+appUpdateModel msg model =
+    case msg of
+        NoOp -> model
+        InitModel -> model
+        InitTime t z -> initCalendar z t <| setClock z t model
+        TickTime t -> tickClock t model
+        MealPlansLoaded mps ->
+            case CalEntry.addMealPlans mps model.calendar.calendar of
+                Err e -> { model | errorMsg = Just e }
+                Ok new_cal -> setCalendar new_cal model
+        ErrorMsg e -> { model | errorMsg = Just e }
 
 appUpdateCmd : Msg -> Model -> List (Cmd Msg)
-appUpdateCmd = Debug.todo "todo"
-
-----     case msg of
-----         NoOp -> (model, Cmd.none)
-----         InitTime t z -> ( initCalendar z t <| setClock z t model
-----                         , loadMealPlans t z
-----                         )
-----         TickTime t -> (tickClock t model, Cmd.none)
-----         MealPlansLoaded mps ->
-----             case CalEntry.addMealPlans mps model.calendar.calendar of
-----                 Err e -> ({ model | errorMsg = Just e }, Cmd.none)
-----                 Ok new_cal -> (setCalendar new_cal model, Cmd.none)
-----         ErrorMsg e -> ({ model | errorMsg = Just e }, Cmd.none)
+appUpdateCmd _ model =
+    let result = initTimeCmd ++ loadMealPlanCmd
+        initTimeCmd = if not model.clock.loaded
+                      then [Task.perform identity <| Task.map2 InitTime Time.now Time.here]
+                      else []
+        loadMealPlanCmd = if model.clock.loaded && not model.calendar.loaded
+                          then [loadMealPlans model.clock.curTime model.clock.timeZone]
+                          else []
+    in result
 
 appSub : Model -> Sub Msg
 appSub _ = Time.every 5000 TickTime
@@ -140,10 +147,6 @@ appOnUrlRequest _ = NoOp
 
 appOnUrlChange : Url -> Msg
 appOnUrlChange _ = NoOp
-
-initTime : Cmd Msg
-initTime =
-    Task.perform identity <| Task.map2 InitTime Time.now Time.here
 
 loadMealPlans : Time.Posix -> Time.Zone -> Cmd Msg
 loadMealPlans time zone =
