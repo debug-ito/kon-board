@@ -1,5 +1,5 @@
 module Main exposing
-    (..)
+   (..)
 
 {- | The application main. -}
 
@@ -29,11 +29,42 @@ import MealPhase
 {- | The model.
 -}
 type alias Model =
-    { curTime : Time.Posix
-    , timeZone : Time.Zone
-    , calendar : Calendar
+    { clock : MClock
+    , calendar : MCalendar
     , errorMsg : Maybe String
     }
+
+{- | Clock in the model.
+-}
+type alias MClock =
+    { loaded : Bool
+    , curTime : Time.Posix
+    , timeZone : Time.Zone
+    }
+
+{- | Calendar in the model.
+-}
+type alias MCalendar =
+    { loaded : Bool
+    , calendar : Calendar
+    }
+
+setClock : Time.Zone -> Time.Posix -> Model -> Model
+setClock tz t model = let new_clock = { loaded = True, curTime = t, timeZone = tz }
+                      in { model | clock = new_clock }
+
+tickClock : Time.Posix -> Model -> Model
+tickClock t model = 
+    let c = model.clock
+    in { model | clock = { c | curTime = t } }
+
+initCalendar : Time.Zone -> Time.Posix -> Model -> Model
+initCalendar tz t model =
+    let cals = CalEntry.forDays (Date.fromPosix tz t) calendarPeriodDays
+    in { model | calendar = {loaded = False, calendar = cals} }
+
+setCalendar : Calendar -> Model -> Model
+setCalendar cal model = { model | calendar = {loaded = True, calendar = cal} }
 
 ---- Main
 
@@ -60,9 +91,13 @@ calendarPeriodDays : Int
 calendarPeriodDays = 9
         
 appInit : () -> Url -> Nav.Key -> (Model, Cmd Msg)
-appInit _ _ _ = ( { curTime = Time.millisToPosix 0
-                  , timeZone = Time.utc
-                  , calendar = []
+appInit _ _ _ = ( { clock = { loaded = False
+                            , curTime = Time.millisToPosix 0
+                            , timeZone = Time.utc
+                            }
+                  , calendar = { loaded = False
+                               , calendar = []
+                               }
                   , errorMsg = Nothing
                   }
                 , initTime
@@ -77,18 +112,14 @@ appUpdate : Msg -> Model -> (Model, Cmd Msg)
 appUpdate msg model =
     case msg of
         NoOp -> (model, Cmd.none)
-        InitTime t z -> ( { model |
-                            curTime = t
-                          , timeZone = z
-                          , calendar = CalEntry.forDays (Date.fromPosix z t) calendarPeriodDays
-                          }
+        InitTime t z -> ( initCalendar z t <| setClock z t model
                         , loadMealPlans t z
                         )
-        TickTime t -> ({ model | curTime = t }, Cmd.none)
+        TickTime t -> (tickClock t model, Cmd.none)
         MealPlansLoaded mps ->
-            case CalEntry.addMealPlans mps model.calendar of
+            case CalEntry.addMealPlans mps model.calendar.calendar of
                 Err e -> ({ model | errorMsg = Just e }, Cmd.none)
-                Ok new_cals -> ({ model | calendar = new_cals }, Cmd.none)
+                Ok new_cal -> (setCalendar new_cal model, Cmd.none)
         ErrorMsg e -> ({ model | errorMsg = Just e }, Cmd.none)
 
 appSub : Model -> Sub Msg
@@ -127,15 +158,15 @@ showHttpError e =
 
 viewBody : Model -> List (Html Msg)
 viewBody model =
-    let result = clock ++ err_msg ++ calendar
-        clock = [ div [] [viewCurTime model.timeZone model.curTime]
-                ]
+    let result = (mkClock model.clock) ++ err_msg ++ (mkCalendar model.calendar)
+        mkClock c = [ div [] [viewCurTime c.timeZone c.curTime]
+                    ]
         err_msg =
             case model.errorMsg of
                 Nothing -> []
                 Just e -> [ div [] [text ("error: " ++ e)]
                           ]
-        calendar = List.concat <| List.map viewCalEntry model.calendar
+        mkCalendar c = List.concat <| List.map viewCalEntry c.calendar
     in result
 
 viewCurTime : Time.Zone -> Time.Posix -> Html Msg
