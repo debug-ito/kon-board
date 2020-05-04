@@ -17,12 +17,13 @@ import Result
 import String
 import Task
 
-import Bridge exposing (BRecipeSummary, BMealPlan)
+import Bridge exposing (BRecipeSummary, BMealPlan, BRecipeID)
 import Bridge
 import CalEntry exposing (CalEntry, Calendar, DayMeal)
 import CalEntry
 import MealPhase exposing (MealPhase(..))
 import MealPhase
+import Page exposing (Page(..))
 
 ---- Model Types
 
@@ -31,6 +32,7 @@ import MealPhase
 type alias Model =
     { -- | 'Nothing' before initialized.
       clock : Maybe MClock
+    , page : Page
     , calendar : Calendar
       -- | 'True' if MealPlans are loaded to the calendar.
     , mealPlansLoaded : Bool
@@ -86,6 +88,7 @@ calendarPeriodDays = 9
 appInit : () -> Url -> Nav.Key -> (Model, Cmd Msg)
 appInit _ _ _ =
     let model = { clock = Nothing
+                , page = PageTop
                 , calendar = []
                 , mealPlansLoaded = False
                 , errorMsg = Nothing
