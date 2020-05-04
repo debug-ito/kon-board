@@ -149,7 +149,7 @@ appUrlChange u model =
     case Page.parseUrl u of
         Nothing -> let err = ("Unknown URL: " ++ Url.toString u)
                    in { model | errorMsg = Just err }
-        Just p -> { model | page = p }
+        Just p -> { model | page = p, loadedRecipe = Nothing }
 
 appUpdateCmd : Msg -> Model -> List (Cmd Msg)
 appUpdateCmd msg model =
