@@ -111,13 +111,13 @@ appView m = { title = "kon-board"
 appUpdate : Msg -> Model -> (Model, Cmd Msg)
 appUpdate msg model =
     let new_model = appUpdateModel msg model
-        cmd = appUpdateCmd msg new_model
-    in (new_model, cmd)
+        cmds = appUpdateCmd msg new_model
+    in (new_model, Cmd.batch cmds)
 
 appUpdateModel : Msg -> Model -> Model
 appUpdateModel = Debug.todo "todo"
 
-appUpdateCmd : Msg -> Model -> Cmd Msg
+appUpdateCmd : Msg -> Model -> List (Cmd Msg)
 appUpdateCmd = Debug.todo "todo"
 
 ----     case msg of
