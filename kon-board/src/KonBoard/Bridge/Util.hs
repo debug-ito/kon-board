@@ -8,7 +8,15 @@ module KonBoard.Bridge.Util
   ( dropLabelOptions
   ) where
 
-import Data.Aeson (Options(fieldLabelModifier), defaultOptions)
+import Data.Aeson
+  ( Options(fieldLabelModifier, sumEncoding, omitNothingFields), defaultOptions,
+    SumEncoding(..)
+  )
 
 dropLabelOptions :: Int -> Options
-dropLabelOptions drop_num = defaultOptions { fieldLabelModifier = drop drop_num }
+dropLabelOptions drop_num =
+  defaultOptions
+  { fieldLabelModifier = drop drop_num,
+    sumEncoding = ObjectWithSingleField,
+    omitNothingFields = True
+  }

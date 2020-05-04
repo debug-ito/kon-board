@@ -8,7 +8,8 @@ import qualified Elm.TyRep as ElmT
 import System.Environment (getArgs)
 
 import KonBoard.Bridge.MealPlan (BMealPlan)
-import KonBoard.Bridge.Recipe (BRecipeSummary)
+import KonBoard.Bridge.Recipe
+  (BRecipeSummary, BRecipe, BRecipeIn, BRecipeURL, BIngDesc, BIngredient)
 import KonBoard.Bridge.Time (BDay)
 import KonBoard.Web.API (DataAPI)
 
@@ -24,7 +25,12 @@ main = do
     defs =
       [ Elm.DefineElm (Proxy :: Proxy BMealPlan),
         Elm.DefineElm (Proxy :: Proxy BRecipeSummary),
-        Elm.DefineElm (Proxy :: Proxy BDay)
+        Elm.DefineElm (Proxy :: Proxy BDay),
+        Elm.DefineElm (Proxy :: Proxy BRecipe),
+        Elm.DefineElm (Proxy :: Proxy BRecipeIn),
+        Elm.DefineElm (Proxy :: Proxy BRecipeURL),
+        Elm.DefineElm (Proxy :: Proxy BIngDesc),
+        Elm.DefineElm (Proxy :: Proxy BIngredient)
       ]
     api_proxy = Proxy :: Proxy DataAPI
     elm_imports = Elm.defElmImports
