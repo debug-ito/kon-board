@@ -6,7 +6,7 @@
 --
 -- 
 module KonBoard.Bridge.Time
-  ( BDay(..),
+  ( BDay,
     toBDay,
     fromBDay
   ) where

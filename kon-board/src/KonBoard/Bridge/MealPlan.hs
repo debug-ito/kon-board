@@ -6,7 +6,7 @@
 --
 -- 
 module KonBoard.Bridge.MealPlan
-  ( BMealPlan(..),
+  ( BMealPlan,
     toBMealPlan,
     fromBMealPlan
   ) where

@@ -9,16 +9,16 @@ module KonBoard.Bridge.Recipe
   ( BRecipeSummary,
     toBRecipeSummary,
     fromBRecipeSummary,
-    BRecipeID(..),
+    BRecipeID,
     toBRecipeID,
     fromBRecipeID,
-    BRecipe(..),
+    BRecipe,
     toBRecipe,
-    BRecipeIn(..),
-    BRecipeURL(..),
-    BIngDesc(..),
+    BRecipeIn,
+    BRecipeURL,
+    BIngDesc,
     toBIngDesc,
-    BIngredient(..),
+    BIngredient,
     toBIngredient
   ) where
 
