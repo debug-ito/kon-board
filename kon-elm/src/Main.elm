@@ -15,6 +15,8 @@ import Time
 import Date exposing (Date)
 import Date
 import Url exposing (Url)
+import Url
+import Url.Builder as UrlB
 import Result
 import String
 import Task
@@ -26,6 +28,7 @@ import CalEntry
 import MealPhase exposing (MealPhase(..))
 import MealPhase
 import Page exposing (Page(..), recipePageLink)
+import Page
 
 ---- Model Types
 
@@ -125,7 +128,11 @@ appUpdateModel msg model =
                 Ok new_cal -> { model | calendar = new_cal, mealPlansLoaded = True }
         ErrorMsg e -> { model | errorMsg = Just e }
         UrlRequestMsg _ -> model
-        UrlChangeMsg _ -> Debug.todo "TODO"
+        UrlChangeMsg u ->
+            case Page.parseUrl u of
+                Nothing -> let err = ("Unknown URL: " ++ Url.toString u)
+                           in { model | errorMsg = Just err }
+                Just p -> { model | page = p }
 
 appUpdateCmd : Msg -> Model -> List (Cmd Msg)
 appUpdateCmd msg model =
@@ -182,25 +189,36 @@ showHttpError e =
 
 viewBody : Model -> List (Html Msg)
 viewBody model =
-    let result = (mkClock model.clock) ++ err_msg ++ (mkCalendar model.calendar)
-        mkClock mc =
-            case mc of
-                Nothing -> []
-                Just c -> [ div [] [viewCurTime c.timeZone c.curTime] ]
+    let result = (mkClock model.clock) ++ err_msg ++ viewNav model.page ++ view_for_page
+        mkClock mc = viewCurTime mc
         err_msg =
             case model.errorMsg of
                 Nothing -> []
                 Just e -> [ div [] [text ("error: " ++ e)]
                           ]
+        view_for_page =
+            case model.page of
+                PageTop -> mkCalendar model.calendar
+                PageRecipe r -> viewRecipePage r model
         mkCalendar cal = List.concat <| List.map viewCalEntry cal
     in result
 
-viewCurTime : Time.Zone -> Time.Posix -> Html Msg
-viewCurTime zone time =
-    let hour = String.padLeft 2 '0' <| String.fromInt <| Time.toHour zone time
-        minute = String.padLeft 2 '0' <| String.fromInt <| Time.toMinute zone time
-    in text (hour ++ ":" ++ minute)
+viewCurTime : Maybe MClock -> List (Html Msg)
+viewCurTime mc =
+    case mc of
+        Nothing -> []
+        Just c ->
+            let result = [div [] [text (hour ++ ":" ++ minute)]]
+                hour = String.padLeft 2 '0' <| String.fromInt <| Time.toHour c.timeZone c.curTime
+                minute = String.padLeft 2 '0' <| String.fromInt <| Time.toMinute c.timeZone c.curTime
+            in result
 
+viewNav : Page -> List (Html Msg)
+viewNav p =
+    case p of
+        PageTop -> []
+        PageRecipe _ -> [div [] [Html.a [href <| UrlB.absolute [] []] [text "←戻る"]]]
+                  
 viewDayMeal : DayMeal -> List (Html Msg)
 viewDayMeal dm =
     let result = 
@@ -225,3 +243,7 @@ viewLinkRecipe rid content =
     let result = [Html.a attrs content]
         attrs = [href <| recipePageLink rid]
     in result
+
+viewRecipePage : BRecipeID -> Model -> List (Html Msg)
+viewRecipePage rid _ =
+    [div [] [text ("Recipe ID: " ++ rid)]]  -- TODO: show recipe detail.
