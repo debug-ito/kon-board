@@ -7,6 +7,8 @@ import Browser
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
 import Html exposing (Html, div, text, ul, li)
+import Html
+import Html.Attributes exposing (href)
 import Http
 import List
 import Time
@@ -23,7 +25,7 @@ import CalEntry exposing (CalEntry, Calendar, DayMeal)
 import CalEntry
 import MealPhase exposing (MealPhase(..))
 import MealPhase
-import Page exposing (Page(..))
+import Page exposing (Page(..), recipePageLink)
 
 ---- Model Types
 
@@ -33,6 +35,7 @@ type alias Model =
     { -- | 'Nothing' before initialized.
       clock : Maybe MClock
     , page : Page
+    , navKey : Nav.Key
     , calendar : Calendar
       -- | 'True' if MealPlans are loaded to the calendar.
     , mealPlansLoaded : Bool
@@ -81,14 +84,17 @@ type Msg = NoOp
          | TickTime Time.Posix
          | MealPlansLoaded (List BMealPlan)
          | ErrorMsg String
+         | UrlRequestMsg UrlRequest
+         | UrlChangeMsg Url
 
 calendarPeriodDays : Int
 calendarPeriodDays = 9
         
 appInit : () -> Url -> Nav.Key -> (Model, Cmd Msg)
-appInit _ _ _ =
+appInit _ _ key =
     let model = { clock = Nothing
                 , page = PageTop
+                , navKey = key
                 , calendar = []
                 , mealPlansLoaded = False
                 , errorMsg = Nothing
@@ -118,10 +124,12 @@ appUpdateModel msg model =
                 Err e -> { model | errorMsg = Just e }
                 Ok new_cal -> { model | calendar = new_cal, mealPlansLoaded = True }
         ErrorMsg e -> { model | errorMsg = Just e }
+        UrlRequestMsg _ -> model
+        UrlChangeMsg _ -> Debug.todo "TODO"
 
 appUpdateCmd : Msg -> Model -> List (Cmd Msg)
-appUpdateCmd _ model =
-    let result = initTimeCmd ++ loadMealPlanCmd
+appUpdateCmd msg model =
+    let result = initTimeCmd ++ loadMealPlanCmd ++ urlRequestCmd
         initTimeCmd =
             case model.clock of
                 Nothing -> [Task.perform identity <| Task.map2 InitTime Time.now Time.here]
@@ -133,16 +141,23 @@ appUpdateCmd _ model =
                 case model.clock of
                     Nothing -> []
                     Just c -> [loadMealPlans c.curTime c.timeZone]
+        urlRequestCmd =
+            case msg of
+                UrlRequestMsg (Browser.Internal u) ->
+                    [Nav.pushUrl model.navKey <| Url.toString u]
+                UrlRequestMsg (Browser.External s) ->
+                    [Nav.load s]
+                _ -> []
     in result
 
 appSub : Model -> Sub Msg
 appSub _ = Time.every 5000 TickTime
 
 appOnUrlRequest : UrlRequest -> Msg
-appOnUrlRequest _ = NoOp
+appOnUrlRequest = UrlRequestMsg
 
 appOnUrlChange : Url -> Msg
-appOnUrlChange _ = NoOp
+appOnUrlChange = UrlChangeMsg
 
 loadMealPlans : Time.Posix -> Time.Zone -> Cmd Msg
 loadMealPlans time zone =
@@ -192,7 +207,7 @@ viewDayMeal dm =
             [ li [] [text ("phase: " ++ MealPhase.toString dm.phase)]
             ]
             ++ List.map mkRecipe dm.recipes
-        mkRecipe r = li [] [text ("meal: " ++ r.name)]
+        mkRecipe r = li [] <| viewLinkRecipe r.id [text ("meal: " ++ r.name)]
     in result
 
 viewCalEntry : CalEntry -> List (Html Msg)
@@ -205,3 +220,8 @@ viewCalEntry centry =
         mkMeal ml = ul [] (viewDayMeal ml)
     in result
 
+viewLinkRecipe : BRecipeID -> List (Html a) -> List (Html a)
+viewLinkRecipe rid content =
+    let result = [Html.a attrs content]
+        attrs = [href <| recipePageLink rid]
+    in result
