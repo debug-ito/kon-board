@@ -21,7 +21,8 @@ import Result
 import String
 import Task
 
-import Bridge exposing (BRecipeSummary, BMealPlan, BRecipeID)
+import Bridge exposing
+    (BRecipeSummary, BMealPlan, BRecipeID, BRecipe(..))
 import Bridge
 import CalEntry exposing (CalEntry, Calendar, DayMeal)
 import CalEntry
@@ -43,6 +44,7 @@ type alias Model =
       -- | 'True' if MealPlans are loaded to the calendar.
     , mealPlansLoaded : Bool
     , errorMsg : Maybe String
+    , loadedRecipe : Maybe MRecipe
     }
 
 {- | Clock in the model.
@@ -50,6 +52,13 @@ type alias Model =
 type alias MClock =
     { curTime : Time.Posix
     , timeZone : Time.Zone
+    }
+
+{- | Loaded recipe in the model.
+-}
+type alias MRecipe =
+    { id : BRecipeID
+    , recipe : BRecipe
     }
 
 setClock : Time.Zone -> Time.Posix -> Model -> Model
@@ -89,6 +98,7 @@ type Msg = NoOp
          | ErrorMsg String
          | UrlRequestMsg UrlRequest
          | UrlChangeMsg Url
+         | RecipeLoaded MRecipe
 
 calendarPeriodDays : Int
 calendarPeriodDays = 9
@@ -101,6 +111,7 @@ appInit _ url key =
                      , calendar = []
                      , mealPlansLoaded = False
                      , errorMsg = Nothing
+                     , loadedRecipe = Nothing
                      }
         model = appUrlChange url model_base
         cmd = Cmd.batch <| appUpdateCmd InitModel model
@@ -131,6 +142,7 @@ appUpdateModel msg model =
         ErrorMsg e -> { model | errorMsg = Just e }
         UrlRequestMsg _ -> model
         UrlChangeMsg u -> appUrlChange u model
+        RecipeLoaded mr -> { model | loadedRecipe = Just mr }
 
 appUrlChange : Url -> Model -> Model
 appUrlChange u model = 
@@ -141,7 +153,7 @@ appUrlChange u model =
 
 appUpdateCmd : Msg -> Model -> List (Cmd Msg)
 appUpdateCmd msg model =
-    let result = initTimeCmd ++ loadMealPlanCmd ++ urlRequestCmd
+    let result = initTimeCmd ++ loadMealPlanCmd ++ urlRequestCmd ++ loadRecipeCmd
         initTimeCmd =
             case model.clock of
                 Nothing -> [Task.perform identity <| Task.map2 InitTime Time.now Time.here]
@@ -159,6 +171,13 @@ appUpdateCmd msg model =
                     [Nav.pushUrl model.navKey <| Url.toString u]
                 UrlRequestMsg (Browser.External s) ->
                     [Nav.load s]
+                _ -> []
+        loadRecipeCmd =
+            case (model.page, model.loadedRecipe) of
+                (PageRecipe rid, Nothing) -> [loadRecipeByID rid]
+                (PageRecipe rid, Just mr) -> if rid == mr.id
+                                             then []
+                                             else [loadRecipeByID rid]
                 _ -> []
     in result
 
@@ -180,6 +199,15 @@ loadMealPlans time zone =
                 Ok mps -> MealPlansLoaded mps
                 Err http_err -> ErrorMsg ("Error in loadMealPlans: " ++ showHttpError http_err)
     in Bridge.getApiV1Mealplans (Date.toIsoString start_day) (Date.toIsoString end_day) handle
+
+loadRecipeByID : BRecipeID -> Cmd Msg
+loadRecipeByID rid =
+    let result = Bridge.getApiV1RecipesByRecipeid rid handle
+        handle ret =
+            case ret of
+                Ok r -> RecipeLoaded { id = rid, recipe = r }
+                Err err -> ErrorMsg ("Error in loadRecipeByID: " ++ showHttpError err)
+    in result
 
 showHttpError : Http.Error -> String
 showHttpError e =
@@ -250,5 +278,14 @@ viewLinkRecipe rid content =
     in result
 
 viewRecipePage : BRecipeID -> Model -> List (Html Msg)
-viewRecipePage rid _ =
-    [div [] [text ("Recipe ID: " ++ rid)]]  -- TODO: show recipe detail.
+viewRecipePage rid model =
+    let result = [div [] [text ("Recipe ID: " ++ rid)]] ++ recipe_body
+        mkName n = [div [] [text ("Recipe name: " ++ n)]]
+        recipe_body =
+            case model.loadedRecipe of
+                Nothing -> []
+                Just mr ->
+                    case mr.recipe of
+                        BRIn r -> mkName r.name
+                        BRURL r -> mkName r.name
+    in result
