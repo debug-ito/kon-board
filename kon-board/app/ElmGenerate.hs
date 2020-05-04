@@ -9,7 +9,9 @@ import System.Environment (getArgs)
 
 import KonBoard.Bridge.MealPlan (BMealPlan)
 import KonBoard.Bridge.Recipe
-  (BRecipeSummary, BRecipe, BRecipeIn, BRecipeURL, BIngDesc, BIngredient)
+  ( BRecipeSummary, BRecipe, BRecipeIn, BRecipeID,
+    BRecipeURL, BIngDesc, BIngredient
+  )
 import KonBoard.Bridge.Time (BDay)
 import KonBoard.Web.API (DataAPI)
 
@@ -25,6 +27,7 @@ main = do
     defs =
       [ Elm.DefineElm (Proxy :: Proxy BMealPlan),
         Elm.DefineElm (Proxy :: Proxy BRecipeSummary),
+        Elm.DefineElm (Proxy :: Proxy BRecipeID),
         Elm.DefineElm (Proxy :: Proxy BDay),
         Elm.DefineElm (Proxy :: Proxy BRecipe),
         Elm.DefineElm (Proxy :: Proxy BRecipeIn),
@@ -36,4 +39,5 @@ main = do
     elm_imports = Elm.defElmImports
     typeAlt = Elm.defaultTypeAlterations
     customToString (Elm.ETyCon (ElmT.ETCon "BDay")) = "identity"
+    customToString (Elm.ETyCon (ElmT.ETCon "BRecipeID")) = "identity"
     customToString t = Elm.defaultElmToString t

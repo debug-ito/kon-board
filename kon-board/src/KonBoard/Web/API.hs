@@ -13,7 +13,7 @@ module KonBoard.Web.API
 import Servant
 
 import Data.Text (Text)
-import KonBoard.Bridge.Recipe (BRecipe)
+import KonBoard.Bridge.Recipe (BRecipe, BRecipeID)
 import KonBoard.Bridge.MealPlan (BMealPlan)
 import KonBoard.Bridge.Time (BDay)
 
@@ -30,5 +30,5 @@ type GetMealPlans =
 
 type GetRecipe =
   "recipes"
-  :> Capture "recipe-id" Text
+  :> Capture "recipe-id" BRecipeID
   :> Get '[JSON] BRecipe

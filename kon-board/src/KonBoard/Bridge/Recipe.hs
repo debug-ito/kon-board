@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TemplateHaskell, GeneralizedNewtypeDeriving #-}
 -- |
 -- Module: KonBoard.Bridge.Recipe
 -- Description: Easy-to-encode Recipe data types
@@ -6,9 +6,12 @@
 --
 -- 
 module KonBoard.Bridge.Recipe
-  ( BRecipeSummary(..),
+  ( BRecipeSummary,
     toBRecipeSummary,
     fromBRecipeSummary,
+    BRecipeID(..),
+    toBRecipeID,
+    fromBRecipeID,
     BRecipe(..),
     toBRecipe,
     BRecipeIn(..),
@@ -21,6 +24,7 @@ module KonBoard.Bridge.Recipe
 
 import Data.Text (Text)
 import qualified Elm.Derive as Elm
+import Servant (FromHttpApiData)
 
 import KonBoard.Bridge.Util (dropLabelOptions)
 import KonBoard.Recipe
@@ -28,23 +32,31 @@ import KonBoard.Recipe
     Recipe(..), RecipeBody(..), RecipeIn(..)
   )
 import KonBoard.Recipe.Store
-  ( RecipeSummary(..)
+  ( RecipeSummary(..), ID
   )
 
 -- | Easy-to-encode version of 'RecipeSummary'.
 data BRecipeSummary =
   BRecipeSummary
-  { br_id :: Text,
+  { br_id :: BRecipeID,
     br_name :: Text
   }
   deriving (Show,Eq,Ord)
 
-
 toBRecipeSummary :: RecipeSummary -> BRecipeSummary
-toBRecipeSummary (RecipeSummary i n) = BRecipeSummary i n
+toBRecipeSummary (RecipeSummary i n) = BRecipeSummary (toBRecipeID i) n
 
 fromBRecipeSummary :: BRecipeSummary -> RecipeSummary
-fromBRecipeSummary (BRecipeSummary i n) = RecipeSummary i n
+fromBRecipeSummary (BRecipeSummary i n) = RecipeSummary (fromBRecipeID i) n
+
+newtype BRecipeID = BRecipeID Text
+  deriving (Show,Eq,Ord,FromHttpApiData)
+
+toBRecipeID :: ID -> BRecipeID
+toBRecipeID = BRecipeID
+
+fromBRecipeID :: BRecipeID -> ID
+fromBRecipeID (BRecipeID i) = i
 
 data BRecipe = BRIn BRecipeIn
              | BRURL BRecipeURL
@@ -108,6 +120,7 @@ toBIngredient (Ingredient f q) = BIngredient f q
 
 
 $(Elm.deriveBoth (dropLabelOptions 3) ''BRecipeSummary)
+$(Elm.deriveBoth (dropLabelOptions 0) ''BRecipeID)
 $(Elm.deriveBoth (dropLabelOptions 0) ''BRecipe)
 $(Elm.deriveBoth (dropLabelOptions 4) ''BRecipeIn)
 $(Elm.deriveBoth (dropLabelOptions 4) ''BRecipeURL)

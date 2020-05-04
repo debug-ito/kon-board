@@ -34,7 +34,7 @@ import System.FilePath.Glob (glob)
 
 import KonBoard.Bridge.Time (BDay, fromBDay)
 import KonBoard.Bridge.MealPlan (BMealPlan, toBMealPlan)
-import KonBoard.Bridge.Recipe (BRecipe, toBRecipe)
+import KonBoard.Bridge.Recipe (BRecipe, toBRecipe, BRecipeID, fromBRecipeID)
 import KonBoard.MealPlan.Store (AMealPlanStore(..))
 import qualified KonBoard.MealPlan.Store as MealPlan
 import KonBoard.Recipe.Store (RecipeStore, loadRecipe)
@@ -72,9 +72,9 @@ handleGetMealPlans store bs be = do
   fmap (map toBMealPlan)$ liftIO $ searchMealPlans store start end
 
 handleGetRecipe :: RecipeStore
-                -> Recipe.ID
+                -> BRecipeID
                 -> Handler BRecipe
-handleGetRecipe rstore rid = fmap toBRecipe $ liftIO $ loadRecipe rstore rid
+handleGetRecipe rstore rid = fmap toBRecipe $ liftIO $ loadRecipe rstore $ fromBRecipeID rid
 
 -- | Make 'Application' from 'Server'.
 appWith :: Server -> Application
