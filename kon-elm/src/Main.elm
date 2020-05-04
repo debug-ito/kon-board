@@ -110,17 +110,27 @@ appView m = { title = "kon-board"
 
 appUpdate : Msg -> Model -> (Model, Cmd Msg)
 appUpdate msg model =
-    case msg of
-        NoOp -> (model, Cmd.none)
-        InitTime t z -> ( initCalendar z t <| setClock z t model
-                        , loadMealPlans t z
-                        )
-        TickTime t -> (tickClock t model, Cmd.none)
-        MealPlansLoaded mps ->
-            case CalEntry.addMealPlans mps model.calendar.calendar of
-                Err e -> ({ model | errorMsg = Just e }, Cmd.none)
-                Ok new_cal -> (setCalendar new_cal model, Cmd.none)
-        ErrorMsg e -> ({ model | errorMsg = Just e }, Cmd.none)
+    let new_model = appUpdateModel msg model
+        cmd = appUpdateCmd msg new_model
+    in (new_model, cmd)
+
+appUpdateModel : Msg -> Model -> Model
+appUpdateModel = Debug.todo "todo"
+
+appUpdateCmd : Msg -> Model -> Cmd Msg
+appUpdateCmd = Debug.todo "todo"
+
+----     case msg of
+----         NoOp -> (model, Cmd.none)
+----         InitTime t z -> ( initCalendar z t <| setClock z t model
+----                         , loadMealPlans t z
+----                         )
+----         TickTime t -> (tickClock t model, Cmd.none)
+----         MealPlansLoaded mps ->
+----             case CalEntry.addMealPlans mps model.calendar.calendar of
+----                 Err e -> ({ model | errorMsg = Just e }, Cmd.none)
+----                 Ok new_cal -> (setCalendar new_cal model, Cmd.none)
+----         ErrorMsg e -> ({ model | errorMsg = Just e }, Cmd.none)
 
 appSub : Model -> Sub Msg
 appSub _ = Time.every 5000 TickTime
