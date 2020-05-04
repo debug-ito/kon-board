@@ -1,11 +1,13 @@
 module Page exposing
     ( Page(..)
     , parseUrl
+    , recipePageLink
     )
 
 import Url exposing (Url)
 import Url.Parser exposing (Parser, oneOf, (</>))
 import Url.Parser as P
+import Url.Builder as B
 
 import Bridge exposing (BRecipeID)
 
@@ -26,3 +28,6 @@ parserPage =
     [ P.map PageTop P.top
     , P.map PageRecipe (P.s "recipes" </> P.string)
     ]
+
+recipePageLink : BRecipeID -> String
+recipePageLink rid = B.absolute ["recipes", rid] []
