@@ -94,15 +94,17 @@ calendarPeriodDays : Int
 calendarPeriodDays = 9
         
 appInit : () -> Url -> Nav.Key -> (Model, Cmd Msg)
-appInit _ _ key =
-    let model = { clock = Nothing
-                , page = PageTop
-                , navKey = key
-                , calendar = []
-                , mealPlansLoaded = False
-                , errorMsg = Nothing
-                }
-    in (model, Cmd.batch <| appUpdateCmd InitModel model)
+appInit _ url key =
+    let model_base = { clock = Nothing
+                     , page = PageTop
+                     , navKey = key
+                     , calendar = []
+                     , mealPlansLoaded = False
+                     , errorMsg = Nothing
+                     }
+        model = appUrlChange url model_base
+        cmd = Cmd.batch <| appUpdateCmd InitModel model
+    in (model, cmd)
 
 appView : Model -> Document Msg
 appView m = { title = "kon-board"
@@ -128,11 +130,14 @@ appUpdateModel msg model =
                 Ok new_cal -> { model | calendar = new_cal, mealPlansLoaded = True }
         ErrorMsg e -> { model | errorMsg = Just e }
         UrlRequestMsg _ -> model
-        UrlChangeMsg u ->
-            case Page.parseUrl u of
-                Nothing -> let err = ("Unknown URL: " ++ Url.toString u)
-                           in { model | errorMsg = Just err }
-                Just p -> { model | page = p }
+        UrlChangeMsg u -> appUrlChange u model
+
+appUrlChange : Url -> Model -> Model
+appUrlChange u model = 
+    case Page.parseUrl u of
+        Nothing -> let err = ("Unknown URL: " ++ Url.toString u)
+                   in { model | errorMsg = Just err }
+        Just p -> { model | page = p }
 
 appUpdateCmd : Msg -> Model -> List (Cmd Msg)
 appUpdateCmd msg model =

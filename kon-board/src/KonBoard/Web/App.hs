@@ -91,7 +91,9 @@ appWith Server { sMealPlanStore = mp_store,
               :<|> Sv.serveDirectoryWebApp dir_static
     rewriteRoot = rewritePureWithQueries rewrite
       where
-        rewrite ([], q) _ = (["static", "index.html"], q)
+        index_page = ["static", "index.html"]
+        rewrite ([], q) _ = (index_page, q)
+        rewrite (("recipes" : _ : _), q) _ = (index_page, q)
         rewrite pq _ = pq
 
 makeDefaultServer :: IO Server
