@@ -12,6 +12,7 @@ module KonBoard.Recipe
     RecipeBody(..),
     URL,
     RecipeIn(..),
+    Desc,
     IngDesc(..),
     IngGroupSymbol,
     Ingredient(..),
