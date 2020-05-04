@@ -23,5 +23,6 @@ parseUrl = P.parse parserPage
 parserPage : Parser (Page -> a) a
 parserPage =
     oneOf
-    [ P.map PageRecipe (P.s "recipes" </> P.string)
+    [ P.map PageTop P.top
+    , P.map PageRecipe (P.s "recipes" </> P.string)
     ]
