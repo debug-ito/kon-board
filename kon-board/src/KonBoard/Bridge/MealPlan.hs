@@ -34,8 +34,6 @@ data BMealPlan =
   }
   deriving (Show,Eq,Ord)
 
-$(Elm.deriveBoth (dropLabelOptions 3) ''BMealPlan)
-
 toBMealPlan :: MealPlan -> BMealPlan
 toBMealPlan mp =
   BMealPlan
@@ -57,3 +55,4 @@ fromBMealPlan bm = do
                       mealRecipes = fmap fromBRecipeSummary $ brecs
                     }
     
+$(Elm.deriveBoth (dropLabelOptions 3) ''BMealPlan)
