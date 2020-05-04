@@ -19,21 +19,21 @@ import ListUtil exposing (replaceOrAdd)
 import MealPhase exposing (MealPhase(..))
 import MealPhase
 
-{-| Meal in a day.
+{- | Meal in a day.
 -}
 type alias DayMeal =
     { phase : MealPhase
     , recipes : List BRecipeSummary
     }
         
-{-| Calendar entry
+{- | Calendar entry
 -}
 type alias CalEntry =
     { day : Date
     , meals : List DayMeal
     }
 
-{-| Calendar
+{- | Calendar
 -}
 type alias Calendar = List CalEntry
 

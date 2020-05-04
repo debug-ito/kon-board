@@ -1,7 +1,7 @@
 module Main exposing
     (..)
 
-{-| The application main. -}
+{- | The application main. -}
 
 import Browser
 import Browser exposing (Document, UrlRequest)
@@ -26,7 +26,7 @@ import MealPhase
 
 ---- Types
 
-{-| The model.
+{- | The model.
 -}
 type alias Model =
     { curTime : Time.Posix
@@ -34,7 +34,7 @@ type alias Model =
     , calendar : Calendar
     , errorMsg : Maybe String
     }
-    
+
 ---- Main
 
 main = Browser.application
@@ -46,7 +46,7 @@ main = Browser.application
        , onUrlChange = appOnUrlChange
        }
 
-{-| Main program msg
+{- | Main program msg
 -}
 type Msg = NoOp
          -- | Initiallize the current time

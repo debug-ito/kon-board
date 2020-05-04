@@ -4,9 +4,9 @@ module MealPhase exposing
     , parseString
     )
 
-{-| MealPhase type. -}
+{- | MealPhase type. -}
 
-{-| Phase of a meal.
+{- | Phase of a meal.
 -}
 type MealPhase = Breakfast
                | Lunch
