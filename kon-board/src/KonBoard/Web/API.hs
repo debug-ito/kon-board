@@ -17,9 +17,11 @@ import KonBoard.Bridge.Recipe (BRecipe)
 import KonBoard.Bridge.MealPlan (BMealPlan)
 import KonBoard.Bridge.Time (BDay)
 
-type DataAPI = GetMealPlans
-               :<|> GetRecipe
-
+type DataAPI = "api" :> "v1" :>
+               ( GetMealPlans
+                 :<|> GetRecipe
+               )
+  
 type GetMealPlans =
   "meal-plans"
   :> QueryParam' [Required, Strict] "start" BDay

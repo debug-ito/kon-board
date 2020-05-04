@@ -109,7 +109,7 @@ loadMealPlans time zone =
             case ret of
                 Ok mps -> MealPlansLoaded mps
                 Err _ -> ErrorMsg "Error in loadMealPlans" -- TODO: encode the HTTP error
-    in Bridge.getMealplans (Date.toIsoString start_day) (Date.toIsoString end_day) handle
+    in Bridge.getApiV1Mealplans (Date.toIsoString start_day) (Date.toIsoString end_day) handle
 
 ---- View
 
