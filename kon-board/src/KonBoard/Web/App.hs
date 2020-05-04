@@ -34,8 +34,10 @@ import System.FilePath.Glob (glob)
 
 import KonBoard.Bridge.Time (BDay, fromBDay)
 import KonBoard.Bridge.MealPlan (BMealPlan, toBMealPlan)
+import KonBoard.Bridge.Recipe (BRecipe, toBRecipe)
 import KonBoard.MealPlan.Store (AMealPlanStore(..))
 import qualified KonBoard.MealPlan.Store as MealPlan
+import KonBoard.Recipe.Store (RecipeStore, loadRecipe)
 import qualified KonBoard.Recipe.Store as Recipe
 import KonBoard.Web.API (DataAPI)
 
@@ -48,6 +50,7 @@ data Server where
     ( AMealPlanStore s
     ) =>
     { sMealPlanStore :: s,
+      sRecipeStore :: RecipeStore,
       sDirStatic :: FilePath
     } -> Server
 
@@ -68,15 +71,23 @@ handleGetMealPlans store bs be = do
   (start, end) <- badReqToHandler $ (,) <$> (fromBDay bs) <*> (fromBDay be)
   fmap (map toBMealPlan)$ liftIO $ searchMealPlans store start end
 
+handleGetRecipe :: RecipeStore
+                -> Recipe.ID
+                -> Handler BRecipe
+handleGetRecipe rstore rid = fmap toBRecipe $ liftIO $ loadRecipe rstore rid
+
 -- | Make 'Application' from 'Server'.
 appWith :: Server -> Application
 appWith Server { sMealPlanStore = mp_store,
+                 sRecipeStore = r_store,
                  sDirStatic = dir_static
                } = application
   where
     application = rewriteRoot $ Sv.serve api service
     api = Proxy :: Proxy AppAPI
-    service = handleGetMealPlans mp_store
+    service = ( handleGetMealPlans mp_store
+                :<|> handleGetRecipe r_store
+              )
               :<|> Sv.serveDirectoryWebApp dir_static
     rewriteRoot = rewritePureWithQueries rewrite
       where
@@ -98,5 +109,6 @@ makeDefaultServer' =  do
   rstore <- Recipe.openYAMLs recipe_files
   mstore <- MealPlan.openYAMLs rstore mealplan_files
   return $ Server { sMealPlanStore = mstore,
+                    sRecipeStore = rstore,
                     sDirStatic = "static"
                   }
