@@ -28,10 +28,12 @@ import Bridge exposing
 import Bridge
 import CalEntry exposing (CalEntry, Calendar, DayMeal)
 import CalEntry
+import ListUtil
 import MealPhase exposing (MealPhase(..))
 import MealPhase
 import Page exposing (Page(..), recipePageLink)
 import Page
+import Recipe exposing (recipeName)
 
 ---- Model Types
 
@@ -120,9 +122,18 @@ appInit _ url key =
     in (model, cmd)
 
 appView : Model -> Document Msg
-appView m = { title = "kon-board"
-            , body = viewBody m
-            }
+appView m =
+    let result = { title = ListUtil.join " - " (page_title ++ ["kon-board"])
+                 , body = viewBody m
+                 }
+        page_title =
+            case m.page of
+                PageTop -> []
+                PageRecipe _ ->
+                    case m.loadedRecipe of
+                        Nothing -> []
+                        Just mr -> [recipeName mr.recipe]
+    in result
 
 appUpdate : Msg -> Model -> (Model, Cmd Msg)
 appUpdate msg model =

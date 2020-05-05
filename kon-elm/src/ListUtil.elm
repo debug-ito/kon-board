@@ -1,8 +1,10 @@
 module ListUtil exposing
     ( replaceOrAdd
+    , join
     )
 
 import List exposing (foldr)
+import List
 
 {- | Extra utility about List -}
 
@@ -24,3 +26,6 @@ replaceOrAdd pred new_item old_list =
             then ret
             else (new_item :: ret)
     in result
+
+join : String -> List String -> String
+join sep words = List.foldr (++) "" <| List.intersperse sep words
