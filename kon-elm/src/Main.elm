@@ -9,6 +9,7 @@ import Browser.Navigation as Nav
 import Html exposing (Html, div, text, ul, li, h1, h2)
 import Html
 import Html.Attributes exposing (href)
+import Html.Attributes as Attr
 import Http
 import List
 import Markdown
@@ -310,7 +311,7 @@ viewRecipe br =
             case ru of
                 Nothing -> []
                 Just u -> [ h2 [] [text "参考"]
-                          , ul [] [li [] [Html.a [href u] [text u]]]
+                          , ul [] [li [] [Html.a [href u, Attr.target "_blank"] [text u]]]
                           ]
         viewRecipeIn rin = viewName rin.name ++ viewIngDescs rin.ings
                            ++ viewDesc rin.desc ++ viewRefURL rin.ref_url
