@@ -80,7 +80,7 @@ tickClock t model =
 
 initCalendar : Time.Zone -> Time.Posix -> Model -> Model
 initCalendar tz t model =
-    let cals = CalEntry.forDays (Date.fromPosix tz t) calendarPeriodDays
+    let cals = CalEntry.forDays (calendarStart tz t) calendarPeriodDays
     in { model | calendar = cals }
 
 ---- Main
@@ -110,6 +110,11 @@ type Msg = NoOp
 
 calendarPeriodDays : Int
 calendarPeriodDays = 9
+
+{- | Make the start date of the calendar from the current time.
+-}
+calendarStart : Time.Zone -> Time.Posix -> Date
+calendarStart tz t = Date.add Date.Days (-1) <| Date.fromPosix tz t
         
 appInit : () -> Url -> Nav.Key -> (Model, Cmd Msg)
 appInit _ url key =
@@ -209,7 +214,7 @@ appOnUrlChange = UrlChangeMsg
 
 loadMealPlans : Time.Posix -> Time.Zone -> Cmd Msg
 loadMealPlans time zone =
-    let start_day = Date.fromPosix zone time
+    let start_day = calendarStart zone time
         end_day = Date.add Date.Days calendarPeriodDays start_day
         handle ret =
             case ret of
