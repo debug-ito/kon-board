@@ -3,6 +3,8 @@ module Main exposing
 
 {- | The application main. -}
 
+import Bootstrap.Grid as Grid
+import Bootstrap.Grid.Col as Col
 import Browser
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
@@ -235,17 +237,22 @@ showHttpError e =
 
 viewBody : Model -> List (Html Msg)
 viewBody model =
-    let result = (mkClock model.clock) ++ err_msg ++ viewNav model.page ++ view_for_page
-        mkClock mc = viewCurTime mc
-        err_msg =
-            case model.errorMsg of
-                Nothing -> []
-                Just e -> [ div [] [text ("error: " ++ e)]
-                          ]
-        view_for_page =
+    let result = [ Grid.container []
+                       [ Grid.row []
+                             [ Grid.col [Col.sm1] sidebar
+                             , Grid.col [Col.sm10] mainbox
+                             ]
+                       ]
+                 ]
+        sidebar = viewCurTime model.clock ++ err_msg ++ viewNav model.page -- TODO. rearrange error message.
+        mainbox =
             case model.page of
                 PageTop -> mkCalendar model.calendar
                 PageRecipe r -> viewRecipePage r model
+        err_msg =
+            case model.errorMsg of
+                Nothing -> []
+                Just e -> [ div [] [text ("error: " ++ e)] ]
         mkCalendar cal = List.concat <| List.map viewCalEntry cal
     in result
 
