@@ -5,10 +5,11 @@ module Main exposing
 
 import Bootstrap.Grid as Grid
 import Bootstrap.Grid.Col as Col
+import Bootstrap.Alert as Alert
 import Browser
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
-import Html exposing (Html, div, text, ul, li, h1, h2)
+import Html exposing (Html, div, text, ul, li, h1, h2, h3)
 import Html
 import Html.Attributes exposing (href)
 import Html.Attributes as Attr
@@ -30,6 +31,7 @@ import Bridge exposing
 import Bridge
 import CalEntry exposing (CalEntry, Calendar, DayMeal)
 import CalEntry
+import DateUtil
 import ListUtil
 import MealPhase exposing (MealPhase(..))
 import MealPhase
@@ -252,7 +254,7 @@ viewBody model =
         err_msg =
             case model.errorMsg of
                 Nothing -> []
-                Just e -> [ div [] [text ("error: " ++ e)] ]
+                Just e -> [ Alert.simpleDanger [] [text ("error: " ++ e)] ]
         mkCalendar cal = List.concat <| List.map viewCalEntry cal
     in result
 
@@ -274,21 +276,22 @@ viewNav p =
                   
 viewDayMeal : DayMeal -> List (Html Msg)
 viewDayMeal dm =
-    let result = 
-            [ li [] [text ("phase: " ++ MealPhase.toString dm.phase)]
+    let result =
+            [ h3 [] [text <| MealPhase.toString dm.phase]
+            , ul [] <| List.map mkRecipe dm.recipes
             ]
-            ++ List.map mkRecipe dm.recipes
-        mkRecipe r = li [] <| viewLinkRecipe r.id [text ("meal: " ++ r.name)]
+        mkRecipe r = li [] <| viewLinkRecipe r.id [text r.name]
     in result
 
 viewCalEntry : CalEntry -> List (Html Msg)
 viewCalEntry centry =
-    let result = [div [] [ul [] fieldlist]]
-        fieldlist =
-            [ li [] [text ("day: " ++ Date.toIsoString centry.day)]
-            ]
-            ++ List.map mkMeal centry.meals
-        mkMeal ml = ul [] (viewDayMeal ml)
+    let result = [ Grid.row []
+                       ( [ Grid.col [Col.sm1] col_date ]
+                             ++ List.map (mkMeal [Col.sm4]) centry.meals
+                       )
+                 ]
+        col_date = [text <| DateUtil.formatDay centry.day]
+        mkMeal opts ml = Grid.col opts <| viewDayMeal ml
     in result
 
 viewLinkRecipe : BRecipeID -> List (Html a) -> List (Html a)

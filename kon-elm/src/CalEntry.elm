@@ -15,6 +15,7 @@ import Result.Extra as ResultE
 import Time
 
 import Bridge exposing (BMealPlan, BRecipeSummary)
+import DateUtil exposing (parseMonth)
 import ListUtil exposing (replaceOrAdd)
 import MealPhase exposing (MealPhase(..))
 import MealPhase
@@ -60,40 +61,10 @@ setDayMeal new_dm cal =
         p cur_dm = cur_dm.phase == new_dm.phase
     in new_cal
 
----         finalize <| foldr f ([], False) cal.meals
----         f dm (acc, replaced) =
----             if dm.phase == new_dm.phase
----             then (new_dm :: acc, True)
----             else (dm     :: acc, replaced)
----         finalize (ret, replaced) =
----             if replaced
----             then ret
----             else (new_dm :: ret)
----     in new_cal
-
-parseMonth : Int -> Result String Time.Month
-parseMonth m =
-    case m of
-        1 ->  Ok Time.Jan
-        2 ->  Ok Time.Feb
-        3 ->  Ok Time.Mar
-        4 ->  Ok Time.Apr
-        5 ->  Ok Time.May
-        6 ->  Ok Time.Jun
-        7 ->  Ok Time.Jul
-        8 ->  Ok Time.Aug
-        9 ->  Ok Time.Sep
-        10 -> Ok Time.Oct
-        11 -> Ok Time.Nov
-        12 -> Ok Time.Dec
-        _ ->  Err ("Invalid month: " ++ String.fromInt m)
-
 forDays : Date -> Int -> Calendar
 forDays start days =
     let makeEnd dif = Date.add Date.Days dif start
         makeCalEntries dif = [{ day = makeEnd dif, meals = [] }]
-        -- makeCalEntries dif = List.map (\p -> { day = makeEnd dif, phase = p, recipeSummaries = [] })
-        --                      <| [Lunch, Dinner]
     in List.concatMap makeCalEntries <| List.range 0 (days - 1)
 
 addMealPlan : BMealPlan -> Calendar -> Result String Calendar
