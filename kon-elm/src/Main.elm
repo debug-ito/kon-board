@@ -6,11 +6,12 @@ module Main exposing
 import Browser
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
-import Html exposing (Html, div, text, ul, li)
+import Html exposing (Html, div, text, ul, li, h1, h2)
 import Html
 import Html.Attributes exposing (href)
 import Http
 import List
+import Markdown
 import Time
 import Date exposing (Date)
 import Date
@@ -280,12 +281,38 @@ viewLinkRecipe rid content =
 viewRecipePage : BRecipeID -> Model -> List (Html Msg)
 viewRecipePage rid model =
     let result = [div [] [text ("Recipe ID: " ++ rid)]] ++ recipe_body
-        mkName n = [div [] [text ("Recipe name: " ++ n)]]
         recipe_body =
             case model.loadedRecipe of
                 Nothing -> []
-                Just mr ->
-                    case mr.recipe of
-                        BRIn r -> mkName r.name
-                        BRURL r -> mkName r.name
+                Just mr -> viewRecipe mr.recipe
+    in result
+
+viewRecipe : BRecipe -> List (Html Msg)
+viewRecipe br =
+    let result = [div [] recipe_content]
+        recipe_content = 
+            case br of
+                BRIn rin -> viewRecipeIn rin
+                BRURL ru -> viewRecipeURL ru
+        viewName n = [h1 [] [text n]]
+        viewIngDescs ings = [ h2 [] [text "材料"]
+                            , ul [] <| List.concatMap viewIngDesc ings
+                            ]
+        viewIngDesc ing =
+            case ing.group of
+                Nothing -> List.map viewIng ing.ings
+                Just g -> [ li [] [text g]
+                          , ul [] <| List.map viewIng ing.ings
+                          ]
+        viewIng ing = li [] [text (ing.food ++ ": " ++ ing.qtty)]
+        viewDesc desc = [h2 [] [text "手順"]] ++ Markdown.toHtml Nothing desc
+        viewRefURL ru =
+            case ru of
+                Nothing -> []
+                Just u -> [ h2 [] [text "参考"]
+                          , ul [] [li [] [Html.a [href u] [text u]]]
+                          ]
+        viewRecipeIn rin = viewName rin.name ++ viewIngDescs rin.ings
+                           ++ viewDesc rin.desc ++ viewRefURL rin.ref_url
+        viewRecipeURL ru = viewName ru.name ++ viewRefURL (Just ru.url)
     in result
