@@ -16,9 +16,10 @@ import Time
 
 formatDay : Date -> String
 formatDay d =
-    let result = month ++ "/" ++ day
+    let result = month ++ "/" ++ day ++ " " ++ weekday
         month = formatMonth <| Date.month d
         day = String.fromInt <| Date.day d
+        weekday = "(" ++ (formatWeekday <| Date.weekday d) ++ ")"
     in result
 
 formatWeekday : Weekday -> String

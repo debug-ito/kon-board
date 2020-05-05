@@ -263,7 +263,14 @@ viewCurTime mc =
     case mc of
         Nothing -> []
         Just c ->
-            let result = [div [] [text (hour ++ ":" ++ minute)]]
+            let result = [ div [] [ Html.span [] [text year]
+                                  , text " "
+                                  , Html.span [] [text <| DateUtil.formatDay date]
+                                  ]
+                         , div [] [text (hour ++ ":" ++ minute)]
+                         ]
+                date = Date.fromPosix c.timeZone c.curTime
+                year = (String.fromInt <| Date.year date) ++ "年"
                 hour = String.padLeft 2 '0' <| String.fromInt <| Time.toHour c.timeZone c.curTime
                 minute = String.padLeft 2 '0' <| String.fromInt <| Time.toMinute c.timeZone c.curTime
             in result
