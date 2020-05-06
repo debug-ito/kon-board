@@ -7,6 +7,7 @@ import Bootstrap.Grid as Grid
 import Bootstrap.Grid.Col as Col
 import Bootstrap.Alert as Alert
 import Bootstrap.Table as Table
+import Bootstrap.Button as Button
 import Browser
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
@@ -300,7 +301,18 @@ viewNav : Page -> List (Html Msg)
 viewNav p =
     case p of
         PageTop -> []
-        PageRecipe _ -> [div [] [Html.a [href <| UrlB.absolute [] []] [text "←戻る"]]]
+        PageRecipe _ ->
+            [ div []
+                  [ Button.linkButton
+                        [ Button.secondary
+                        , Button.attrs
+                              [ href <| UrlB.absolute [] []
+                              , Attr.class "kon-nav-button"
+                              ]
+                        ]
+                        [text "←"]
+                  ]
+            ]
                   
 tableMealPhases : List MealPhase
 tableMealPhases = [Lunch, Dinner]
