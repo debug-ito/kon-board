@@ -274,11 +274,17 @@ viewCurTime mc =
     case mc of
         Nothing -> []
         Just c ->
-            let result = [ div [] [ Html.span [Attr.class "clock-year"] [text year]
-                                  , text " "
-                                  , Html.span [Attr.class "clock-day"] [text <| DateUtil.formatDay date]
-                                  ]
-                         , div [] [Html.span [Attr.class "clock-time"] [text (hour ++ ":" ++ minute)]]
+            let result = [ Alert.simpleInfo []
+                               [ div [] [ Html.span [Attr.class "clock-year", Attr.class "text-nowrap"]
+                                              [text year]
+                                        , text " "
+                                        , Html.span [Attr.class "clock-day", Attr.class "text-nowrap"]
+                                            [text <| DateUtil.formatDay date]
+                                        ]
+                               , div [] [ Html.span [Attr.class "clock-time", Attr.class "text-nowrap"]
+                                              [text (hour ++ ":" ++ minute)]
+                                        ]
+                               ]
                          ]
                 date = Date.fromPosix c.timeZone c.curTime
                 year = (String.fromInt <| Date.year date) ++ "年"
