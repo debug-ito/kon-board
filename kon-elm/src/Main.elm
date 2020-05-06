@@ -310,7 +310,7 @@ viewCalEntry : Date -> CalEntry -> Table.Row Msg
 viewCalEntry today centry =
     let result = Table.tr opts cells
         opts = if centry.day == today
-               then [Table.rowPrimary]
+               then [Table.rowWarning]
                else []
         cells = [ Table.th [] [text <| DateUtil.formatDay centry.day] ]
                 ++ List.map mkCellForPhase tableMealPhases
