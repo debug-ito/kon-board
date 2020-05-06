@@ -250,8 +250,8 @@ viewBody : Model -> List (Html Msg)
 viewBody model =
     let result = [ Grid.container []
                        [ Grid.row []
-                             [ Grid.col [Col.sm1] sidebar
-                             , Grid.col [Col.sm11] mainbox
+                             [ Grid.col [Col.sm2, Col.attrs [Attr.class "sidebar"]] sidebar
+                             , Grid.col [Col.sm10, Col.attrs [Attr.class "mainbox"]] mainbox
                              ]
                        ]
                  ]
@@ -274,11 +274,11 @@ viewCurTime mc =
     case mc of
         Nothing -> []
         Just c ->
-            let result = [ div [] [ Html.span [] [text year]
+            let result = [ div [] [ Html.span [Attr.class "clock-year"] [text year]
                                   , text " "
-                                  , Html.span [] [text <| DateUtil.formatDay date]
+                                  , Html.span [Attr.class "clock-day"] [text <| DateUtil.formatDay date]
                                   ]
-                         , div [] [text (hour ++ ":" ++ minute)]
+                         , div [] [Html.span [Attr.class "clock-time"] [text (hour ++ ":" ++ minute)]]
                          ]
                 date = Date.fromPosix c.timeZone c.curTime
                 year = (String.fromInt <| Date.year date) ++ "年"
@@ -300,7 +300,7 @@ viewCalendar today cal =
     let result = [Table.table { options = opts, thead = thead, tbody = tbody }]
         opts = [Table.striped]
         thead = Table.thead [] [Table.tr [] head_cells]
-        head_cells = [ Table.th [] [text "日付"] ] -- TODO: use icon
+        head_cells = [ Table.th [Table.cellAttr <| Attr.class "cal-day"] [text "日付"] ] -- TODO: use icon
                      ++ List.map mkPhaseHeaderCell tableMealPhases
         mkPhaseHeaderCell p = Table.td [] [text <| MealPhase.toString p] -- TODO: use icon
         tbody = Table.tbody [] <| List.map (viewCalEntry today) cal
@@ -312,7 +312,7 @@ viewCalEntry today centry =
         opts = if centry.day == today
                then [Table.rowWarning]
                else []
-        cells = [ Table.th [] [text <| DateUtil.formatDay centry.day] ]
+        cells = [ Table.th [Table.cellAttr <| Attr.class "cal-day"] [text <| DateUtil.formatDay centry.day] ]
                 ++ List.map mkCellForPhase tableMealPhases
         mkCellForPhase p = Table.td [] <| mkCellContentForPhase p
         mkCellContentForPhase p =
