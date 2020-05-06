@@ -310,7 +310,7 @@ viewNav p =
                               , Attr.class "kon-nav-button"
                               ]
                         ]
-                        [text "←"]
+                        [iconBootstrap Nothing "house-door-fill-white" <| Just "ホーム"]
                   ]
             ]
                   
