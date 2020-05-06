@@ -6,6 +6,7 @@ module Main exposing
 import Bootstrap.Grid as Grid
 import Bootstrap.Grid.Col as Col
 import Bootstrap.Alert as Alert
+import Bootstrap.Table as Table
 import Browser
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
@@ -52,7 +53,7 @@ type alias Model =
       -- | 'True' if MealPlans are loaded to the calendar.
     , mealPlansLoaded : Bool
     , errorMsg : Maybe String
-    , loadedRecipe : Maybe MRecipe
+    , loadedRecipe : Maybe MRecipe  -- TODO: maybe we should move this under PageRecipe varient.
     }
 
 {- | Clock in the model.
@@ -82,6 +83,9 @@ initCalendar : Time.Zone -> Time.Posix -> Model -> Model
 initCalendar tz t model =
     let cals = CalEntry.forDays (calendarStart tz t) calendarPeriodDays
     in { model | calendar = cals }
+
+modelToday : Model -> Maybe Date
+modelToday m = Maybe.map (\mc -> Date.fromPosix mc.timeZone mc.curTime) m.clock
 
 ---- Main
 
@@ -247,20 +251,22 @@ viewBody model =
     let result = [ Grid.container []
                        [ Grid.row []
                              [ Grid.col [Col.sm1] sidebar
-                             , Grid.col [Col.sm10] mainbox
+                             , Grid.col [Col.sm11] mainbox
                              ]
                        ]
                  ]
-        sidebar = viewCurTime model.clock ++ err_msg ++ viewNav model.page -- TODO. rearrange error message.
+        sidebar = viewCurTime model.clock ++ err_msg ++ viewNav model.page
         mainbox =
             case model.page of
-                PageTop -> mkCalendar model.calendar
+                PageTop ->
+                    case modelToday model of
+                        Nothing -> []
+                        Just today -> viewCalendar today model.calendar
                 PageRecipe r -> viewRecipePage r model
         err_msg =
             case model.errorMsg of
                 Nothing -> []
-                Just e -> [ Alert.simpleDanger [] [text ("error: " ++ e)] ]
-        mkCalendar cal = List.concat <| List.map viewCalEntry cal
+                Just e -> [ Alert.simpleDanger [] [text ("Error: " ++ e)] ]
     in result
 
 viewCurTime : Maybe MClock -> List (Html Msg)
@@ -286,24 +292,34 @@ viewNav p =
         PageTop -> []
         PageRecipe _ -> [div [] [Html.a [href <| UrlB.absolute [] []] [text "←戻る"]]]
                   
-viewDayMeal : DayMeal -> List (Html Msg)
-viewDayMeal dm =
-    let result =
-            [ h3 [] [text <| MealPhase.toString dm.phase]
-            , ul [] <| List.map mkRecipe dm.recipes
-            ]
-        mkRecipe r = li [] <| viewLinkRecipe r.id [text r.name]
+tableMealPhases : List MealPhase
+tableMealPhases = [Lunch, Dinner]
+        
+viewCalendar : Date -> Calendar -> List (Html Msg)
+viewCalendar today cal =
+    let result = [Table.table { options = opts, thead = thead, tbody = tbody }]
+        opts = [Table.striped]
+        thead = Table.thead [] [Table.tr [] head_cells]
+        head_cells = [ Table.th [] [text "日付"] ] -- TODO: use icon
+                     ++ List.map mkPhaseHeaderCell tableMealPhases
+        mkPhaseHeaderCell p = Table.td [] [text <| MealPhase.toString p] -- TODO: use icon
+        tbody = Table.tbody [] <| List.map (viewCalEntry today) cal
     in result
 
-viewCalEntry : CalEntry -> List (Html Msg)
-viewCalEntry centry =
-    let result = [ Grid.row []
-                       ( [ Grid.col [Col.sm1] col_date ]
-                             ++ List.map (mkMeal [Col.sm4]) centry.meals
-                       )
-                 ]
-        col_date = [text <| DateUtil.formatDay centry.day]
-        mkMeal opts ml = Grid.col opts <| viewDayMeal ml
+viewCalEntry : Date -> CalEntry -> Table.Row Msg
+viewCalEntry today centry =
+    let result = Table.tr opts cells
+        opts = if centry.day == today
+               then [Table.rowPrimary]
+               else []
+        cells = [ Table.th [] [text <| DateUtil.formatDay centry.day] ]
+                ++ List.map mkCellForPhase tableMealPhases
+        mkCellForPhase p = Table.td [] <| mkCellContentForPhase p
+        mkCellContentForPhase p =
+            case CalEntry.mealFor p centry of
+                Nothing -> []
+                Just dm -> [ul [] <| List.map mkRecipe dm.recipes]
+        mkRecipe r = li [] <| viewLinkRecipe r.id [text r.name]
     in result
 
 viewLinkRecipe : BRecipeID -> List (Html a) -> List (Html a)

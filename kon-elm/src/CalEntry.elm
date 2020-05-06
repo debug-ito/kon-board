@@ -3,6 +3,7 @@ module CalEntry exposing
     , CalEntry
     , DayMeal
     , forDays
+    , mealFor
     , addMealPlan
     , addMealPlans
     )
@@ -48,11 +49,8 @@ fromBMealPlan mp =
           in Ok (day, dm)
     ) )
 
-mealFor : Date -> MealPhase -> CalEntry -> Maybe DayMeal
-mealFor d mp cal =
-    if cal.day /= d
-    then Nothing
-    else List.head <| List.filter (\dm -> dm.phase == mp) cal.meals
+mealFor : MealPhase -> CalEntry -> Maybe DayMeal
+mealFor mp cal = List.head <| List.filter (\dm -> dm.phase == mp) cal.meals
 
 setDayMeal : DayMeal -> CalEntry -> CalEntry
 setDayMeal new_dm cal =
