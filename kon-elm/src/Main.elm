@@ -366,7 +366,8 @@ viewLinkRecipe rid content =
 
 viewRecipePage : BRecipeID -> Model -> List (Html Msg)
 viewRecipePage rid model =
-    let result = [div [] [text ("Recipe ID: " ++ rid)]] ++ recipe_body
+    let result = recipe_body
+                 ++ [div [Attr.class "recipe-id-box"] [text ("Recipe ID: " ++ rid)]]
         recipe_body =
             case model.loadedRecipe of
                 Nothing -> []
@@ -375,7 +376,7 @@ viewRecipePage rid model =
 
 viewRecipe : BRecipe -> List (Html Msg)
 viewRecipe br =
-    let result = [div [] recipe_content]
+    let result = [div [Attr.class "recipe-box"] recipe_content]
         recipe_content = 
             case br of
                 BRIn rin -> viewRecipeIn rin
