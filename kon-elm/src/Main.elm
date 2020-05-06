@@ -250,8 +250,12 @@ viewBody : Model -> List (Html Msg)
 viewBody model =
     let result = [ Grid.container []
                        [ Grid.row []
-                             [ Grid.col [Col.sm2, Col.attrs [Attr.class "sidebar"]] sidebar
-                             , Grid.col [Col.sm10, Col.attrs [Attr.class "mainbox"]] mainbox
+                             [ Grid.col [ Col.sm3, Col.md3, Col.lg2
+                                        , Col.attrs [Attr.class "sidebar"]
+                                        ] sidebar
+                             , Grid.col [ Col.sm9, Col.md9, Col.lg10
+                                        , Col.attrs [Attr.class "mainbox"]
+                                        ] mainbox
                              ]
                        ]
                  ]
@@ -274,7 +278,7 @@ viewCurTime mc =
     case mc of
         Nothing -> []
         Just c ->
-            let result = [ Alert.simpleInfo []
+            let result = [ Alert.simpleInfo [Attr.class "clock-panel"]
                                [ div [] [ Html.span [Attr.class "clock-year", Attr.class "text-nowrap"]
                                               [text year]
                                         , text " "

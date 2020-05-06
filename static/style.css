@@ -1,6 +1,11 @@
 
+.clock-panel {
+    margin-top: 6px;
+    margin-bottom: 3px;
+}
+
 .clock-year {
-    font-size: 0.5rem;
+    font-size: 0.8rem;
 }
 
 .clock-day {
