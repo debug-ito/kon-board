@@ -310,9 +310,9 @@ viewCalendar today cal =
     let result = [Table.table { options = opts, thead = thead, tbody = tbody }]
         opts = [Table.striped]
         thead = Table.thead [] [Table.tr [] head_cells]
-        icon_size = 20
+        mkIcon = iconBootstrap (Just "cal-icon")
         head_cells = [ Table.th [Table.cellAttr <| Attr.class "cal-day"]
-                           [iconBootstrap "calendar" icon_size <| Just "日付"]
+                           [mkIcon "calendar" <| Just "日付"]
                      ]
                      ++ List.map mkPhaseHeaderCell tableMealPhases
         mkPhaseHeaderCell p = Table.td [] <| mkMealPhaseIcon p
@@ -320,7 +320,7 @@ viewCalendar today cal =
             let result_icon =
                     case m_icon_name of
                         Nothing -> []
-                        Just icon_name -> [iconBootstrap icon_name icon_size (Just <| MealPhase.toString p)]
+                        Just icon_name -> [mkIcon icon_name (Just <| MealPhase.toString p)]
                 m_icon_name =
                     case p of
                         Lunch -> Just "brightness-high-fill"
@@ -391,10 +391,13 @@ viewRecipe br =
         viewRecipeURL ru = viewName ru.name ++ viewRefURL (Just ru.url)
     in result
 
-iconBootstrap : String -> Int -> Maybe String -> Html Msg
-iconBootstrap icon_name size malt =
-    Html.img [ Attr.src ("/static/icons/twbs/" ++ icon_name ++ ".svg")
-             , Attr.width size
-             , Attr.height size
-             , Attr.alt <| Maybe.withDefault "" malt
-             ] []
+iconBootstrap : Maybe String -> String -> Maybe String -> Html Msg
+iconBootstrap mclass icon_name malt =
+    let result = Html.img attrs []
+        attrs = [ Attr.src ("/static/icons/twbs/" ++ icon_name ++ ".svg")
+                , Attr.alt <| Maybe.withDefault "" malt
+                ]
+                ++ case mclass of
+                       Nothing -> []
+                       Just c -> [Attr.class c]
+    in result
