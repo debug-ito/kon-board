@@ -33,6 +33,8 @@ import Bridge exposing
 import Bridge
 import CalEntry exposing (CalEntry, Calendar, DayMeal)
 import CalEntry
+import Coming exposing (Coming(..))
+import Coming
 import DateUtil
 import ListUtil
 import MealPhase exposing (MealPhase(..))
@@ -52,9 +54,9 @@ type alias Model =
     , navKey : Nav.Key
     , calendar : Calendar
       -- | 'True' if MealPlans are loaded to the calendar.
-    , mealPlansLoaded : Bool
+    , mealPlansLoaded : Coming String ()
     , errorMsg : Maybe String
-    , loadedRecipe : Maybe MRecipe  -- TODO: maybe we should move this under PageRecipe varient.
+    , loadedRecipe : Coming String MRecipe  -- TODO: maybe we should move this under PageRecipe varient.
     }
 
 {- | Clock in the model.
@@ -107,11 +109,11 @@ type Msg = NoOp
          | InitTime Time.Posix Time.Zone
          -- | Update the current time
          | TickTime Time.Posix
-         | MealPlansLoaded (List BMealPlan)
+         | MealPlansLoaded (Result String (List BMealPlan))
          | ErrorMsg String
          | UrlRequestMsg UrlRequest
          | UrlChangeMsg Url
-         | RecipeLoaded MRecipe
+         | RecipeLoaded (Result String MRecipe)
 
 calendarPeriodDays : Int
 calendarPeriodDays = 9
@@ -127,13 +129,13 @@ appInit _ url key =
                      , page = PageTop
                      , navKey = key
                      , calendar = []
-                     , mealPlansLoaded = False
+                     , mealPlansLoaded = NotStarted
                      , errorMsg = Nothing
-                     , loadedRecipe = Nothing
+                     , loadedRecipe = NotStarted
                      }
         model = appUrlChange url model_base
-        cmd = Cmd.batch <| appUpdateCmd InitModel model
-    in (model, cmd)
+        (cmd, modifyModel) = concatCmds <| appUpdateCmd InitModel model
+    in (modifyModel model, cmd)
 
 appView : Model -> Document Msg
 appView m =
@@ -144,7 +146,7 @@ appView m =
             case m.page of
                 PageTop -> []
                 PageRecipe _ ->
-                    case m.loadedRecipe of
+                    case Coming.success m.loadedRecipe of
                         Nothing -> []
                         Just mr -> [recipeName mr.recipe]
     in result
@@ -152,8 +154,8 @@ appView m =
 appUpdate : Msg -> Model -> (Model, Cmd Msg)
 appUpdate msg model =
     let new_model = appUpdateModel msg model
-        cmds = appUpdateCmd msg new_model
-    in (new_model, Cmd.batch cmds)
+        (cmd, modifyModel) = concatCmds <| appUpdateCmd msg new_model
+    in (modifyModel new_model, cmd)
 
 appUpdateModel : Msg -> Model -> Model
 appUpdateModel msg model =
@@ -162,50 +164,67 @@ appUpdateModel msg model =
         InitModel -> model
         InitTime t z -> initCalendar z t <| setClock z t model
         TickTime t -> tickClock t model
-        MealPlansLoaded mps ->
-            case CalEntry.addMealPlans mps model.calendar of
-                Err e -> { model | errorMsg = Just e }
-                Ok new_cal -> { model | calendar = new_cal, mealPlansLoaded = True }
+        MealPlansLoaded e_mps ->
+            case Result.andThen (\mps -> CalEntry.addMealPlans mps model.calendar) e_mps of
+                Err e -> { model | errorMsg = Just e, mealPlansLoaded = Failure e }
+                Ok new_cal -> { model | calendar = new_cal, mealPlansLoaded = Success () }
         ErrorMsg e -> { model | errorMsg = Just e }
         UrlRequestMsg _ -> model
         UrlChangeMsg u -> appUrlChange u model
-        RecipeLoaded mr -> { model | loadedRecipe = Just mr }
+        RecipeLoaded e_mr ->
+            case e_mr of
+                Err e -> { model | errorMsg = Just e, loadedRecipe = Failure e }
+                Ok mr -> { model | loadedRecipe = Success mr }
 
 appUrlChange : Url -> Model -> Model
 appUrlChange u model = 
     case Page.parseUrl u of
         Nothing -> let err = ("Unknown URL: " ++ Url.toString u)
                    in { model | errorMsg = Just err }
-        Just p -> { model | page = p, loadedRecipe = Nothing }
+        Just p -> { model | page = p, loadedRecipe = NotStarted }
 
-appUpdateCmd : Msg -> Model -> List (Cmd Msg)
+concatCmds : List (Cmd m, Model -> Model) -> (Cmd m, Model -> Model)
+concatCmds cs =
+    let result = fstBatch <| List.foldr f ([], identity) cs
+        f (c, m) (acc_cmds, acc_mod) = (c :: acc_cmds, m >> acc_mod)
+        fstBatch (cmds, m) = (Cmd.batch cmds, m)
+    in result
+
+appUpdateCmd : Msg -> Model -> List (Cmd Msg, Model -> Model)
 appUpdateCmd msg model =
     let result = initTimeCmd ++ loadMealPlanCmd ++ urlRequestCmd ++ loadRecipeCmd
         initTimeCmd =
             case model.clock of
-                Nothing -> [Task.perform identity <| Task.map2 InitTime Time.now Time.here]
+                Nothing -> [(Task.perform identity <| Task.map2 InitTime Time.now Time.here, identity)]
                 Just _ -> []
         loadMealPlanCmd =
-            if model.mealPlansLoaded
+            if Coming.hasStarted model.mealPlansLoaded
             then []
             else
                 case model.clock of
                     Nothing -> []
-                    Just c -> [loadMealPlans c.curTime c.timeZone]
+                    Just c -> [(loadMealPlans c.curTime c.timeZone
+                               , (\m -> { m | mealPlansLoaded = Pending })
+                               )]
         urlRequestCmd =
             case msg of
                 UrlRequestMsg (Browser.Internal u) ->
-                    [Nav.pushUrl model.navKey <| Url.toString u]
+                    [(Nav.pushUrl model.navKey <| Url.toString u, identity)]
                 UrlRequestMsg (Browser.External s) ->
-                    [Nav.load s]
+                    [(Nav.load s, identity)]
                 _ -> []
         loadRecipeCmd =
-            case (model.page, model.loadedRecipe) of
-                (PageRecipe rid, Nothing) -> [loadRecipeByID rid]
-                (PageRecipe rid, Just mr) -> if rid == mr.id
-                                             then []
-                                             else [loadRecipeByID rid]
-                _ -> []
+            let mkResult rid = [(loadRecipeByID rid, (\m -> { m | loadedRecipe = Pending }))]
+            in case (model.page, Coming.success model.loadedRecipe) of
+                   (PageRecipe rid, Nothing) ->
+                       if Coming.hasStarted model.loadedRecipe
+                       then []
+                       else mkResult rid
+                   (PageRecipe rid, Just mr) ->
+                       if rid == mr.id
+                       then []
+                       else mkResult rid
+                   _ -> []
     in result
 
 appSub : Model -> Sub Msg
@@ -222,18 +241,19 @@ loadMealPlans time zone =
     let start_day = calendarStart zone time
         end_day = Date.add Date.Days calendarPeriodDays start_day
         handle ret =
-            case ret of
-                Ok mps -> MealPlansLoaded mps
-                Err http_err -> ErrorMsg ("Error in loadMealPlans: " ++ showHttpError http_err)
+            let mkErrorMsg http_err = "Error in loadMealPlans: " ++ showHttpError http_err
+            in MealPlansLoaded <| Result.mapError mkErrorMsg ret
     in Bridge.getApiV1Mealplans (Date.toIsoString start_day) (Date.toIsoString end_day) handle
 
 loadRecipeByID : BRecipeID -> Cmd Msg
 loadRecipeByID rid =
     let result = Bridge.getApiV1RecipesByRecipeid rid handle
         handle ret =
-            case ret of
-                Ok r -> RecipeLoaded { id = rid, recipe = r }
-                Err err -> ErrorMsg ("Error in loadRecipeByID: " ++ showHttpError err)
+            let content = 
+                    case ret of
+                        Ok r -> Ok <| { id = rid, recipe = r }
+                        Err err -> Err <| "Error in loadRecipeByID: " ++ showHttpError err
+            in RecipeLoaded content
     in result
 
 showHttpError : Http.Error -> String
@@ -369,7 +389,7 @@ viewRecipePage rid model =
     let result = recipe_body
                  ++ [div [Attr.class "recipe-id-box"] [text ("Recipe ID: " ++ rid)]]
         recipe_body =
-            case model.loadedRecipe of
+            case Coming.success model.loadedRecipe of
                 Nothing -> []
                 Just mr -> viewRecipe mr.recipe
     in result
