@@ -307,19 +307,14 @@ viewCurTime mc =
         Nothing -> []
         Just c ->
             let result = [ Alert.simpleInfo [Attr.class "clock-panel"]
-                               [ div [] [ Html.span [Attr.class "clock-year", Attr.class "text-nowrap"]
-                                              [text year]
-                                        , text " "
-                                        , Html.span [Attr.class "clock-day", Attr.class "text-nowrap"]
-                                            [text <| DateUtil.formatDay date]
-                                        ]
-                               , div [] [ Html.span [Attr.class "clock-time", Attr.class "text-nowrap"]
+                               ((.viewDateLong) (Locale.get tempDefLocale) date)
+                               ++
+                               [ div [] [ Html.span [Attr.class "clock-time", Attr.class "text-nowrap"]
                                               [text (hour ++ ":" ++ minute)]
                                         ]
                                ]
                          ]
                 date = Date.fromPosix c.timeZone c.curTime
-                year = (String.fromInt <| Date.year date) ++ "年"
                 hour = String.padLeft 2 '0' <| String.fromInt <| Time.toHour c.timeZone c.curTime
                 minute = String.padLeft 2 '0' <| String.fromInt <| Time.toMinute c.timeZone c.curTime
             in result
