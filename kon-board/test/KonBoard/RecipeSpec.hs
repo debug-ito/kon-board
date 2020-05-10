@@ -6,6 +6,7 @@ import Test.Hspec
 
 import KonBoard.Recipe
   ( Recipe(..), RecipeBody(..), RecipeIn(..), IngDesc(..), Ingredient(..),
+    RecipeExt(..),
     loadYAML
   )
 
@@ -90,4 +91,27 @@ spec_recipe = describe "Recipe" $ do
             }
           ]
     loadRecipes "recipe_multi.yaml" `shouldReturn` expected
-
+  specify "load RecipeExt without URL" $ do
+    let expected =
+          Recipe
+          { recipeName = "external recipe without URL",
+            recipeBody = RecipeBodyExt exp_body
+          }
+        exp_body =
+          RecipeExt
+          { recipeSource = "The recipe book, p.11",
+            recipeExtURL = Nothing
+          }
+    loadRecipes "recipe_ext.yaml" `shouldReturn` [expected]
+  specify "load RecipeExt with URL" $ do
+    let expected =
+          Recipe
+          { recipeName = "external recipe with source and URL.",
+            recipeBody = RecipeBodyExt exp_body
+          }
+        exp_body =
+          RecipeExt
+          { recipeSource = "ext recipe, with URL",
+            recipeExtURL = Just "http://example.com/recipe/foobar"
+          }
+    loadRecipes "recipe_ext_url.yaml" `shouldReturn` [expected]

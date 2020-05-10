@@ -11,6 +11,7 @@ module KonBoard.Recipe
     Name,
     RecipeBody(..),
     URL,
+    RecipeExt(..),
     RecipeIn(..),
     Desc,
     IngDesc(..),
@@ -63,7 +64,9 @@ instance FromJSON Recipe where
 data RecipeBody =
   -- | Internal recipe.
   RecipeBodyIn RecipeIn
-  -- | External recipe, pointing to the URL.
+  -- | External recipe with some descriptions.
+  | RecipeBodyExt RecipeExt
+  -- | External recipe, just pointing to the URL.
   | RecipeBodyURL URL
   deriving (Show,Eq,Ord)
 
@@ -71,7 +74,24 @@ instance FromJSON RecipeBody where
   parseJSON v@(Aeson.Object o) = 
     if HS.member "desc" o
     then RecipeBodyIn <$> parseJSON v
-    else RecipeBodyURL <$> (o .: "url")
+    else if HS.member "source" o
+         then RecipeBodyExt <$> parseJSON v
+         else RecipeBodyURL <$> (o .: "url")
+  parseJSON _ = empty
+
+-- | External recipe with some descriptions.
+data RecipeExt =
+  RecipeExt
+  { recipeSource :: Text,
+    -- ^ Human-readable source of the external recipe.
+    recipeExtURL :: Maybe URL
+    -- ^ Optional URL of the external recipe
+  }
+  deriving (Show,Eq,Ord)
+
+instance FromJSON RecipeExt where
+  parseJSON (Aeson.Object o) =
+    RecipeExt <$> (o .: "source") <*> (o .:? "url")
   parseJSON _ = empty
 
 -- | Body of an internal recipe.

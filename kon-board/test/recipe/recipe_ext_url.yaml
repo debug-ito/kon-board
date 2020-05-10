@@ -1,0 +1,3 @@
+name: external recipe with source and URL.
+source: ext recipe, with URL
+url: http://example.com/recipe/foobar

@@ -75,6 +75,7 @@ toBRecipe r =
       BRURL $ BRecipeURL { bru_name = rname,
                            bru_url = url
                          }
+    RecipeBodyExt _ -> undefined -- TODO
   where
     rname = recipeName r
 
