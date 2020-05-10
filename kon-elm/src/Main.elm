@@ -401,6 +401,7 @@ viewRecipe br =
             case br of
                 BRIn rin -> viewRecipeIn rin
                 BRURL ru -> viewRecipeURL ru
+                BRExt re -> viewRecipeExt re
         viewName n = [h1 [] [text n]]
         viewIngDescs ings = [ h2 [] [text "材料"]
                             , ul [] <| List.concatMap viewIngDesc ings
@@ -413,15 +414,23 @@ viewRecipe br =
                           ]
         viewIng ing = li [] [text (ing.food ++ ": " ++ ing.qtty)]
         viewDesc desc = [h2 [] [text "手順"]] ++ Markdown.toHtml Nothing desc
-        viewRefURL ru =
-            case ru of
-                Nothing -> []
-                Just u -> [ h2 [] [text "参考"]
-                          , ul [] [li [] [Html.a [href u, Attr.target "_blank"] [text u]]]
-                          ]
+        viewRefURL src murl =
+            let ret_refurl = [ h2 [] [text "参考"]
+                         , ul [] [li [] ref_body]
+                         ]
+                ref_body =
+                    case murl of
+                        Nothing -> [text src]
+                        Just url -> [Html.a [href url, Attr.target "_blank"] [text src]]
+            in ret_refurl
         viewRecipeIn rin = viewName rin.name ++ viewIngDescs rin.ings
-                           ++ viewDesc rin.desc ++ viewRefURL rin.ref_url
-        viewRecipeURL ru = viewName ru.name ++ viewRefURL (Just ru.url)
+                           ++ viewDesc rin.desc
+                           ++ ( case rin.ref_url of
+                                    Nothing -> []
+                                    Just u -> viewRefURL u (Just u)
+                              )
+        viewRecipeURL ru = viewName ru.name ++ viewRefURL ru.url (Just ru.url)
+        viewRecipeExt re = viewName re.name ++ viewRefURL re.source re.ext_url
     in result
 
 iconBootstrap : Maybe String -> String -> Maybe String -> Html Msg

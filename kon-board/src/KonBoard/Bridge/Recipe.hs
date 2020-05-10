@@ -15,6 +15,7 @@ module KonBoard.Bridge.Recipe
     BRecipe,
     toBRecipe,
     BRecipeIn,
+    BRecipeExt,
     BRecipeURL,
     BIngDesc,
     toBIngDesc,
@@ -29,7 +30,7 @@ import Servant (FromHttpApiData)
 import KonBoard.Bridge.Util (dropLabelOptions)
 import KonBoard.Recipe
   ( Ingredient(..), IngDesc(..),
-    Recipe(..), RecipeBody(..), RecipeIn(..)
+    Recipe(..), RecipeBody(..), RecipeIn(..), RecipeExt(..)
   )
 import KonBoard.Recipe.Store
   ( RecipeSummary(..), ID
@@ -59,6 +60,7 @@ fromBRecipeID :: BRecipeID -> ID
 fromBRecipeID (BRecipeID i) = i
 
 data BRecipe = BRIn BRecipeIn
+             | BRExt BRecipeExt
              | BRURL BRecipeURL
              deriving (Show,Eq,Ord)
 
@@ -75,7 +77,11 @@ toBRecipe r =
       BRURL $ BRecipeURL { bru_name = rname,
                            bru_url = url
                          }
-    RecipeBodyExt _ -> undefined -- TODO
+    RecipeBodyExt re ->
+      BRExt $ BRecipeExt { bre_name = rname,
+                           bre_source = recipeSource re,
+                           bre_ext_url = recipeExtURL re
+                         }
   where
     rname = recipeName r
 
@@ -85,6 +91,14 @@ data BRecipeIn =
     bri_ings :: [BIngDesc],
     bri_desc :: Text,
     bri_ref_url :: Maybe Text
+  }
+  deriving (Show,Eq,Ord)
+
+data BRecipeExt =
+  BRecipeExt
+  { bre_name :: Text,
+    bre_source :: Text,
+    bre_ext_url :: Maybe Text
   }
   deriving (Show,Eq,Ord)
 
@@ -124,6 +138,7 @@ $(Elm.deriveBoth (dropLabelOptions 3) ''BRecipeSummary)
 $(Elm.deriveBoth (dropLabelOptions 0) ''BRecipeID)
 $(Elm.deriveBoth (dropLabelOptions 0) ''BRecipe)
 $(Elm.deriveBoth (dropLabelOptions 4) ''BRecipeIn)
+$(Elm.deriveBoth (dropLabelOptions 4) ''BRecipeExt)
 $(Elm.deriveBoth (dropLabelOptions 4) ''BRecipeURL)
 $(Elm.deriveBoth (dropLabelOptions 4) ''BIngDesc)
 $(Elm.deriveBoth (dropLabelOptions 3) ''BIngredient)

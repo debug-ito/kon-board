@@ -11,3 +11,4 @@ recipeName br =
     case br of
         BRIn rin -> rin.name
         BRURL ru -> ru.name
+        BRExt re -> re.name

@@ -9,7 +9,7 @@ import System.Environment (getArgs)
 
 import KonBoard.Bridge.MealPlan (BMealPlan)
 import KonBoard.Bridge.Recipe
-  ( BRecipeSummary, BRecipe, BRecipeIn, BRecipeID,
+  ( BRecipeSummary, BRecipe, BRecipeIn, BRecipeID, BRecipeExt,
     BRecipeURL, BIngDesc, BIngredient
   )
 import KonBoard.Bridge.Time (BDay)
@@ -31,6 +31,7 @@ main = do
         Elm.DefineElm (Proxy :: Proxy BDay),
         Elm.DefineElm (Proxy :: Proxy BRecipe),
         Elm.DefineElm (Proxy :: Proxy BRecipeIn),
+        Elm.DefineElm (Proxy :: Proxy BRecipeExt),
         Elm.DefineElm (Proxy :: Proxy BRecipeURL),
         Elm.DefineElm (Proxy :: Proxy BIngDesc),
         Elm.DefineElm (Proxy :: Proxy BIngredient)
