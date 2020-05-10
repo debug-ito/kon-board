@@ -37,6 +37,8 @@ import Coming exposing (Coming(..))
 import Coming
 import DateUtil
 import ListUtil
+import Locale
+import Locale exposing (Locale(..), LocaleImpl)
 import MealPhase exposing (MealPhase(..))
 import MealPhase
 import Page exposing (Page(..), recipePageLink)
@@ -89,6 +91,11 @@ initCalendar tz t model =
 
 modelToday : Model -> Maybe Date
 modelToday m = Maybe.map (\mc -> Date.fromPosix mc.timeZone mc.curTime) m.clock
+
+{- | Temporary default locale.
+-}
+tempDefLocale : Locale
+tempDefLocale = Locale.LJaJP
 
 ---- Main
 
@@ -330,7 +337,7 @@ viewNav p =
                               , Attr.class "kon-nav-button"
                               ]
                         ]
-                        [iconBootstrap Nothing "house-door-fill-white" <| Just "ホーム"]
+                        [iconBootstrap Nothing "house-door-fill-white" <| Just "Home"]
                   ]
             ]
                   
@@ -344,7 +351,7 @@ viewCalendar today cal =
         thead = Table.thead [] [Table.tr [] head_cells]
         mkIcon = iconBootstrap (Just "cal-icon")
         head_cells = [ Table.th [Table.cellAttr <| Attr.class "cal-day"]
-                           [mkIcon "calendar" <| Just "日付"]
+                           [mkIcon "calendar" <| Just <| (.showCalDay) <| Locale.get tempDefLocale ]
                      ]
                      ++ List.map mkPhaseHeaderCell tableMealPhases
         mkPhaseHeaderCell p = Table.td [] <| mkMealPhaseIcon p
@@ -403,7 +410,7 @@ viewRecipe br =
                 BRURL ru -> viewRecipeURL ru
                 BRExt re -> viewRecipeExt re
         viewName n = [h1 [] [text n]]
-        viewIngDescs ings = [ h2 [] [text "材料"]
+        viewIngDescs ings = [ h2 [] [text <| (.showIngredients) <| Locale.get tempDefLocale]
                             , ul [] <| List.concatMap viewIngDesc ings
                             ]
         viewIngDesc ing =
@@ -413,9 +420,9 @@ viewRecipe br =
                           , ul [] <| List.map viewIng ing.ings
                           ]
         viewIng ing = li [] [text (ing.food ++ ": " ++ ing.qtty)]
-        viewDesc desc = [h2 [] [text "手順"]] ++ Markdown.toHtml Nothing desc
+        viewDesc desc = [h2 [] [text <| (.showRecipeSteps) <| Locale.get tempDefLocale]] ++ Markdown.toHtml Nothing desc
         viewRefURL src murl =
-            let ret_refurl = [ h2 [] [text "参考"]
+            let ret_refurl = [ h2 [] [text <| (.showRecipeReference) <| Locale.get tempDefLocale]
                          , ul [] [li [] ref_body]
                          ]
                 ref_body =
