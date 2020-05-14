@@ -14,6 +14,20 @@ Content of this repository is:
 
 ## Build
 
+This project uses the [Haskell stack](https://docs.haskellstack.org/) for backend and [Elm](https://elm-lang.org/) for frontend. Install those tools to build this project.
+
+### Backend server
+
+To build the backend server, run
+
+    $ make backend
+
+### Frontend application
+
+**TODO**
+
+### Backend Docker image
+
 **TODO**
 
 ## Run
