@@ -17,15 +17,19 @@ RUN cabal install --only-dependencies --disable-tests --disable-benchmarks --dis
 RUN cabal configure -f static --disable-tests --disable-benchmarks
 RUN cabal build kon-board-server
 
-ENTRYPOINT ["bash"]
 
-## FROM debian:buster-slim
-## 
-## RUN mkdir /work
-## WORKDIR /work
-## 
-## RUN apt-get update
-## RUN apt-get upgrade
-## RUN apt-get install -y ghc zlib1g
-## 
-## COPY --from=build /work/kon-board/dist/build/kon-board-server /
+
+FROM debian:buster-slim
+
+RUN mkdir /server
+WORKDIR /server
+
+RUN apt-get update
+RUN apt-get upgrade
+RUN apt-get install -y ghc zlib1g
+
+COPY --from=build /work/kon-board/dist/build/kon-board-server /server/
+COPY static/ /server/static/
+RUN test -e /server/static/main.js
+
+ENTRYPOINT ["/server/kon-board-server"]
