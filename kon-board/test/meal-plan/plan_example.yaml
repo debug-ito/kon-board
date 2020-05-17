@@ -1,0 +1,33 @@
+---
+# Meal plan (calendar)
+
+# Meal plans are managed per-month.
+year: 2019
+month: 3
+plan:
+  ## "plan:" has a list of meal plans.
+
+  ## One meal plan has three fields. "d:" is the day in the month.
+  - d: 1
+    ### "p:" is either "lunch" or "dinner".
+    p: lunch
+    ### "m:" is name of the meal. The name should be listed in the recipe files.
+    m: Name of the meal
+
+  - d: 1
+    p: dinner
+    ### You can specify multiple meals in one meal plan.
+    m:
+      - Name of the meal
+      - Name of the external recipe
+
+# You can put meal plans for multiple months by separating them by
+# "---".
+---
+
+year: 2019
+month: 4
+plan:
+  - d: 1
+    p: lunch
+    m: Name of the meal
