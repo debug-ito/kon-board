@@ -33,6 +33,16 @@ before_install:
     travis_retry curl -L https://get.haskellstack.org/stable/linux-x86_64.tar.gz | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
   fi
 
+# Download and install elm (Linux only)
+- |
+  if [ `uname` = "Darwin" ]
+  then
+    echo "TODO: support using Elm in Mac"
+    false
+  else
+    travis_retry curl -L https://github.com/elm/compiler/releases/download/0.19.1/binary-for-linux-64-bit.gz | gunzip -c > ~/.local/bin/elm
+    chmod +x ~/.local/bin/elm
+  fi
 
 install:
 - echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
@@ -63,9 +73,5 @@ install:
 script:
 - |
   set -ex
-  case "$BUILD" in
-    stack)
-      stack --no-terminal $ARGS test --bench --no-run-benchmarks --haddock --no-haddock-deps $TARGETS
-      ;;
-  esac
+  make test
   set +ex
