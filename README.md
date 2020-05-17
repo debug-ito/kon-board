@@ -8,6 +8,8 @@ At the top page, it shows calendar with upcoming meal plans.
 
 **TODO: add screenshot of the top page**
 
+(For now, only Japanese locale is supported)
+
 You can see the recipes for meals in the calendar.
 
 **TODO: add screenshot of the recipe page**
@@ -21,13 +23,15 @@ You can see the recipes for meals in the calendar.
 
 Write recipes in YAML format. kon-board reads all YAML files under `recipes` directory for recipes.
 
-See [the example of recipe YAML](kon-board/test/recipe/recipe_example.yaml) for detail.
-
-**TODO**
+See [the example of recipe YAML](kon-board/test/recipes/recipe_example.yaml) for detail.
 
 ## Add meal plans
 
-**TODO** 
+Write meal plans also in YAML format. kon-board reads all YAML files under `meal-plans` directory for meal plans.
+
+For now, kon-board doesn't support editing meal plans on the Web interface.
+
+See [the example of meal plan YAML](kon-board/test/meal-plans/plan_example.yaml) for detail.
 
 ## Development
 
