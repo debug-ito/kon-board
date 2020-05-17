@@ -10,8 +10,8 @@ category:               Web
 cabal-version:          >= 1.10
 build-type:             Simple
 extra-source-files:     README.md, ChangeLog.md,
-                        test/recipe/*.yaml,
-                        test/meal-plan/*.yaml
+                        test/recipes/*.yaml,
+                        test/meal-plans/*.yaml
 homepage:               https://github.com/debug-ito/kon-board
 bug-reports:            https://github.com/debug-ito/kon-board/issues
 

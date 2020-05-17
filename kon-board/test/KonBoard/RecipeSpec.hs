@@ -15,7 +15,7 @@ main = hspec spec
 
 loadRecipes :: String -> IO [Recipe]
 loadRecipes filename = do
-  doc <- BS.readFile ("test/recipe/" ++ filename)
+  doc <- BS.readFile ("test/recipes/" ++ filename)
   either (fail . show) return $ loadYAML doc
 
 spec :: Spec

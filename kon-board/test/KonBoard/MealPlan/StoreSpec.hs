@@ -30,14 +30,14 @@ spec_YAMLStore = before makeStore $ specForStore "YAMLStore"
     makeStore = basicLogging $ do
       rs <- RStore.openYAMLs recipe_files
       openYAMLs rs plan_files
-    recipe_files = map ("test/recipe/" <>)
+    recipe_files = map ("test/recipes/" <>)
                    [ "recipe_in.yaml",
                      "recipe_in_url.yaml",
                      "recipe_multi.yaml",
                      "recipe_url.yaml",
                      "recipe_example.yaml"
                    ]
-    plan_files = map ("test/meal-plan/" <>)
+    plan_files = map ("test/meal-plans/" <>)
                  [ "plan1.yaml",
                    "plan2.yaml",
                    "plan3.yaml",
