@@ -1,7 +1,7 @@
 # This is an example of a recipe file in YAML.
 
 ---
-## A basic recipe with ingredients and steps.
+## A recipe with ingredients and steps.
 
 ### Recipe name must be unique.
 name: Name of the meal
