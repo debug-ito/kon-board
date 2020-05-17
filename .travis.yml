@@ -9,13 +9,14 @@ cache:
   directories:
   - $HOME/.ghc
   - $HOME/.stack
+  - $HOME/.elm
   - $TRAVIS_BUILD_DIR/.stack-work
 
 matrix:
   include:
   - env: BUILD=stack ARGS=""
     compiler: ": #stack default"
-    addons: {apt: {packages: [libgmp-dev]}}
+    addons: {apt: {packages: [libgmp-dev, npm]}}
 
 
 before_install:
@@ -43,6 +44,9 @@ before_install:
     travis_retry curl -L https://github.com/elm/compiler/releases/download/0.19.1/binary-for-linux-64-bit.gz | gunzip -c > ~/.local/bin/elm
     chmod +x ~/.local/bin/elm
   fi
+
+# Install elm-test
+- npm install -g elm-test
 
 install:
 - echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
