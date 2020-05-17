@@ -15,13 +15,14 @@ import Control.Exception.Safe (throwIO)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BSC
+import Data.Word (Word8)
 import Data.Yaml (FromJSON, ParseException, decodeEither')
 
 -- | (Internal use)
 splitLineBS :: ByteString -- ^ delimiter line
              -> ByteString -- ^ data to be split
              -> [ByteString] -- ^ data delimited by the delimiter.
-splitLineBS delim_line orig = map BSC.unlines $ splitByLine $ BSC.lines orig
+splitLineBS delim_line orig = map BSC.unlines $ splitByLine $ map removeComment $ BSC.lines orig
   where
     splitByLine ls = finalize $ foldr f ([], []) ls
       where
@@ -29,6 +30,23 @@ splitLineBS delim_line orig = map BSC.unlines $ splitByLine $ BSC.lines orig
                                   then ([], cur_group : ret)
                                   else (line : cur_group, ret)
         finalize (group, ret) = group : ret
+    removeComment l =
+      if sharp_matched && is_head_space
+      then before_sharp
+      else l
+      where
+        (before_sharp, after_sharp) = BS.span (not . isSharpW8) l
+        sharp_matched = not $ BS.null after_sharp
+        is_head_space = isAllSpace before_sharp
+
+isSharpW8 :: Word8 -> Bool
+isSharpW8 w = w == 0x23
+
+isSpaceW8 :: Word8 -> Bool
+isSpaceW8 w = w == 0x09 || w == 0x0a || w == 0x0d || w == 0x20
+
+isAllSpace :: ByteString -> Bool
+isAllSpace s = BS.takeWhile isSpaceW8 s == s
 
 -- | Load data from YAML document, possibly encoded in \"multiple
 -- document\" encoding.
@@ -36,7 +54,6 @@ decodeYAMLDocs :: FromJSON a => ByteString -> Either ParseException [a]
 decodeYAMLDocs doc = traverse decodeEither' $ filter (not . isEmptyDoc) $ splitLineBS "---" doc
   where
     isEmptyDoc bs = BS.null $ BS.dropWhile isSpaceW8 bs
-    isSpaceW8 w = w == 0x09 || w == 0x0a || w == 0x0d || w == 0x20
 
 readYAMLDocs :: FromJSON a => FilePath -> IO [a]
 readYAMLDocs file = (either throwIO return . decodeYAMLDocs) =<< BS.readFile file

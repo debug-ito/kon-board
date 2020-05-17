@@ -54,3 +54,34 @@ spec = describe "splitLineBS" $ do
                      ""
                    ]
     splitLineBS "---" input `shouldBe` expected
+  specify "delete comment at the head" $ do
+    let input = mconcat
+                [ "\n",
+                  "# foo bar\n",
+                  "foo\n",
+                  "  ### foo bar\n",
+                  "    foo\n",
+                  "---\n",
+                  " # foo\n",
+                  "bar\n",
+                  "## foo\n",
+                  "    \"foo ## bar\"\n",
+                  "bar\n"
+                ]
+        expected =
+          [ mconcat
+            [ "\n",
+              "\n",
+              "foo\n",
+              "  \n",
+              "    foo\n"
+            ],
+            mconcat
+            [ " \n",
+              "bar\n",
+              "\n",
+              "    \"foo ## bar\"\n",
+              "bar\n"
+            ]
+          ]
+    splitLineBS "---" input `shouldBe` expected
