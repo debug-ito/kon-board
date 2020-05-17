@@ -11,14 +11,15 @@ import Html exposing (Html, text, div)
 import Html
 import Html.Attributes as Attr
 import String
-import Time exposing (Month, Weekday(..))
+import Time exposing (Month(..), Weekday(..))
 
 import Bridge exposing (BIngredient)
 import MealPhase exposing (MealPhase(..))
 
 {- | Locale symbols.
 -}
-type Locale = LJaJP
+type Locale = LEnUS
+            | LJaJP
 
 {- | Locale-dependent functions.
 -}
@@ -36,6 +37,7 @@ type alias LocaleImpl msg =
 get : Locale -> LocaleImpl msg
 get l =
     case l of
+        LEnUS -> localeEnUS
         LJaJP -> localeJaJP
 
 localeJaJP : LocaleImpl msg
@@ -50,7 +52,7 @@ localeJaJP =
             , showRecipeSteps = "手順"
             , showRecipeReference = "参考"
             }
-        jaViewIngredient ing = [Html.li [] [text (ing.food ++ ": " ++ ing.qtty)]]
+        jaViewIngredient ing = [text (ing.food ++ ": " ++ ing.qtty)]
         jaShowMealPhase mp =
             case mp of
                 Breakfast -> "朝食"
@@ -93,3 +95,76 @@ jaFormatWeekday w =
         Fri -> "金"
         Sat -> "土"
         Sun -> "日"
+
+---------------
+
+localeEnUS : LocaleImpl msg
+localeEnUS =
+    let result =
+            { viewDateLong = enViewDateLong
+            , viewDateShort = enViewDateShort
+            , viewIngredient = enViewIngredient
+            , showMealPhase = enShowMealPhase
+            , showCalDay = "Date"
+            , showIngredients = "Ingredients"
+            , showRecipeSteps = "Steps"
+            , showRecipeReference = "Reference"
+            }
+        enViewIngredient ing = [text (ing.qtty ++ ", " ++ ing.food)]
+        enShowMealPhase mp =
+            case mp of
+                Breakfast -> "Breakfast"
+                Lunch -> "Lunch"
+                Dinner -> "Dinner"
+                MealOther s -> s
+    in result
+
+enViewDateLong : Date -> List (Html msg)
+enViewDateLong date =
+    let result =
+            [ div [] [ Html.span [Attr.class "clock-day", Attr.class "text-nowrap"]
+                           [text <| enFormatDay date]
+                     , text ", "
+                     , Html.span [Attr.class "clock-year", Attr.class "text-nowrap"]
+                         [text <| String.fromInt <| Date.year date]
+                     ]
+            ]
+    in result
+
+enViewDateShort : Date -> List (Html msg)
+enViewDateShort d = [text <| enFormatDay d]
+
+enFormatDay : Date -> String
+enFormatDay date =
+    let result = wday ++ ", " ++ day ++ " " ++ month
+        wday = enFormatWeekday <| Date.weekday date
+        day = String.fromInt <| Date.day date
+        month = enFormatMonth <| Date.month date
+    in result
+
+enFormatWeekday : Weekday -> String
+enFormatWeekday w =
+    case w of
+        Mon -> "Mon"
+        Tue -> "Tue"
+        Wed -> "Wed"
+        Thu -> "Thu"
+        Fri -> "Fri"
+        Sat -> "Sat"
+        Sun -> "Sun"
+
+enFormatMonth : Month -> String
+enFormatMonth m =
+    case m of
+        Jan -> "Jan"
+        Feb -> "Feb"
+        Mar -> "Mar"
+        Apr -> "Apr"
+        May -> "May"
+        Jun -> "Jun"
+        Jul -> "Jul"
+        Aug -> "Aug"
+        Sep -> "Sep"
+        Oct -> "Oct"
+        Nov -> "Nov"
+        Dec -> "Dec"
