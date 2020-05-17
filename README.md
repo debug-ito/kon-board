@@ -8,7 +8,7 @@ At the top page, it shows calendar with upcoming meal plans.
 
 **TODO: add screenshot of the top page**
 
-(For now, only Japanese locale is supported)
+(For now, **only Japanese locale** is supported)
 
 You can see the recipes for meals in the calendar.
 
@@ -17,7 +17,12 @@ You can see the recipes for meals in the calendar.
 
 ## Run
 
-**TODO: run the Docker image.**
+Just install [docker-compose](https://docs.docker.com/compose/) and run the pre-built Docker image.
+
+    $ docker-compose up
+
+See the [Docker Hub](https://hub.docker.com/repository/docker/debugito/kon-board) for available Docker images.
+
 
 ## Add recipes
 

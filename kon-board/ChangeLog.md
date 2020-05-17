@@ -1,5 +1,5 @@
 # Revision history for kon-board
 
-## 0.1.0.0  -- YYYY-mm-dd
+## 0.1.0.0  -- 2020-05-17
 
-* First version. Released on an unsuspecting world.
+* Preliminary release.
