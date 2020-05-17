@@ -1,0 +1,48 @@
+# This is an example of a recipe file in YAML.
+
+---
+## A basic recipe with ingredients and steps.
+
+### Recipe name must be unique.
+name: Name of the meal
+
+### List of ingredients.
+ings:
+  # An ingredient is a pair of food item and its quantity, separated
+  # by a comma (",").
+  - onion, 1
+  - bacon, 100g
+
+  # You can make a group of ingredients. "g:" is a symbol for the
+  # group you use in the description below.
+  - g: ★
+    ings:
+      - soy source, 1 spoon
+      - miso, 1 spoon
+      - water, 100ml
+
+### Description (steps) of the recipe. It's a Markdown text.
+desc: |
+  1. Cut the onion and the bacon.
+  2. Put the onion, bacon and ★ into a pan and boil.
+
+# You can put multiple recipes in one YAML file, separated by "---"
+# line.
+---
+
+## External recipe. The recipe body is somewhere else.
+
+### Name is mandatory even for an external recipe.
+name: Name of the external recipe
+
+### The source of the recipe, for example, the name of the recipe book
+### and page number in it.
+source: p.11, Some recipe book
+
+### External URL for the recipe.
+url: https://example.com/some-recipe-book/11
+
+### External recipe must have either "source" or "url" field.
+
+---
+

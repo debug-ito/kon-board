@@ -115,3 +115,6 @@ spec_recipe = describe "Recipe" $ do
             recipeExtURL = Just "http://example.com/recipe/foobar"
           }
     loadRecipes "recipe_ext_url.yaml" `shouldReturn` [expected]
+  specify "load the example recipe YAML" $ do
+    got <- loadRecipes "recipe_example.yaml"
+    length got `shouldBe` 2
