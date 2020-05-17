@@ -8,11 +8,16 @@ At the top page, it shows calendar with upcoming meal plans.
 
 ![Calendar](screenshots/shot_calendar.png)
 
+<a href="/debug-ito/kon-board/blob/dev/screenshots/shot_calendar.png"><img src="/debug-ito/kon-board/blob/dev/screenshots/shot_calendar.png" alt="Calendar" width="400"></a>
+
 (For now, **only Japanese locale** is supported)
 
 You can see the recipes for meals in the calendar.
 
 ![Recipe](screenshots/shot_recipe.png)
+
+<a href="/debug-ito/kon-board/blob/dev/screenshots/shot_recipe.png"><img src="/debug-ito/kon-board/blob/dev/screenshots/shot_recipe.png" alt="Recipe" width="400"></a>
+
 
 
 ## Run
