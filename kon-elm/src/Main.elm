@@ -50,8 +50,9 @@ import Recipe exposing (recipeName)
 {- | The model.
 -}
 type alias Model =
-    { -- | 'Nothing' before initialized.
-      clock : Maybe MClock
+    { locale : Locale
+    -- | 'Nothing' before initialized.
+    , clock : Maybe MClock
     , page : Page
     , navKey : Nav.Key
     , calendar : Calendar
@@ -92,11 +93,6 @@ initCalendar tz t model =
 modelToday : Model -> Maybe Date
 modelToday m = Maybe.map (\mc -> Date.fromPosix mc.timeZone mc.curTime) m.clock
 
-{- | Temporary default locale.
--}
-tempDefLocale : Locale
-tempDefLocale = Locale.LJaJP
-
 ---- Main
 
 main = Browser.application
@@ -132,7 +128,8 @@ calendarStart tz t = Date.add Date.Days (-1) <| Date.fromPosix tz t
         
 appInit : () -> Url -> Nav.Key -> (Model, Cmd Msg)
 appInit _ url key =
-    let model_base = { clock = Nothing
+    let model_base = { locale = LJaJP
+                     , clock = Nothing
                      , page = PageTop
                      , navKey = key
                      , calendar = []
@@ -287,13 +284,13 @@ viewBody model =
                              ]
                        ]
                  ]
-        sidebar = viewCurTime model.clock ++ err_msg ++ viewNav model.page
+        sidebar = viewCurTime model.locale model.clock ++ err_msg ++ viewNav model.page
         mainbox =
             case model.page of
                 PageTop ->
                     case modelToday model of
                         Nothing -> []
-                        Just today -> viewCalendar today model.calendar
+                        Just today -> viewCalendar model.locale today model.calendar
                 PageRecipe r -> viewRecipePage r model
         err_msg =
             case model.errorMsg of
@@ -301,14 +298,14 @@ viewBody model =
                 Just e -> [ Alert.simpleDanger [] [text ("Error: " ++ e)] ]
     in result
 
-viewCurTime : Maybe MClock -> List (Html Msg)
-viewCurTime mc =
+viewCurTime : Locale -> Maybe MClock -> List (Html Msg)
+viewCurTime locale mc =
     case mc of
         Nothing -> []
         Just c ->
             let result = [Alert.simpleInfo [Attr.class "clock-panel"] panel_content]
                 panel_content =
-                    (.viewDateLong) (Locale.get tempDefLocale) date
+                    (.viewDateLong) (Locale.get locale) date
                         ++
                         [ div [] [ Html.span [Attr.class "clock-time", Attr.class "text-nowrap"]
                                        [text (hour ++ ":" ++ minute)]
@@ -339,14 +336,14 @@ viewNav p =
 tableMealPhases : List MealPhase
 tableMealPhases = [Lunch, Dinner]
         
-viewCalendar : Date -> Calendar -> List (Html Msg)
-viewCalendar today cal =
+viewCalendar : Locale -> Date -> Calendar -> List (Html Msg)
+viewCalendar locale today cal =
     let result = [Table.table { options = opts, thead = thead, tbody = tbody }]
         opts = [Table.striped]
         thead = Table.thead [] [Table.tr [] head_cells]
         mkIcon = iconBootstrap (Just "cal-icon")
         head_cells = [ Table.th [Table.cellAttr <| Attr.class "cal-day"]
-                           [mkIcon "calendar" <| Just <| (.showCalDay) <| Locale.get tempDefLocale ]
+                           [mkIcon "calendar" <| Just <| (.showCalDay) <| Locale.get locale ]
                      ]
                      ++ List.map mkPhaseHeaderCell tableMealPhases
         mkPhaseHeaderCell p = Table.td [] <| mkMealPhaseIcon p
@@ -361,17 +358,17 @@ viewCalendar today cal =
                         Dinner -> Just "moon"
                         _ -> Nothing
             in result_icon
-        tbody = Table.tbody [] <| List.map (viewCalEntry today) cal
+        tbody = Table.tbody [] <| List.map (viewCalEntry locale today) cal
     in result
 
-viewCalEntry : Date -> CalEntry -> Table.Row Msg
-viewCalEntry today centry =
+viewCalEntry : Locale -> Date -> CalEntry -> Table.Row Msg
+viewCalEntry locale today centry =
     let result = Table.tr opts cells
         opts = if centry.day == today
                then [Table.rowWarning]
                else []
         cells = [ Table.th [Table.cellAttr <| Attr.class "cal-day"]
-                      <| (.viewDateShort) (Locale.get tempDefLocale) centry.day
+                      <| (.viewDateShort) (Locale.get locale) centry.day
                 ]
                 ++ List.map mkCellForPhase tableMealPhases
         mkCellForPhase p = Table.td [] <| mkCellContentForPhase p
@@ -395,11 +392,11 @@ viewRecipePage rid model =
         recipe_body =
             case Coming.success model.loadedRecipe of
                 Nothing -> []
-                Just mr -> viewRecipe mr.recipe
+                Just mr -> viewRecipe model.locale mr.recipe
     in result
 
-viewRecipe : BRecipe -> List (Html Msg)
-viewRecipe br =
+viewRecipe : Locale -> BRecipe -> List (Html Msg)
+viewRecipe locale br =
     let result = [div [Attr.class "recipe-box"] recipe_content]
         recipe_content = 
             case br of
@@ -407,7 +404,7 @@ viewRecipe br =
                 BRURL ru -> viewRecipeURL ru
                 BRExt re -> viewRecipeExt re
         viewName n = [h1 [] [text n]]
-        viewIngDescs ings = [ h2 [] [text <| (.showIngredients) <| Locale.get tempDefLocale]
+        viewIngDescs ings = [ h2 [] [text <| (.showIngredients) <| Locale.get locale]
                             , ul [] <| List.concatMap viewIngDesc ings
                             ]
         viewIngDesc ing =
@@ -416,10 +413,10 @@ viewRecipe br =
                 Just g -> [ li [] [text g]
                           , ul [] <| List.map viewIng ing.ings
                           ]
-        viewIng ing = li [] <| (.viewIngredient) (Locale.get tempDefLocale) ing
-        viewDesc desc = [h2 [] [text <| (.showRecipeSteps) <| Locale.get tempDefLocale]] ++ Markdown.toHtml Nothing desc
+        viewIng ing = li [] <| (.viewIngredient) (Locale.get locale) ing
+        viewDesc desc = [h2 [] [text <| (.showRecipeSteps) <| Locale.get locale]] ++ Markdown.toHtml Nothing desc
         viewRefURL src murl =
-            let ret_refurl = [ h2 [] [text <| (.showRecipeReference) <| Locale.get tempDefLocale]
+            let ret_refurl = [ h2 [] [text <| (.showRecipeReference) <| Locale.get locale]
                          , ul [] [li [] ref_body]
                          ]
                 ref_body =
