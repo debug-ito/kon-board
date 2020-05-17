@@ -1,14 +1,27 @@
-# kon-board - meal calendar on your fridge
+# kon-board - simple Web-based meal calendar
 
 **Work in progress**
 
-kon-board is a personal Web application of digital signage for your refrigerator.
+kon-board is a personal Web application that manages meal plans and recipes.
+
+At the top page, it shows calendar with upcoming meal plans.
+
+**TODO: add screenshot of the top page**
+
+You can see the recipes for meals in the calendar.
+
+**TODO: add screenshot of the recipe page**
+
 
 ## Run
 
 **TODO: run the Docker image.**
 
 ## Add recipes
+
+Write recipes in YAML format. kon-board reads all YAML files under `recipes` directory for recipes.
+
+See [the example of recipe YAML](kon-board/test/recipe/recipe_example.yaml) for detail.
 
 **TODO**
 
