@@ -26,6 +26,10 @@ desc: |
   1. Cut the onion and the bacon.
   2. Put the onion, bacon and ★ into a pan and boil.
 
+### URL related to the recipe. This field is optional.
+url: http://example.com/recipe/101
+
+
 # You can put multiple recipes in one YAML file, separated by "---"
 # line.
 ---
