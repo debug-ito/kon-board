@@ -1,0 +1,13 @@
+version: "3.3"
+services:
+  backend:
+    image: debugito/kon-board:latest
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./recipes:/server/recipes
+      - ./meal-plans:/server/meal-plans
+
+volumes:
+  recipes:
+  meal-plans:  
