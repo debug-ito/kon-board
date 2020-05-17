@@ -412,11 +412,11 @@ viewRecipe br =
                             ]
         viewIngDesc ing =
             case ing.group of
-                Nothing -> List.concatMap viewIng ing.ings
+                Nothing -> List.map viewIng ing.ings
                 Just g -> [ li [] [text g]
-                          , ul [] <| List.concatMap viewIng ing.ings
+                          , ul [] <| List.map viewIng ing.ings
                           ]
-        viewIng ing = (.viewIngredient) (Locale.get tempDefLocale) ing
+        viewIng ing = li [] <| (.viewIngredient) (Locale.get tempDefLocale) ing
         viewDesc desc = [h2 [] [text <| (.showRecipeSteps) <| Locale.get tempDefLocale]] ++ Markdown.toHtml Nothing desc
         viewRefURL src murl =
             let ret_refurl = [ h2 [] [text <| (.showRecipeReference) <| Locale.get tempDefLocale]
