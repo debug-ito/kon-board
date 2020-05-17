@@ -306,14 +306,14 @@ viewCurTime mc =
     case mc of
         Nothing -> []
         Just c ->
-            let result = [ Alert.simpleInfo [Attr.class "clock-panel"]
-                               ((.viewDateLong) (Locale.get tempDefLocale) date)
-                               ++
-                               [ div [] [ Html.span [Attr.class "clock-time", Attr.class "text-nowrap"]
-                                              [text (hour ++ ":" ++ minute)]
-                                        ]
-                               ]
-                         ]
+            let result = [Alert.simpleInfo [Attr.class "clock-panel"] panel_content]
+                panel_content =
+                    (.viewDateLong) (Locale.get tempDefLocale) date
+                        ++
+                        [ div [] [ Html.span [Attr.class "clock-time", Attr.class "text-nowrap"]
+                                       [text (hour ++ ":" ++ minute)]
+                                 ]
+                        ]
                 date = Date.fromPosix c.timeZone c.curTime
                 hour = String.padLeft 2 '0' <| String.fromInt <| Time.toHour c.timeZone c.curTime
                 minute = String.padLeft 2 '0' <| String.fromInt <| Time.toMinute c.timeZone c.curTime
@@ -370,7 +370,9 @@ viewCalEntry today centry =
         opts = if centry.day == today
                then [Table.rowWarning]
                else []
-        cells = [ Table.th [Table.cellAttr <| Attr.class "cal-day"] [text <| DateUtil.formatDay centry.day] ]
+        cells = [ Table.th [Table.cellAttr <| Attr.class "cal-day"]
+                      <| (.viewDateShort) (Locale.get tempDefLocale) centry.day
+                ]
                 ++ List.map mkCellForPhase tableMealPhases
         mkCellForPhase p = Table.td [] <| mkCellContentForPhase p
         mkCellContentForPhase p =
@@ -410,11 +412,11 @@ viewRecipe br =
                             ]
         viewIngDesc ing =
             case ing.group of
-                Nothing -> List.map viewIng ing.ings
+                Nothing -> List.concatMap viewIng ing.ings
                 Just g -> [ li [] [text g]
-                          , ul [] <| List.map viewIng ing.ings
+                          , ul [] <| List.concatMap viewIng ing.ings
                           ]
-        viewIng ing = li [] [text (ing.food ++ ": " ++ ing.qtty)]
+        viewIng ing = (.viewIngredient) (Locale.get tempDefLocale) ing
         viewDesc desc = [h2 [] [text <| (.showRecipeSteps) <| Locale.get tempDefLocale]] ++ Markdown.toHtml Nothing desc
         viewRefURL src murl =
             let ret_refurl = [ h2 [] [text <| (.showRecipeReference) <| Locale.get tempDefLocale]
