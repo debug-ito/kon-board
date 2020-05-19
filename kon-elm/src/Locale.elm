@@ -77,12 +77,25 @@ jaViewDateLong date =
 jaViewDateShort : Date -> List (Html msg)
 jaViewDateShort d = [text <| jaFormatDay d]
 
-jaFormatDay : Date -> String
+jaFormatDay : Date -> List (Html msg)
 jaFormatDay d =
-    let result = month ++ "/" ++ day ++ " " ++ weekday
+    let result = [ text (month ++ "/" ++ day ++ " ") ] ++ weekday
         month = String.fromInt <| monthToNumber <| Date.month d
         day = String.fromInt <| Date.day d
-        weekday = "(" ++ (jaFormatWeekday <| Date.weekday d) ++ ")"
+        wday = Date.weekday d
+        weekday = [text "("]
+                  ++ spanWeekDay wday (jaFormatWeekday wday)
+                  ++ [text ")"]
+    in result
+
+spanWeekday : Weekday -> String -> List (Html msg)
+spanWeekday w t =
+    let result = Html.span [Attr.class weekday_class] [text t]
+        weekday_class =
+            case w of
+                Sat -> "day-sat"
+                Sun -> "day-sun"
+                _ -> "day-week"
     in result
 
 jaFormatWeekday : Weekday -> String
@@ -134,7 +147,7 @@ enViewDateLong date =
 enViewDateShort : Date -> List (Html msg)
 enViewDateShort d = [text <| enFormatDay d]
 
-enFormatDay : Date -> String
+enFormatDay : Date -> List (Html msg) --- TODO: add <span class="..."> to weekday.
 enFormatDay date =
     let result = wday ++ ", " ++ day ++ " " ++ month
         wday = enFormatWeekday <| Date.weekday date
