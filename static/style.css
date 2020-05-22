@@ -20,6 +20,16 @@
     font-size: 1.2rem;
 }
 
+.day-week {}
+
+.day-sat {
+    color: #1328c7;
+}
+
+.day-sun {
+    color: #c60c26;
+}
+
 .cal-icon {
     width: 24px;
     height: 24px;

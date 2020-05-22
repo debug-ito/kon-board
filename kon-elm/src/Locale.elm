@@ -68,29 +68,26 @@ jaViewDateLong date =
                            [text year]
                      , text " "
                      , Html.span [Attr.class "clock-day", Attr.class "text-nowrap"]
-                         [text <| jaFormatDay date]
+                         <| jaViewDateShort date
                      ]
             ]
         year = (String.fromInt <| Date.year date) ++ "年"
     in result
 
 jaViewDateShort : Date -> List (Html msg)
-jaViewDateShort d = [text <| jaFormatDay d]
-
-jaFormatDay : Date -> List (Html msg)
-jaFormatDay d =
+jaViewDateShort d =
     let result = [ text (month ++ "/" ++ day ++ " ") ] ++ weekday
         month = String.fromInt <| monthToNumber <| Date.month d
         day = String.fromInt <| Date.day d
         wday = Date.weekday d
         weekday = [text "("]
-                  ++ spanWeekDay wday (jaFormatWeekday wday)
+                  ++ spanWeekday wday (jaFormatWeekday wday)
                   ++ [text ")"]
     in result
 
 spanWeekday : Weekday -> String -> List (Html msg)
 spanWeekday w t =
-    let result = Html.span [Attr.class weekday_class] [text t]
+    let result = [Html.span [Attr.class weekday_class] [text t]]
         weekday_class =
             case w of
                 Sat -> "day-sat"
@@ -136,7 +133,7 @@ enViewDateLong : Date -> List (Html msg)
 enViewDateLong date =
     let result =
             [ div [] [ Html.span [Attr.class "clock-day", Attr.class "text-nowrap"]
-                           [text <| enFormatDay date]
+                           <| enViewDateShort date
                      , text ", "
                      , Html.span [Attr.class "clock-year", Attr.class "text-nowrap"]
                          [text <| String.fromInt <| Date.year date]
@@ -145,14 +142,13 @@ enViewDateLong date =
     in result
 
 enViewDateShort : Date -> List (Html msg)
-enViewDateShort d = [text <| enFormatDay d]
-
-enFormatDay : Date -> List (Html msg) --- TODO: add <span class="..."> to weekday.
-enFormatDay date =
-    let result = wday ++ ", " ++ day ++ " " ++ month
-        wday = enFormatWeekday <| Date.weekday date
-        day = String.fromInt <| Date.day date
-        month = enFormatMonth <| Date.month date
+enViewDateShort d =
+    let result = weekday
+                 ++ [text (", " ++ day ++ " " ++ month)]
+        weekday = spanWeekday wday <| enFormatWeekday wday
+        wday = Date.weekday d
+        day = String.fromInt <| Date.day d
+        month = enFormatMonth <| Date.month d
     in result
 
 enFormatWeekday : Weekday -> String
