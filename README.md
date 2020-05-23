@@ -29,6 +29,8 @@ Write recipes in YAML format. kon-board reads all YAML files under `recipes` dir
 
 See [the example of recipe YAML](kon-board/test/recipes/recipe_example.yaml) for detail.
 
+You have to restart the server when you update the recipe or meal plan YAML files.
+
 ## Add meal plans
 
 A meal plan is what you eat (or ate) on a specific date for lunch or dinner. Currently, only plan for lunch and dinner is supported. **Breakfast is not supported.**
