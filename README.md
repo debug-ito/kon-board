@@ -1,7 +1,5 @@
 # kon-board - simple Web-based meal calendar
 
-**Work in progress**
-
 kon-board is a personal Web application that manages meal plans and recipes.
 
 At the top page, it shows calendar with upcoming meal plans.
@@ -33,6 +31,8 @@ See [the example of recipe YAML](kon-board/test/recipes/recipe_example.yaml) for
 
 ## Add meal plans
 
+A meal plan is what you eat (or ate) on a specific date for lunch or dinner. Currently, only plan for lunch and dinner is supported. **Breakfast is not supported.**
+
 Write meal plans also in YAML format. kon-board reads all YAML files under `meal-plans` directory for meal plans.
 
 For now, kon-board doesn't support editing meal plans on the Web interface.
@@ -51,7 +51,7 @@ Content of this repository is:
 
 ### Build
 
-This project uses the [Haskell stack](https://docs.haskellstack.org/) for backend and [Elm 0.19](https://elm-lang.org/) for frontend. Install those tools to build this project.
+This project uses the [Haskell stack](https://docs.haskellstack.org/) for backend and [Elm 0.19](https://elm-lang.org/) compiler for frontend. Install those tools to build this project.
 
 #### Backend server
 
