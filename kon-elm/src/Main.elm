@@ -8,6 +8,7 @@ import Bootstrap.Grid.Col as Col
 import Bootstrap.Alert as Alert
 import Bootstrap.Table as Table
 import Bootstrap.Button as Button
+import Bootstrap.Utilities.Display as Display
 import Browser
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
@@ -275,10 +276,14 @@ viewBody : Model -> List (Html Msg)
 viewBody model =
     let result = [ Grid.container []
                        [ Grid.row []
-                             [ Grid.col [ Col.sm3, Col.md3, Col.lg2
-                                        , Col.attrs [Attr.class "sidebar"]
+                             [ Grid.col [ Col.md3, Col.lg2
+                                        , Col.attrs
+                                            [ Attr.class "sidebar"
+                                            , Display.none
+                                            , Display.blockMd
+                                            ]
                                         ] sidebar
-                             , Grid.col [ Col.sm9, Col.md9, Col.lg10
+                             , Grid.col [ Col.xs12, Col.md9, Col.lg10
                                         , Col.attrs [Attr.class "mainbox"]
                                         ] mainbox
                              ]
