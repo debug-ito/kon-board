@@ -375,13 +375,15 @@ viewCalEntry locale today centry =
                        then "cal-day-row-even"
                        else "cal-day-row-odd"
         col_date_head = Grid.col
-                        [Col.xs3, Col.md2]
+                        [Col.xs3, Col.md2, Col.attrs [Attr.class "cal-col-entry-head"]]
                         [div date_head_attrs <| (.viewDateShort) (Locale.get locale) centry.day]
         date_head_attrs = [Attr.class "cal-day"]
                           ++ if today == centry.day
                              then [Attr.class "cal-today"]
                              else []
-        col_date_body = Grid.col [Col.xs9, Col.md10] [Grid.row [] <| List.map mkColForPhase tableMealPhases]
+        col_date_body = Grid.col
+                        [Col.xs9, Col.md10, Col.attrs [Attr.class "cal-col-entry-body"]]
+                        [Grid.row [] <| List.map mkColForPhase tableMealPhases]
         mkColForPhase p = Grid.col [Col.xs12, Col.sm6] <| viewDayMeal p <| CalEntry.mealFor p centry
     in result
 

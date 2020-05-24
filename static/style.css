@@ -26,6 +26,15 @@
     background-color: rgba(0, 0, 0, 0.05);
 }
 
+.cal-col-entry-head {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.cal-col-entry-body {
+    padding-right: 0;
+}
+
 .cal-day {
     font-size: 1.0rem;
     padding: 4px;
