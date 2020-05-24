@@ -18,6 +18,14 @@
 
 .cal-day {
     font-size: 1.0rem;
+    padding: 4px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.cal-today {
+    background-color: #007bff;
+    color: white;
 }
 
 .day-week {}
@@ -26,8 +34,16 @@
     color: #1328c7;
 }
 
+.cal-today .day-sat {
+    color: white;
+}
+
 .day-sun {
     color: #c60c26;
+}
+
+.cal-today .day-sun {
+    color: white;
 }
 
 .cal-icon {

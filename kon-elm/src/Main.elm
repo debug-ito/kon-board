@@ -369,8 +369,12 @@ viewCalEntry : Locale -> Date -> CalEntry -> List (Html Msg)
 viewCalEntry locale today centry =
     let result = [Grid.row [] [col_date_head, col_date_body]]
         col_date_head = Grid.col
-                        [Col.xs2, Col.md1, Col.attrs [Attr.class "cal-day"]]
-                        <| (.viewDateShort) (Locale.get locale) centry.day
+                        [Col.xs2, Col.md1]
+                        [div date_head_attrs <| (.viewDateShort) (Locale.get locale) centry.day]
+        date_head_attrs = [Attr.class "cal-day"]
+                          ++ if today == centry.day
+                             then [Attr.class "cal-today"]
+                             else []
         col_date_body = Grid.col [Col.xs10, Col.md11] [Grid.row [] <| List.map mkColForPhase tableMealPhases]
         mkColForPhase p = Grid.col [Col.xs12, Col.sm6] <| viewDayMeal p <| CalEntry.mealFor p centry
     in result
