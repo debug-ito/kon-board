@@ -2,8 +2,8 @@
 
 ## 0.1.0.2  -- ?
 
-* (internal change) kon-board-gen-elm project is split from kon-board
-  Haskell project.
+* (internal change) kon-board-gen-elm and kon-board-server projects
+  are split from kon-board Haskell project.
 
 
 ## 0.1.0.1  -- 2020-05-22

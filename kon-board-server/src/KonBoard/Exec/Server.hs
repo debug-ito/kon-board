@@ -1,4 +1,11 @@
-module Main (main) where
+-- |
+-- Module: KonBoard.Exec.Server
+-- Description: Executable of kon-board backend server
+-- Maintainer: Toshio Ito <debug.ito@gmail.com>
+-- 
+module KonBoard.Exec.Server
+       ( main
+       ) where
 
 import Control.Monad.Logger (logInfoN)
 import Data.Monoid ((<>))
@@ -15,3 +22,4 @@ main = do
   runLogging server $ do
     logInfoN ("Listen on port " <> (pack $ show port))
   run 8888 $ appWith server
+
