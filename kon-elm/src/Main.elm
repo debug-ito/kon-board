@@ -6,7 +6,6 @@ module Main exposing
 import Bootstrap.Grid as Grid
 import Bootstrap.Grid.Col as Col
 import Bootstrap.Alert as Alert
-import Bootstrap.Table as Table
 import Bootstrap.Button as Button
 import Bootstrap.Utilities.Display as Display
 import Browser
@@ -342,45 +341,47 @@ tableMealPhases : List MealPhase
 tableMealPhases = [Lunch, Dinner]
         
 viewCalendar : Locale -> Date -> Calendar -> List (Html Msg)
-viewCalendar locale today cal =
-    let result = [Table.table { options = opts, thead = thead, tbody = tbody }]
-        opts = [Table.striped]
-        thead = Table.thead [] [Table.tr [] head_cells]
-        mkIcon = iconBootstrap (Just "cal-icon")
-        head_cells = [ Table.th [Table.cellAttr <| Attr.class "cal-day"]
-                           [mkIcon "calendar" <| Just <| (.showCalDay) <| Locale.get locale ]
-                     ]
-                     ++ List.map mkPhaseHeaderCell tableMealPhases
-        mkPhaseHeaderCell p = Table.td [] <| mkMealPhaseIcon p
-        mkMealPhaseIcon p =
-            let result_icon =
-                    case m_icon_name of
-                        Nothing -> []
-                        Just icon_name -> [mkIcon icon_name (Just <| MealPhase.toString p)]
-                m_icon_name =
-                    case p of
-                        Lunch -> Just "brightness-high-fill"
-                        Dinner -> Just "moon"
-                        _ -> Nothing
-            in result_icon
-        tbody = Table.tbody [] <| List.map (viewCalEntry locale today) cal
+viewCalendar locale today cal = List.concatMap (viewCalEntry locale today) cal
+    -- let result = [Table.table { options = opts, thead = thead, tbody = tbody }]
+    --     opts = [Table.striped]
+    --     thead = Table.thead [] [Table.tr [] head_cells]
+    --     mkIcon = iconBootstrap (Just "cal-icon")
+    --     head_cells = [ Table.th [Table.cellAttr <| Attr.class "cal-day"]
+    --                        [mkIcon "calendar" <| Just <| (.showCalDay) <| Locale.get locale ]
+    --                  ]
+    --                  ++ List.map mkPhaseHeaderCell tableMealPhases
+    --     mkPhaseHeaderCell p = Table.td [] <| mkMealPhaseIcon p
+    --     mkMealPhaseIcon p =
+    --         let result_icon =
+    --                 case m_icon_name of
+    --                     Nothing -> []
+    --                     Just icon_name -> [mkIcon icon_name (Just <| MealPhase.toString p)]
+    --             m_icon_name =
+    --                 case p of
+    --                     Lunch -> Just "brightness-high-fill"
+    --                     Dinner -> Just "moon"
+    --                     _ -> Nothing
+    --         in result_icon
+    --     tbody = Table.tbody [] <| List.map (viewCalEntry locale today) cal
+    -- in result
+
+viewCalEntry : Locale -> Date -> CalEntry -> List (Html Msg)
+viewCalEntry locale today centry =
+    let result = [Grid.row [] [col_date_head, col_date_body]]
+        col_date_head = Grid.col
+                        [Col.xs2, Col.md1, Col.attrs [Attr.class "cal-day"]]
+                        <| (.viewDateShort) (Locale.get locale) centry.day
+        col_date_body = Grid.col [Col.xs10, Col.md11] [Grid.row [] <| List.map mkColForPhase tableMealPhases]
+        mkColForPhase p = Grid.col [Col.xs12, Col.sm6] <| viewDayMeal p <| CalEntry.mealFor p centry
     in result
 
-viewCalEntry : Locale -> Date -> CalEntry -> Table.Row Msg
-viewCalEntry locale today centry =
-    let result = Table.tr opts cells
-        opts = if centry.day == today
-               then [Table.rowWarning]
-               else []
-        cells = [ Table.th [Table.cellAttr <| Attr.class "cal-day"]
-                      <| (.viewDateShort) (Locale.get locale) centry.day
-                ]
-                ++ List.map mkCellForPhase tableMealPhases
-        mkCellForPhase p = Table.td [] <| mkCellContentForPhase p
-        mkCellContentForPhase p =
-            case CalEntry.mealFor p centry of
+viewDayMeal : MealPhase -> Maybe DayMeal -> List (Html Msg)
+viewDayMeal phase mdm =
+    let result = [div [] [ul [] list_content]]
+        list_content =
+            case mdm of
                 Nothing -> []
-                Just dm -> [ul [] <| List.map mkRecipe dm.recipes]
+                Just dm -> List.map mkRecipe dm.recipes
         mkRecipe r = li [] <| viewLinkRecipe r.id [text r.name]
     in result
 
