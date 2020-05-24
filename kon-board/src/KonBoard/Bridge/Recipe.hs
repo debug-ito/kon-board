@@ -25,7 +25,7 @@ module KonBoard.Bridge.Recipe
 
 import Data.Text (Text)
 import qualified Elm.Derive as Elm
-import Servant (FromHttpApiData)
+import Servant.API (FromHttpApiData)
 
 import KonBoard.Bridge.Util (dropLabelOptions)
 import KonBoard.Recipe

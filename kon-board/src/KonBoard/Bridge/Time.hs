@@ -15,7 +15,7 @@ import Data.Aeson (defaultOptions)
 import Data.Text (Text, unpack, pack)
 import Data.Time (Day, defaultTimeLocale, parseTimeM, formatTime)
 import qualified Elm.Derive as Elm
-import Servant (FromHttpApiData)
+import Servant.API (FromHttpApiData)
 
 -- $setup
 --

@@ -9,8 +9,7 @@ module KonBoard.Web.API
   ( DataAPI
   ) where
 
--- import Servant.API
-import Servant
+import Servant.API
 
 import Data.Text (Text)
 import KonBoard.Bridge.Recipe (BRecipe, BRecipeID)
