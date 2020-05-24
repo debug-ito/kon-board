@@ -56,6 +56,22 @@
     color: white;
 }
 
+.cal-phase {
+    padding: 4px;
+    border-radius: 4px;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    border: 1px solid #acadb2;
+}
+
+.cal-phase-lunch {
+    background-color: #fcf1bd;
+}
+
+.cal-phase-dinner {
+    background-color: #fdd7f6;
+}
+
 .cal-icon {
     width: 24px;
     height: 24px;

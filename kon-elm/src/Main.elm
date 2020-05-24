@@ -387,7 +387,13 @@ viewCalEntry locale today centry =
 
 viewDayMeal : MealPhase -> Maybe DayMeal -> List (Html Msg)
 viewDayMeal phase mdm =
-    let result = [div [] [ul [] list_content]]
+    let result = [div [Attr.class "cal-phase", Attr.class mp_class] [ul [] list_content]]
+        mp_class =
+            case phase of
+                Breakfast -> "cal-phase-breakfast"
+                Lunch -> "cal-phase-lunch"
+                Dinner -> "cal-phase-dinner"
+                MealOther _ -> "cal-phase-other"
         list_content =
             case mdm of
                 Nothing -> []
