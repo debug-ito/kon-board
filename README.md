@@ -47,8 +47,10 @@ See [the example of meal plan YAML](kon-board/test/meal-plans/plan_example.yaml)
 
 Content of this repository is:
 
-- kon-board: Haskell program of the backend Web server
-- kon-elm: Elm program of the Web frontend application
+- kon-board: Haskell library about kon-board data models and storage.
+- kon-board-gen-elm: Haskell program to generate Elm code about data models.
+- kon-board-server: Haskell program of the backend server.
+- kon-elm: Elm program of the Web frontend application.
 - static: Static files served by the backend server.
 
 ### Build
