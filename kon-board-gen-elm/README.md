@@ -1,9 +1,8 @@
-# kon-board core library
+# kon-board-gen-elm
 
-Core library of kon-board, a simple Web-based meal calendar.
+Generator of Elm front-end of kon-board.
 
 See [the project README](https://github.com/debug-ito/kon-board).
-
 
 ## Author
 

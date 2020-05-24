@@ -1,6 +1,13 @@
-module Main
+-- |
+-- Module: KonBoard.Exec.GenElm
+-- Description: Executable to generate Elm code for kon-board
+-- Maintainer: Toshio Ito <debug.ito@gmail.com>
+--
+-- 
+module KonBoard.Exec.GenElm
   ( main
   ) where
+
 
 import Data.Proxy (Proxy(..))
 import qualified Servant.Elm as Elm
