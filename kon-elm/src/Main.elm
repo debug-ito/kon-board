@@ -5,6 +5,7 @@ module Main exposing
 
 import Bootstrap.Grid as Grid
 import Bootstrap.Grid.Col as Col
+import Bootstrap.Grid.Row as Row
 import Bootstrap.Alert as Alert
 import Bootstrap.Button as Button
 import Bootstrap.Utilities.Display as Display
@@ -367,7 +368,12 @@ viewCalendar locale today cal = List.concatMap (viewCalEntry locale today) cal
 
 viewCalEntry : Locale -> Date -> CalEntry -> List (Html Msg)
 viewCalEntry locale today centry =
-    let result = [Grid.row [] [col_date_head, col_date_body]]
+    let result = [Grid.row row_attrs [col_date_head, col_date_body]]
+        row_attrs = [ Row.attrs [Attr.class "cal-day-row", Attr.class stripe_class]
+                    ]
+        stripe_class = if modBy 2 (Date.toRataDie centry.day) == 0
+                       then "cal-day-row-even"
+                       else "cal-day-row-odd"
         col_date_head = Grid.col
                         [Col.xs3, Col.md2]
                         [div date_head_attrs <| (.viewDateShort) (Locale.get locale) centry.day]

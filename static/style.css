@@ -16,6 +16,16 @@
     font-size: 1.8rem;
 }
 
+.cal-day-row {
+    padding-top: 3px;
+    padding-bottom: 3px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.cal-day-row-even {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
 .cal-day {
     font-size: 1.0rem;
     padding: 4px;
