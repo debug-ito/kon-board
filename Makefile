@@ -3,7 +3,7 @@ ELM_SRC="kon-elm/src"
 all: backend frontend
 
 backend:
-	stack build kon-board:kon-board-server
+	stack build kon-board-server
 
 frontend: static/main.js
 
