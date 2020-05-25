@@ -338,9 +338,16 @@ viewNavbar nstate page =
     let result = [Navbar.view nstate (configNavbar <| Navbar.config NavbarUpdate)]
         configNavbar c =
             Navbar.items items
+            <| Navbar.customItems citems
             <| Navbar.light
-            <| Navbar.withAnimation <| c
-        items = Debug.todo "todo"
+            <| Navbar.fixTop
+            <| Navbar.withAnimation
+            <| c
+        items = [ Navbar.itemLink
+                      [href <| UrlB.absolute [] []]
+                      [iconBootstrap Nothing "house-door-fill-black" <| Just "Home"]
+                ]
+        citems = [ ]
     in result
 
 viewNav : Page -> List (Html Msg)
