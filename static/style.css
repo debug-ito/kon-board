@@ -1,7 +1,9 @@
 /******* layout *******/
 
 .sidebar {
-    
+    position: sticky;
+    top: 48px;
+    z-index: 1020;
 }
 
 .mainbox {
@@ -28,7 +30,6 @@ body > .alert-danger {
 /******* clock *******/
 
 .clock-panel {
-    margin-top: 6px;
     margin-bottom: 3px;
 }
 

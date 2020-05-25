@@ -282,13 +282,14 @@ viewBody model =
         main_container =
             [ Grid.container []
                   [ Grid.row []
-                        [ Grid.col [ Col.md3, Col.lg2
-                                   , Col.attrs
-                                       [ Attr.class "sidebar"
-                                       , Display.none
-                                       , Display.blockMd
-                                       ]
-                                   ] sidebar
+                        [ Grid.col
+                              [ Col.md3, Col.lg2
+                              , Col.attrs
+                                  [ Display.none
+                                  , Display.blockMd
+                                  ]
+                              ]
+                              [div [Attr.class "sidebar"] sidebar]
                         , Grid.col [ Col.xs12, Col.md9, Col.lg10
                                    , Col.attrs [Attr.class "mainbox"]
                                    ] mainbox
