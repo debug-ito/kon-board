@@ -81,7 +81,7 @@
 }
 
 .cal-phase {
-    padding: 4px;
+    padding: 4px 10px;
     border-radius: 4px;
     margin-bottom: 6px;
     border: 1px solid #acadb2;
@@ -102,15 +102,16 @@
 
 .cal-meal-plan-list {
     margin: 0;
+    padding: 0;
     list-style: none;
 }
 
 .cal-meal-plan-item-meal {
     background-image: url('/static/icons/foods/fork.svg');
-    background-position: left 0px top 0px;
+    background-position: left 0px top 3px;
     background-repeat: no-repeat;
-    background-size: 20px auto;
-    padding-left: 24px;
+    background-size: 16px auto;
+    padding-left: 20px;
 }
 
 /******* sidebar nav *******/
