@@ -1,3 +1,14 @@
+/******* layout *******/
+
+.sidebar {
+    
+}
+
+.mainbox {
+    
+}
+
+/******* clock *******/
 
 .clock-panel {
     margin-top: 6px;
@@ -15,6 +26,20 @@
 .clock-time {
     font-size: 1.8rem;
 }
+
+/******* day *******/
+
+.day-week {}
+
+.day-sat {
+    color: #1328c7;
+}
+
+.day-sun {
+    color: #c60c26;
+}
+
+/******* calendar *******/
 
 .cal-day-row {
     padding-top: 3px;
@@ -47,18 +72,8 @@
     color: white;
 }
 
-.day-week {}
-
-.day-sat {
-    color: #1328c7;
-}
-
 .cal-today .day-sat {
     color: white;
-}
-
-.day-sun {
-    color: #c60c26;
 }
 
 .cal-today .day-sun {
@@ -85,18 +100,14 @@
     height: 24px;
 }
 
-.sidebar {
-    
-}
-
-.mainbox {
-    
-}
+/******* sidebar nav *******/
 
 .kon-nav-button {
     font-size: 1.5rem;
     font-weight: bold;
 }
+
+/******* recipe page *******/
 
 .recipe-id-box {
     font-size: 0.6rem;
