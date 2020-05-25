@@ -389,7 +389,7 @@ viewCalEntry locale today centry =
 
 viewDayMeal : MealPhase -> Maybe DayMeal -> List (Html Msg)
 viewDayMeal phase mdm =
-    let result = [div [Attr.class "cal-phase", Attr.class mp_class] [ul [] list_content]]
+    let result = [div [Attr.class "cal-phase", Attr.class mp_class] [ul [Attr.class "cal-meal-plan-list"] list_content]]
         mp_class =
             case phase of
                 Breakfast -> "cal-phase-breakfast"
@@ -400,7 +400,7 @@ viewDayMeal phase mdm =
             case mdm of
                 Nothing -> []
                 Just dm -> List.map mkRecipe dm.recipes
-        mkRecipe r = li [] <| viewLinkRecipe r.id [text r.name]
+        mkRecipe r = li [Attr.class "cal-meal-plan-item-meal"] <| viewLinkRecipe r.id [text r.name]
     in result
 
 viewLinkRecipe : BRecipeID -> List (Html a) -> List (Html a)
