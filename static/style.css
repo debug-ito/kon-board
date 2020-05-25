@@ -12,6 +12,19 @@ body > div.container {
     margin-top: 42px;
 }
 
+/******* error alert *******/
+
+/* We should assign a unique class or ID to the alert box. However,
+ * elm-bootstrap-5.2.0 doesn't allow to add custom attributes to a
+ * dismissable alert box. So we use existing selectors to specify the
+ * element.
+ */
+body > .alert-danger {
+    position: fixed;
+    top: 42px;
+    right: 0;
+}
+
 /******* clock *******/
 
 .clock-panel {

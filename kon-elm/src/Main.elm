@@ -278,7 +278,7 @@ showHttpError e =
 
 viewBody : Model -> List (Html Msg)
 viewBody model =
-    let result = viewNavbar model.page ++ main_container
+    let result = viewNavbar model.page ++ main_container ++ err_msg
         main_container =
             [ Grid.container []
                   [ Grid.row []
@@ -295,7 +295,7 @@ viewBody model =
                         ]
                   ]
             ]
-        sidebar = viewCurTime model.locale model.clock ++ err_msg ++ viewNav model.page
+        sidebar = viewCurTime model.locale model.clock ++ viewNav model.page
         mainbox =
             case model.page of
                 PageTop ->
