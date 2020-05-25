@@ -295,7 +295,7 @@ viewBody model =
                         ]
                   ]
             ]
-        sidebar = viewCurTime model.locale model.clock ++ viewNav model.page
+        sidebar = viewCurTime model.locale model.clock
         mainbox =
             case model.page of
                 PageTop ->
@@ -344,23 +344,6 @@ viewNavbar page =
             ]
     in result
 
-viewNav : Page -> List (Html Msg)
-viewNav p =
-    case p of
-        PageTop -> []
-        PageRecipe _ ->
-            [ div []
-                  [ Button.linkButton
-                        [ Button.secondary
-                        , Button.attrs
-                              [ href <| UrlB.absolute [] []
-                              , Attr.class "kon-nav-button"
-                              ]
-                        ]
-                        [iconBootstrap Nothing "house-door-fill-white" <| Just "Home"]
-                  ]
-            ]
-                  
 tableMealPhases : List MealPhase
 tableMealPhases = [Lunch, Dinner]
         
