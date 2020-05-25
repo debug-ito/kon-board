@@ -5,7 +5,7 @@
 }
 
 .mainbox {
-    
+    overflow: hidden;
 }
 
 body > div.container {
@@ -138,4 +138,8 @@ body > div.container {
 
 .recipe-box h2 {
     font-size: 1.5rem;
+}
+
+.recipe-ref {
+    overflow-wrap: break-word;
 }

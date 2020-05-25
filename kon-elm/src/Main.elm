@@ -460,7 +460,7 @@ viewRecipe locale br =
         viewDesc desc = [h2 [] [text <| (.showRecipeSteps) <| Locale.get locale]] ++ Markdown.toHtml Nothing desc
         viewRefURL src murl =
             let ret_refurl = [ h2 [] [text <| (.showRecipeReference) <| Locale.get locale]
-                         , ul [] [li [] ref_body]
+                         , ul [] [li [Attr.class "recipe-ref"] ref_body]
                          ]
                 ref_body =
                     case murl of
