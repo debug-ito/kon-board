@@ -9,7 +9,6 @@ import Bootstrap.Grid.Row as Row
 import Bootstrap.Alert as Alert
 import Bootstrap.Button as Button
 import Bootstrap.Utilities.Display as Display
-import Bootstrap.Navbar as Navbar
 import Browser
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
@@ -57,7 +56,6 @@ type alias Model =
     , clock : Maybe MClock
     , page : Page
     , navKey : Nav.Key
-    , navbarState : Navbar.State
     , calendar : Calendar
       -- | 'True' if MealPlans are loaded to the calendar.
     , mealPlansLoaded : Coming String ()
@@ -120,7 +118,6 @@ type Msg = NoOp
          | UrlRequestMsg UrlRequest
          | UrlChangeMsg Url
          | RecipeLoaded (Result String MRecipe)
-         | NavbarUpdate Navbar.State
 
 calendarPeriodDays : Int
 calendarPeriodDays = 9
@@ -136,15 +133,13 @@ appInit _ url key =
                      , clock = Nothing
                      , page = PageTop
                      , navKey = key
-                     , navbarState = init_navbar_state
                      , calendar = []
                      , mealPlansLoaded = NotStarted
                      , errorMsg = Nothing
                      , loadedRecipe = NotStarted
                      }
-        (init_navbar_state, init_navbar_cmd) = Navbar.initialState NavbarUpdate
         model = appUrlChange url model_base
-        (cmd, modifyModel) = concatCmds <| ((init_navbar_cmd, identity) :: appUpdateCmd InitModel model)
+        (cmd, modifyModel) = concatCmds <| appUpdateCmd InitModel model
     in (modifyModel model, cmd)
 
 appView : Model -> Document Msg
@@ -185,7 +180,6 @@ appUpdateModel msg model =
             case e_mr of
                 Err e -> { model | errorMsg = Just e, loadedRecipe = Failure e }
                 Ok mr -> { model | loadedRecipe = Success mr }
-        NavbarUpdate s -> { model | navbarState = s }
 
 appUrlChange : Url -> Model -> Model
 appUrlChange u model = 
@@ -242,7 +236,6 @@ appSub : Model -> Sub Msg
 appSub model =
     Sub.batch
         [ Time.every 5000 TickTime
-        , Navbar.subscriptions model.navbarState NavbarUpdate
         ]
 
 appOnUrlRequest : UrlRequest -> Msg
@@ -284,7 +277,7 @@ showHttpError e =
 
 viewBody : Model -> List (Html Msg)
 viewBody model =
-    let result = viewNavbar model.navbarState model.page ++ main_container
+    let result = viewNavbar model.page ++ main_container
         main_container =
             [ Grid.container []
                   [ Grid.row []
@@ -333,22 +326,18 @@ viewCurTime locale mc =
                 minute = String.padLeft 2 '0' <| String.fromInt <| Time.toMinute c.timeZone c.curTime
             in result
 
-viewNavbar : Navbar.State -> Page -> List (Html Msg)
-viewNavbar nstate page =
-    let result = [Navbar.view nstate (configNavbar <| Navbar.config NavbarUpdate)]
-        configNavbar c =
-            Navbar.items items
-            <| Navbar.customItems citems
-            <| Navbar.light
-            <| Navbar.fixTop
-            <| Navbar.withAnimation
-            <| Navbar.brand [] [text "kon-board"]
-            <| c
-        items = [ Navbar.itemLink
-                      [href <| UrlB.absolute [] []]
-                      [iconBootstrap Nothing "house-door-fill-black" <| Just "Home"]
-                ]
-        citems = [ ]
+viewNavbar : Page -> List (Html Msg)
+viewNavbar page =
+    let result = [ Html.nav
+                       (List.map Attr.class ["navbar", "fixed-top", "navbar-light", "bg-light"])
+                       navbar_content
+                 ]
+        navbar_content =
+            [ Html.form [Attr.class "form-inline"]
+              [ Html.a [href <| UrlB.absolute [] []]
+                [iconBootstrap Nothing "house-door-fill-black" <| Just "Home"]
+              ]
+            ]
     in result
 
 viewNav : Page -> List (Html Msg)
