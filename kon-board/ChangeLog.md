@@ -9,6 +9,7 @@
   * Meal plans are now grouped in colored boxes.
   * Add the navigation bar at the top.
   * Now the sidebar is fixed (sticky), and is hidden in small display.
+  * Now the error message is rendered in a fixed dismissible alert.
 
 
 ## 0.1.0.1  -- 2020-05-22
