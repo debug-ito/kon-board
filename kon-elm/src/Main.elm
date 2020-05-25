@@ -342,6 +342,7 @@ viewNavbar nstate page =
             <| Navbar.light
             <| Navbar.fixTop
             <| Navbar.withAnimation
+            <| Navbar.brand [] [text "kon-board"]
             <| c
         items = [ Navbar.itemLink
                       [href <| UrlB.absolute [] []]
