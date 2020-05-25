@@ -401,9 +401,9 @@ viewCalEntry locale today centry =
                              then [Attr.class "cal-today"]
                              else []
         col_date_body = Grid.col
-                        [Col.xs9, Col.md10, Col.attrs [Attr.class "cal-col-entry-body"]]
+                        [Col.xs9, Col.md10]
                         [Grid.row [] <| List.map mkColForPhase tableMealPhases]
-        mkColForPhase p = Grid.col [Col.xs12, Col.sm6] <| viewDayMeal p <| CalEntry.mealFor p centry
+        mkColForPhase p = Grid.col [Col.xs12, Col.sm6, Col.attrs [Attr.class "cal-col-meal-plan"]] <| viewDayMeal p <| CalEntry.mealFor p centry
     in result
 
 viewDayMeal : MealPhase -> Maybe DayMeal -> List (Html Msg)
