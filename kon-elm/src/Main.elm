@@ -28,6 +28,7 @@ import Url.Builder as UrlB
 import Result
 import String
 import Task
+import Tuple exposing (first, second)
 
 import Bridge exposing
     (BRecipeSummary, BMealPlan, BRecipeID, BRecipe(..))
@@ -59,7 +60,7 @@ type alias Model =
     , calendar : Calendar
       -- | 'True' if MealPlans are loaded to the calendar.
     , mealPlansLoaded : Coming String ()
-    , errorMsg : Maybe String
+    , errorMsg : (Alert.Visibility, String)
     , loadedRecipe : Coming String MRecipe  -- TODO: maybe we should move this under PageRecipe varient.
     }
 
@@ -114,7 +115,7 @@ type Msg = NoOp
          -- | Update the current time
          | TickTime Time.Posix
          | MealPlansLoaded (Result String (List BMealPlan))
-         | ErrorMsg String
+         | ErrorMsgVisibility Alert.Visibility
          | UrlRequestMsg UrlRequest
          | UrlChangeMsg Url
          | RecipeLoaded (Result String MRecipe)
@@ -135,7 +136,7 @@ appInit _ url key =
                      , navKey = key
                      , calendar = []
                      , mealPlansLoaded = NotStarted
-                     , errorMsg = Nothing
+                     , errorMsg = (Alert.closed, "")
                      , loadedRecipe = NotStarted
                      }
         model = appUrlChange url model_base
@@ -171,21 +172,21 @@ appUpdateModel msg model =
         TickTime t -> tickClock t model
         MealPlansLoaded e_mps ->
             case Result.andThen (\mps -> CalEntry.addMealPlans mps model.calendar) e_mps of
-                Err e -> { model | errorMsg = Just e, mealPlansLoaded = Failure e }
+                Err e -> { model | errorMsg = (Alert.shown, e), mealPlansLoaded = Failure e }
                 Ok new_cal -> { model | calendar = new_cal, mealPlansLoaded = Success () }
-        ErrorMsg e -> { model | errorMsg = Just e }
+        ErrorMsgVisibility v -> { model | errorMsg = (v, second model.errorMsg) }
         UrlRequestMsg _ -> model
         UrlChangeMsg u -> appUrlChange u model
         RecipeLoaded e_mr ->
             case e_mr of
-                Err e -> { model | errorMsg = Just e, loadedRecipe = Failure e }
+                Err e -> { model | errorMsg = (Alert.shown, e), loadedRecipe = Failure e }
                 Ok mr -> { model | loadedRecipe = Success mr }
 
 appUrlChange : Url -> Model -> Model
 appUrlChange u model = 
     case Page.parseUrl u of
         Nothing -> let err = ("Unknown URL: " ++ Url.toString u)
-                   in { model | errorMsg = Just err }
+                   in { model | errorMsg = (Alert.shown, err) }
         Just p -> { model | page = p, loadedRecipe = NotStarted }
 
 concatCmds : List (Cmd m, Model -> Model) -> (Cmd m, Model -> Model)
@@ -303,9 +304,12 @@ viewBody model =
                         Just today -> viewCalendar model.locale today model.calendar
                 PageRecipe r -> viewRecipePage r model
         err_msg =
-            case model.errorMsg of
-                Nothing -> []
-                Just e -> [ Alert.simpleDanger [] [text ("Error: " ++ e)] ]
+            let alert_conf =
+                    Alert.children [text <| second model.errorMsg]
+                    <| Alert.dismissable ErrorMsgVisibility
+                    <| Alert.danger
+                    <| Alert.config
+            in [Alert.view (first model.errorMsg) alert_conf]
     in result
 
 viewCurTime : Locale -> Maybe MClock -> List (Html Msg)
