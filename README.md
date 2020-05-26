@@ -20,6 +20,8 @@ Just install [docker-compose](https://docs.docker.com/compose/) and run the pre-
 
     $ docker-compose up
 
+And then, access http://localhost:8888/ with your Web browser.
+
 See the [Docker Hub](https://hub.docker.com/r/debugito/kon-board/tags) for available Docker images. Tags with `-armv7l` are built on Raspberry Pi 4 Model B.
 
 
