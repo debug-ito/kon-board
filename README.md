@@ -12,6 +12,12 @@ You can see the recipes for meals in the calendar.
 
 <a href="screenshots/shot_recipe.png"><img src="screenshots/shot_recipe.png" alt="Recipe" width="400"></a>
 
+## Contents
+
+- [Run](#run)
+- [Add recipes](#add-recipes)
+- [Add meal plans](#add-meal-plans)
+- [Development](#development)
 
 
 ## Run
