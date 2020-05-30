@@ -340,7 +340,14 @@ viewNavbar page =
         navbar_content =
             [ Html.form [Attr.class "form-inline"]
               [ Html.a [href <| UrlB.absolute [] []]
-                [iconBootstrap Nothing "house-door-fill-black" <| Just "Home"]
+                    [ Html.img
+                          [ Attr.src <| iconPath "d/kon.svg"
+                          , Attr.alt "Home"
+                          , Attr.width 16
+                          , Attr.height 16
+                          ]
+                          []
+                    ]
               ]
             ]
     in result
@@ -443,13 +450,19 @@ viewRecipe locale br =
         viewRecipeExt re = viewName re.name ++ viewRefURL re.source re.ext_url
     in result
 
-iconBootstrap : Maybe String -> String -> Maybe String -> Html Msg
-iconBootstrap mclass icon_name malt =
+iconPath : String -> String
+iconPath icon_path = "/static/icons/" ++ icon_path
+
+iconImg : Maybe String -> String -> Maybe String -> Html Msg
+iconImg mclass icon_path malt =
     let result = Html.img attrs []
-        attrs = [ Attr.src ("/static/icons/twbs/" ++ icon_name ++ ".svg")
+        attrs = [ Attr.src <| iconPath icon_path
                 , Attr.alt <| Maybe.withDefault "" malt
                 ]
                 ++ case mclass of
                        Nothing -> []
                        Just c -> [Attr.class c]
     in result
+
+iconBootstrap : Maybe String -> String -> Maybe String -> Html Msg
+iconBootstrap mclass icon_name malt = iconImg mclass ("twbs/" ++ icon_name ++ ".svg") malt
