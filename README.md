@@ -1,16 +1,18 @@
 # kon-board - simple Web-based meal calendar
 
+<img src="static/icons/d/kon.svg" width="80" />
+
 kon-board is a personal Web application that manages meal plans and recipes.
 
 At the top page, it shows calendar with upcoming meal plans.
 
-<a href="screenshots/shot_calendar.png"><img src="screenshots/shot_calendar.png" alt="Calendar" width="400"></a>
+<a href="screenshots/shot_calendar.png"><img src="screenshots/shot_calendar.png" alt="Calendar" width="400" /></a>
 
 (For now, **only Japanese locale** is supported)
 
 You can see the recipes for meals in the calendar.
 
-<a href="screenshots/shot_recipe.png"><img src="screenshots/shot_recipe.png" alt="Recipe" width="400"></a>
+<a href="screenshots/shot_recipe.png"><img src="screenshots/shot_recipe.png" alt="Recipe" width="400" /></a>
 
 ## Contents
 
