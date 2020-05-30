@@ -350,28 +350,6 @@ tableMealPhases = [Lunch, Dinner]
         
 viewCalendar : Locale -> Date -> Calendar -> List (Html Msg)
 viewCalendar locale today cal = List.concatMap (viewCalEntry locale today) cal
-    -- let result = [Table.table { options = opts, thead = thead, tbody = tbody }]
-    --     opts = [Table.striped]
-    --     thead = Table.thead [] [Table.tr [] head_cells]
-    --     mkIcon = iconBootstrap (Just "cal-icon")
-    --     head_cells = [ Table.th [Table.cellAttr <| Attr.class "cal-day"]
-    --                        [mkIcon "calendar" <| Just <| (.showCalDay) <| Locale.get locale ]
-    --                  ]
-    --                  ++ List.map mkPhaseHeaderCell tableMealPhases
-    --     mkPhaseHeaderCell p = Table.td [] <| mkMealPhaseIcon p
-    --     mkMealPhaseIcon p =
-    --         let result_icon =
-    --                 case m_icon_name of
-    --                     Nothing -> []
-    --                     Just icon_name -> [mkIcon icon_name (Just <| MealPhase.toString p)]
-    --             m_icon_name =
-    --                 case p of
-    --                     Lunch -> Just "brightness-high-fill"
-    --                     Dinner -> Just "moon"
-    --                     _ -> Nothing
-    --         in result_icon
-    --     tbody = Table.tbody [] <| List.map (viewCalEntry locale today) cal
-    -- in result
 
 viewCalEntry : Locale -> Date -> CalEntry -> List (Html Msg)
 viewCalEntry locale today centry =
