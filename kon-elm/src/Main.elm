@@ -11,6 +11,7 @@ import Bootstrap.Button as Button
 import Bootstrap.Utilities.Display as Display
 import Browser
 import Browser exposing (Document, UrlRequest)
+import Browser.Dom as Dom
 import Browser.Navigation as Nav
 import Html exposing (Html, div, text, ul, li, h1, h2, h3)
 import Html
@@ -19,6 +20,7 @@ import Html.Attributes as Attr
 import Http
 import List
 import Markdown
+import Task exposing (Task)
 import Time
 import Date exposing (Date)
 import Date
@@ -285,6 +287,24 @@ showHttpError e =
         Http.BadStatus s -> "Server returned error status " ++ String.fromInt s
         Http.BadBody b -> "Bad HTTP response body: " ++ b
 
+{- | Task to set viewport (y position) relative to the element of
+"today".
+-}
+setCalendarViewportTask : Float -> Task String ()
+setCalendarViewportTask rel_y =
+    let result = Task.mapError toString <| action
+        action =
+            Dom.getElement todayCellID |> Task.andThen
+            (\ elem ->
+                 let new_x = elem.viewport.x
+                     new_y = elem.viewport.y + rel_y
+                 in Dom.setViewport new_x new_y
+            )
+        toString (Dom.NotFound e) =
+            "Cannot find #" ++ todayCellID ++ ": " ++ e
+    in result
+    
+
 ---- View
 
 viewBody : Model -> List (Html Msg)
@@ -369,13 +389,16 @@ tableMealPhases = [Lunch, Dinner]
 viewCalendar : Locale -> Date -> Calendar -> List (Html Msg)
 viewCalendar locale today cal = List.concatMap (viewCalEntry locale today) <| Cal.entries cal
 
+todayCellID : String
+todayCellID = "cal-today-cell"
+
 viewCalEntry : Locale -> Date -> CalEntry -> List (Html Msg)
 viewCalEntry locale today centry =
     let result = [Grid.row row_attrs [col_date_head, col_date_body]]
         row_attrs = [ Row.attrs ([Attr.class "cal-day-row", Attr.class stripe_class] ++ today_row_attrs)
                     ]
         today_row_attrs = if today == centry.day
-                          then [Attr.id "cal-today-cell"]
+                          then [Attr.id todayCellID]
                           else []
         stripe_class = if modBy 2 (Date.toRataDie centry.day) == 0
                        then "cal-day-row-even"
