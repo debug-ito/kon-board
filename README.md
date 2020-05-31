@@ -20,6 +20,7 @@ You can see the recipes for meals in the calendar.
 - [Add recipes](#add-recipes)
 - [Add meal plans](#add-meal-plans)
 - [Development](#development)
+- [Recent changes](#recent-changes)
 
 
 ## Run
@@ -102,6 +103,10 @@ Note:
 In development, run the following after you build the backend and frontend.
 
     $ stack run kon-board-server
+
+## Recent changes
+
+See [ChangeLog.md](kon-board/ChangeLog.md).
 
 ## Author
 
