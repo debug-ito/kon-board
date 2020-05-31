@@ -1,5 +1,6 @@
 module Page exposing
     ( Page(..)
+    , initPage
     , parseUrl
     , recipePageLink
     )
@@ -10,14 +11,20 @@ import Url.Parser as P
 import Url.Builder as B
 
 import Bridge exposing (BRecipeID)
+import Coming exposing (Coming(..))
 
 {- | The page associated with URL.
 -}
 type Page =
       -- | The top page
-      PageTop
+      PageTop ViewportAdjusted
       -- | The recipe page
     | PageRecipe BRecipeID
+
+type alias ViewportAdjusted = Coming () ()
+
+initPage : Page
+initPage = PageTop NotStarted
 
 parseUrl : Url -> Maybe Page
 parseUrl = P.parse parserPage
@@ -25,7 +32,7 @@ parseUrl = P.parse parserPage
 parserPage : Parser (Page -> a) a
 parserPage =
     oneOf
-    [ P.map PageTop P.top
+    [ P.map (PageTop NotStarted) P.top
     , P.map PageRecipe (P.s "recipes" </> P.string)
     ]
 

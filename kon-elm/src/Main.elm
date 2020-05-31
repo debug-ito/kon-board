@@ -134,7 +134,7 @@ appInit : () -> Url -> Nav.Key -> (Model, Cmd Msg)
 appInit _ url key =
     let model_base = { locale = LJaJP
                      , clock = Nothing
-                     , page = PageTop
+                     , page = Page.initPage
                      , navKey = key
                      , calendar = Nothing
                      , mealPlansLoaded = NotStarted
@@ -152,7 +152,7 @@ appView m =
                  }
         page_title =
             case m.page of
-                PageTop -> []
+                PageTop _ -> []
                 PageRecipe _ ->
                     case Coming.success m.loadedRecipe of
                         Nothing -> []
@@ -310,7 +310,7 @@ viewBody model =
         sidebar = viewCurTime model.locale model.clock
         mainbox =
             case model.page of
-                PageTop ->
+                PageTop _ ->
                     case (modelToday model, model.calendar) of
                         (Just today, Just cal) -> viewCalendar model.locale today cal
                         _ -> []
