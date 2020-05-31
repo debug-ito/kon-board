@@ -1,6 +1,7 @@
 module ListUtil exposing
     ( replaceOrAdd
     , join
+    , last
     )
 
 import List exposing (foldr)
@@ -29,3 +30,10 @@ replaceOrAdd pred new_item old_list =
 
 join : String -> List String -> String
 join sep words = List.foldr (++) "" <| List.intersperse sep words
+
+last : List a -> Maybe a
+last l =
+    case l of
+        [] -> Nothing
+        [x] -> Just x
+        (_ :: rest) -> last rest
