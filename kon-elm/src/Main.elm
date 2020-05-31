@@ -87,10 +87,21 @@ tickClock t model =
         Nothing -> model
         Just c -> { model | clock = Just { c | curTime = t } }
 
+calendarInitStartWeeks : Int
+calendarInitStartWeeks = 4
+
+calendarInitEndWeeks : Int
+calendarInitEndWeeks = 2
+
 initCalendar : Time.Zone -> Time.Posix -> Model -> Model
 initCalendar tz t model =
-    let cals = CalEntry.forDays (calendarStart tz t) calendarPeriodDays
-    in { model | calendar = cals }
+    let result = { model | calendar = cals }
+        start = DateUtil.nearbyWeekday cur_date Time.Sun (negate calendarInitStartWeeks)
+        end = DateUtil.nearbyWeekday cur_date Time.Sun calendarInitEndWeeks
+        cur_date = Date.fromPosix tz t
+        duration = Date.diff Date.Days start end
+        cals = CalEntry.forDays start duration
+    in result
 
 modelToday : Model -> Maybe Date
 modelToday m = Maybe.map (\mc -> Date.fromPosix mc.timeZone mc.curTime) m.clock
@@ -120,14 +131,6 @@ type Msg = NoOp
          | UrlChangeMsg Url
          | RecipeLoaded (Result String MRecipe)
 
-calendarPeriodDays : Int
-calendarPeriodDays = 9
-
-{- | Make the start date of the calendar from the current time.
--}
-calendarStart : Time.Zone -> Time.Posix -> Date
-calendarStart tz t = Date.add Date.Days (-1) <| Date.fromPosix tz t
-        
 appInit : () -> Url -> Nav.Key -> (Model, Cmd Msg)
 appInit _ url key =
     let model_base = { locale = LJaJP
@@ -207,11 +210,11 @@ appUpdateCmd msg model =
             if Coming.hasStarted model.mealPlansLoaded
             then []
             else
-                case model.clock of
+                case CalEntry.startAndEnd <| model.calendar of
                     Nothing -> []
-                    Just c -> [(loadMealPlans c.curTime c.timeZone
-                               , (\m -> { m | mealPlansLoaded = Pending })
-                               )]
+                    Just (start, end) -> [(loadMealPlans start end
+                                          , (\m -> { m | mealPlansLoaded = Pending })
+                                          )]
         urlRequestCmd =
             case msg of
                 UrlRequestMsg (Browser.Internal u) ->
@@ -245,11 +248,9 @@ appOnUrlRequest = UrlRequestMsg
 appOnUrlChange : Url -> Msg
 appOnUrlChange = UrlChangeMsg
 
-loadMealPlans : Time.Posix -> Time.Zone -> Cmd Msg
-loadMealPlans time zone =
-    let start_day = calendarStart zone time
-        end_day = Date.add Date.Days calendarPeriodDays start_day
-        handle ret =
+loadMealPlans : Date -> Date -> Cmd Msg
+loadMealPlans start_day end_day =
+    let handle ret =
             let mkErrorMsg http_err = "Error in loadMealPlans: " ++ showHttpError http_err
             in MealPlansLoaded <| Result.mapError mkErrorMsg ret
     in Bridge.getApiV1Mealplans (Date.toIsoString start_day) (Date.toIsoString end_day) handle
