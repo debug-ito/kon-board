@@ -6,6 +6,7 @@ module CalEntry exposing
     , mealFor
     , addMealPlan
     , addMealPlans
+    , startAndEnd
     )
 
 import Date exposing (Date)
@@ -18,6 +19,7 @@ import Time
 import Bridge exposing (BMealPlan, BRecipeSummary)
 import DateUtil exposing (parseMonth)
 import ListUtil exposing (replaceOrAdd)
+import ListUtil
 import MealPhase exposing (MealPhase(..))
 import MealPhase
 
@@ -92,3 +94,14 @@ addMealPlans bps cals =
                 Err e -> Err e
                 Ok cur_cals -> addMealPlan bp cur_cals
     in List.foldr f (Ok cals) bps
+
+{- | Return the start and end of the calendar. If the calendar is
+empty, it returns 'Nothing'.
+-}
+startAndEnd : Calendar -> Maybe (Date, Date)
+startAndEnd cal =
+    let result = Maybe.map2 (\s e -> (s,e)) start end
+        start = List.head sorted_days
+        end = ListUtil.last sorted_days
+        sorted_days = List.sortWith Date.compare <| List.map (\c -> c.day) cal
+    in result
