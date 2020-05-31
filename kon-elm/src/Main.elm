@@ -57,7 +57,7 @@ type alias Model =
     , clock : Maybe MClock
     , page : Page
     , navKey : Nav.Key
-    , calendar : Calendar
+    , calendar : Maybe Calendar
       -- | 'True' if MealPlans are loaded to the calendar.
     , mealPlansLoaded : Coming String ()
     , errorMsg : (Alert.Visibility, String)
@@ -95,12 +95,11 @@ calendarInitEndWeeks = 2
 
 initCalendar : Time.Zone -> Time.Posix -> Model -> Model
 initCalendar tz t model =
-    let result = { model | calendar = cals }
-        start = DateUtil.nearbyWeekday cur_date Time.Sun (negate calendarInitStartWeeks)
-        end = DateUtil.nearbyWeekday cur_date Time.Sun calendarInitEndWeeks
+    let result = { model | calendar = Just init_cal }
+        init_cal = Cal.forWeeks cur_date Time.Sun weeks_future weeks_past
         cur_date = Date.fromPosix tz t
-        duration = Date.diff Date.Days start end
-        cals = Cal.forDays start duration
+        weeks_future = 2
+        weeks_past = 4
     in result
 
 modelToday : Model -> Maybe Date
@@ -137,7 +136,7 @@ appInit _ url key =
                      , clock = Nothing
                      , page = PageTop
                      , navKey = key
-                     , calendar = []
+                     , calendar = Nothing
                      , mealPlansLoaded = NotStarted
                      , errorMsg = (Alert.closed, "")
                      , loadedRecipe = NotStarted
@@ -174,9 +173,17 @@ appUpdateModel msg model =
         InitTime t z -> initCalendar z t <| setClock z t model
         TickTime t -> tickClock t model
         MealPlansLoaded e_mps ->
-            case Result.andThen (\mps -> Cal.addMealPlans mps model.calendar) e_mps of
-                Err e -> { model | errorMsg = (Alert.shown, e), mealPlansLoaded = Failure e }
-                Ok new_cal -> { model | calendar = new_cal, mealPlansLoaded = Success () }
+            let e_new_cal =
+                    e_mps |> Result.andThen
+                    (\ mps -> e_cal |> Result.andThen
+                         (\ cal ->
+                              Cal.addMealPlans mps cal
+                         )
+                    )
+                e_cal = Result.fromMaybe "MealPlansLoaded: Calendar is not initialized yet." model.calendar
+            in case e_new_cal of
+                   Err e -> { model | errorMsg = (Alert.shown, e), mealPlansLoaded = Failure e }
+                   Ok new_cal -> { model | calendar = Just new_cal, mealPlansLoaded = Success () }
         ErrorMsgVisibility v -> { model | errorMsg = (v, second model.errorMsg) }
         UrlRequestMsg _ -> model
         UrlChangeMsg u -> appUrlChange u model
@@ -210,11 +217,14 @@ appUpdateCmd msg model =
             if Coming.hasStarted model.mealPlansLoaded
             then []
             else
-                case Cal.startAndEnd <| model.calendar of
+                case model.calendar of
                     Nothing -> []
-                    Just (start, end) -> [(loadMealPlans start end
-                                          , (\m -> { m | mealPlansLoaded = Pending })
-                                          )]
+                    Just cal ->
+                        let (start, end) = Cal.startAndEnd cal
+                        in [ ( loadMealPlans start end
+                             , (\m -> { m | mealPlansLoaded = Pending })
+                             )
+                           ]
         urlRequestCmd =
             case msg of
                 UrlRequestMsg (Browser.Internal u) ->
@@ -301,9 +311,9 @@ viewBody model =
         mainbox =
             case model.page of
                 PageTop ->
-                    case modelToday model of
-                        Nothing -> []
-                        Just today -> viewCalendar model.locale today model.calendar
+                    case (modelToday model, model.calendar) of
+                        (Just today, Just cal) -> viewCalendar model.locale today cal
+                        _ -> []
                 PageRecipe r -> viewRecipePage r model
         err_msg =
             let alert_conf =
@@ -357,7 +367,7 @@ tableMealPhases : List MealPhase
 tableMealPhases = [Lunch, Dinner]
         
 viewCalendar : Locale -> Date -> Calendar -> List (Html Msg)
-viewCalendar locale today cal = List.concatMap (viewCalEntry locale today) cal
+viewCalendar locale today cal = List.concatMap (viewCalEntry locale today) <| Cal.entries cal
 
 viewCalEntry : Locale -> Date -> CalEntry -> List (Html Msg)
 viewCalEntry locale today centry =

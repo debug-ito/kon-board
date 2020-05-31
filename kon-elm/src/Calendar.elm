@@ -2,11 +2,12 @@ module Calendar exposing
     ( Calendar
     , CalEntry
     , DayMeal
-    , forDays
-    , mealFor
+    , forWeeks
+    , startAndEnd
+    , entries
     , addMealPlan
     , addMealPlans
-    , startAndEnd
+    , mealFor
     )
 
 import Date exposing (Date)
@@ -15,6 +16,7 @@ import List
 import Result
 import Result.Extra as ResultE
 import Time
+import Time exposing (Weekday)
 
 import Bridge exposing (BMealPlan, BRecipeSummary)
 import DateUtil exposing (parseMonth)
@@ -37,9 +39,17 @@ type alias CalEntry =
     , meals : List DayMeal
     }
 
-{- | Calendar
+{- | Opaque Calendar
 -}
-type alias Calendar = List CalEntry
+type Calendar = Calendar CalImpl
+
+{- | Internal implementation of Calendar
+-}
+type alias CalImpl =
+    { entries : List CalEntry
+    , start : Date
+    , end : Date
+    }
 
 fromBMealPlan : BMealPlan -> Result String (Date, DayMeal)
 fromBMealPlan mp =
@@ -61,26 +71,44 @@ setDayMeal new_dm cal =
         p cur_dm = cur_dm.phase == new_dm.phase
     in new_cal
 
-forDays : Date -> Int -> Calendar
-forDays start days =
-    let makeEnd dif = Date.add Date.Days dif start
+{- | Make a 'Calendar' that centers at the given date and spans for
+given number of weeks in future and past. The start_wday is the
+starting 'Weekday' in the calendar.
+-}
+forWeeks : Date -> Weekday -> Int -> Int -> Calendar
+forWeeks center_date start_wday weeks_future weeks_past = 
+    let result = forDays start_date end_date
+        start_date = DateUtil.nearbyWeekday center_date start_wday (negate weeks_past)
+        end_date   = DateUtil.nearbyWeekday center_date start_wday weeks_future
+    in result
+
+forDays : Date -> Date -> Calendar
+forDays start_date end_date =
+    let result = Calendar
+                 { entries = cal_entries
+                 , start = start_date
+                 , end = end_date
+                 }
+        makeEnd dif = Date.add Date.Days dif start_date
         makeCalEntries dif = [{ day = makeEnd dif, meals = [] }]
-    in List.concatMap makeCalEntries <| List.range 0 (days - 1)
+        duration = Date.diff Date.Days start_date end_date
+        cal_entries = List.concatMap makeCalEntries <| List.range 0 (duration - 1)
+    in result
 
 addMealPlan : BMealPlan -> Calendar -> Result String Calendar
-addMealPlan bm cals  =
+addMealPlan bm (Calendar cal)  =
     fromBMealPlan bm |> Result.andThen
     ( \(new_date, new_dm) ->
-          let result = finalize <| List.foldr f ([], False) cals
-              f cur_cal (acc, is_complete) =
+          let result = finalize <| List.foldr f ([], False) cal.entries
+              f cur_entry (acc, is_complete) =
                   if is_complete
-                  then (cur_cal :: acc, is_complete)
-                  else if cur_cal.day == new_date 
-                       then (setDayMeal new_dm cur_cal :: acc, True)
-                       else (cur_cal :: acc, is_complete)
-              finalize (ret, is_complete) =
+                  then (cur_entry :: acc, is_complete)
+                  else if cur_entry.day == new_date 
+                       then (setDayMeal new_dm cur_entry :: acc, True)
+                       else (cur_entry :: acc, is_complete)
+              finalize (ret_entries, is_complete) =
                   if is_complete
-                  then Ok ret
+                  then Ok <| Calendar { cal | entries = ret_entries }
                   else
                       let err_msg = "Cannot find CalEntry for " ++ Date.toIsoString new_date
                       in Err err_msg
@@ -88,20 +116,17 @@ addMealPlan bm cals  =
     )
 
 addMealPlans : List BMealPlan -> Calendar -> Result String Calendar
-addMealPlans bps cals =
+addMealPlans bps cal =
     let f bp eret =
             case eret of
                 Err e -> Err e
-                Ok cur_cals -> addMealPlan bp cur_cals
-    in List.foldr f (Ok cals) bps
+                Ok cur_cal -> addMealPlan bp cur_cal
+    in List.foldr f (Ok cal) bps
 
-{- | Return the start and end of the calendar. If the calendar is
-empty, it returns 'Nothing'.
+{- | Return the start and end of the calendar.
 -}
-startAndEnd : Calendar -> Maybe (Date, Date)
-startAndEnd cal =
-    let result = Maybe.map2 (\s e -> (s,e)) start end
-        start = List.head sorted_days
-        end = ListUtil.last sorted_days
-        sorted_days = List.sortWith Date.compare <| List.map (\c -> c.day) cal
-    in result
+startAndEnd : Calendar -> (Date, Date)
+startAndEnd (Calendar c) = (c.start, c.end)
+
+entries : Calendar -> List CalEntry
+entries (Calendar c) = c.entries
