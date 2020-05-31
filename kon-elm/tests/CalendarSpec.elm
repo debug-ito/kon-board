@@ -1,4 +1,4 @@
-module CalEntrySpec exposing
+module CalendarSpec exposing
     ( suite
     )
 
@@ -11,12 +11,12 @@ import Test exposing (Test, describe, test)
 import Time
 
 import Bridge exposing (BMealPlan)
-import CalEntry
+import Calendar as Cal
 import MealPhase exposing (MealPhase(..))
 
 suite : Test
 suite =
-    describe "CalEntry"
+    describe "Calendar"
         [ describe "addMealPlan"
               [ test "add to empty" <|
                     \_ ->
@@ -24,7 +24,7 @@ suite =
                                 , phase = "lunch"
                                 , recipes = [{id = "foo", name = "foo name"}]
                                 }
-                        got = CalEntry.addMealPlan input []
+                        got = Cal.addMealPlan input []
                     in case got of
                            Ok _ -> Exp.fail "the result should fail."
                            Err e -> Exp.true
@@ -62,7 +62,7 @@ suite =
                                        , meals = []
                                        }
                                      ]
-                          got = CalEntry.addMealPlan bm cals
+                          got = Cal.addMealPlan bm cals
                       in Exp.equal got <| Ok expected
               ]
         ]

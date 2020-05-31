@@ -1,4 +1,4 @@
-module CalEntry exposing
+module Calendar exposing
     ( Calendar
     , CalEntry
     , DayMeal

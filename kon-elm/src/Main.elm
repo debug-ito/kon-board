@@ -33,8 +33,8 @@ import Tuple exposing (first, second)
 import Bridge exposing
     (BRecipeSummary, BMealPlan, BRecipeID, BRecipe(..))
 import Bridge
-import CalEntry exposing (CalEntry, Calendar, DayMeal)
-import CalEntry
+import Calendar exposing (CalEntry, Calendar, DayMeal)
+import Calendar as Cal
 import Coming exposing (Coming(..))
 import Coming
 import DateUtil
@@ -100,7 +100,7 @@ initCalendar tz t model =
         end = DateUtil.nearbyWeekday cur_date Time.Sun calendarInitEndWeeks
         cur_date = Date.fromPosix tz t
         duration = Date.diff Date.Days start end
-        cals = CalEntry.forDays start duration
+        cals = Cal.forDays start duration
     in result
 
 modelToday : Model -> Maybe Date
@@ -174,7 +174,7 @@ appUpdateModel msg model =
         InitTime t z -> initCalendar z t <| setClock z t model
         TickTime t -> tickClock t model
         MealPlansLoaded e_mps ->
-            case Result.andThen (\mps -> CalEntry.addMealPlans mps model.calendar) e_mps of
+            case Result.andThen (\mps -> Cal.addMealPlans mps model.calendar) e_mps of
                 Err e -> { model | errorMsg = (Alert.shown, e), mealPlansLoaded = Failure e }
                 Ok new_cal -> { model | calendar = new_cal, mealPlansLoaded = Success () }
         ErrorMsgVisibility v -> { model | errorMsg = (v, second model.errorMsg) }
@@ -210,7 +210,7 @@ appUpdateCmd msg model =
             if Coming.hasStarted model.mealPlansLoaded
             then []
             else
-                case CalEntry.startAndEnd <| model.calendar of
+                case Cal.startAndEnd <| model.calendar of
                     Nothing -> []
                     Just (start, end) -> [(loadMealPlans start end
                                           , (\m -> { m | mealPlansLoaded = Pending })
@@ -377,7 +377,7 @@ viewCalEntry locale today centry =
         col_date_body = Grid.col
                         [Col.xs9, Col.md10]
                         [Grid.row [] <| List.map mkColForPhase tableMealPhases]
-        mkColForPhase p = Grid.col [Col.xs12, Col.sm6, Col.attrs [Attr.class "cal-col-meal-plan"]] <| viewDayMeal p <| CalEntry.mealFor p centry
+        mkColForPhase p = Grid.col [Col.xs12, Col.sm6, Col.attrs [Attr.class "cal-col-meal-plan"]] <| viewDayMeal p <| Cal.mealFor p centry
     in result
 
 viewDayMeal : MealPhase -> Maybe DayMeal -> List (Html Msg)
