@@ -372,8 +372,11 @@ viewCalendar locale today cal = List.concatMap (viewCalEntry locale today) <| Ca
 viewCalEntry : Locale -> Date -> CalEntry -> List (Html Msg)
 viewCalEntry locale today centry =
     let result = [Grid.row row_attrs [col_date_head, col_date_body]]
-        row_attrs = [ Row.attrs [Attr.class "cal-day-row", Attr.class stripe_class]
+        row_attrs = [ Row.attrs ([Attr.class "cal-day-row", Attr.class stripe_class] ++ today_row_attrs)
                     ]
+        today_row_attrs = if today == centry.day
+                          then [Attr.id "cal-today-cell"]
+                          else []
         stripe_class = if modBy 2 (Date.toRataDie centry.day) == 0
                        then "cal-day-row-even"
                        else "cal-day-row-odd"
