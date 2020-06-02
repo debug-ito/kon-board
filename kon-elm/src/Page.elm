@@ -21,7 +21,7 @@ type Page =
       -- | The recipe page
     | PageRecipe BRecipeID
 
-type alias ViewportAdjusted = Coming () ()
+type alias ViewportAdjusted = Coming String ()
 
 initPage : Page
 initPage = PageTop NotStarted

@@ -131,6 +131,7 @@ type Msg = NoOp
          | UrlRequestMsg UrlRequest
          | UrlChangeMsg Url
          | RecipeLoaded (Result String MRecipe)
+         | ViewportAdjusted (Result String ())
 
 appInit : () -> Url -> Nav.Key -> (Model, Cmd Msg)
 appInit _ url key =
@@ -193,6 +194,15 @@ appUpdateModel msg model =
             case e_mr of
                 Err e -> { model | errorMsg = (Alert.shown, e), loadedRecipe = Failure e }
                 Ok mr -> { model | loadedRecipe = Success mr }
+        ViewportAdjusted adjust_ret ->
+            case model.page of
+                PageTop v ->
+                    case adjust_ret of
+                        Ok () -> { model | page = PageTop (Success ()) }
+                        Err e -> { model | errorMsg = (Alert.shown, "ViewportAdjust error: " ++ e)
+                                 , page = PageTop (Failure e)
+                                 }
+                _ -> { model | errorMsg = (Alert.shown, "Unexpected ViewportAdjust msg to non-PageTop page.") }
 
 appUrlChange : Url -> Model -> Model
 appUrlChange u model = 
@@ -210,7 +220,8 @@ concatCmds cs =
 
 appUpdateCmd : Msg -> Model -> List (Cmd Msg, Model -> Model)
 appUpdateCmd msg model =
-    let result = initTimeCmd ++ loadMealPlanCmd ++ urlRequestCmd ++ loadRecipeCmd
+    let result = initTimeCmd ++ loadMealPlanCmd ++ urlRequestCmd
+                 ++ loadRecipeCmd ++ viewportAdjustCmd
         initTimeCmd =
             case model.clock of
                 Nothing -> [(Task.perform identity <| Task.map2 InitTime Time.now Time.here, identity)]
@@ -246,6 +257,14 @@ appUpdateCmd msg model =
                        then []
                        else mkResult rid
                    _ -> []
+        viewportAdjustCmd =
+            case (model.calendar, model.mealPlansLoaded, model.page) of
+                (Just _, Success _, PageTop NotStarted) ->
+                    let cmd = Task.attempt ViewportAdjusted <| setCalendarViewportTask relative_adjust
+                        new_page = PageTop Pending
+                        relative_adjust = -20.0
+                    in [(cmd, (\m -> { m | page = new_page }))]
+                _ -> []
     in result
 
 appSub : Model -> Sub Msg
