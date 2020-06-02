@@ -27,6 +27,7 @@ import Date
 import Url exposing (Url)
 import Url
 import Url.Builder as UrlB
+import Process
 import Result
 import String
 import Task
@@ -260,9 +261,10 @@ appUpdateCmd msg model =
         viewportAdjustCmd =
             case (model.calendar, model.mealPlansLoaded, model.page) of
                 (Just _, Success _, PageTop NotStarted) ->
-                    let cmd = Task.attempt ViewportAdjusted <| setCalendarViewportTask relative_adjust
+                    let cmd = Debug.log "viewportAdjustCmd" <| Task.attempt ViewportAdjusted
+                              <| setCalendarViewportTask relative_adjust
                         new_page = PageTop Pending
-                        relative_adjust = -20.0
+                        relative_adjust = -10.0
                     in [(cmd, (\m -> { m | page = new_page }))]
                 _ -> []
     in result
@@ -312,12 +314,16 @@ showHttpError e =
 setCalendarViewportTask : Float -> Task String ()
 setCalendarViewportTask rel_y =
     let result = Task.mapError toString <| action
+        sleep_msec = 2.0
         action =
-            Dom.getElement todayCellID |> Task.andThen
-            (\ elem ->
-                 let new_x = elem.viewport.x
-                     new_y = elem.viewport.y + rel_y
-                 in Dom.setViewport new_x new_y
+            Process.sleep sleep_msec |> Task.andThen  --- TODO: do we really have to insert this delay????
+            (\ () ->
+                 Dom.getElement todayCellID |> Task.andThen
+                 (\ elem ->
+                      let new_x = Debug.log "new x" <| elem.viewport.x
+                          new_y = Debug.log "new y" <| elem.element.y + rel_y
+                      in Dom.setViewport new_x new_y
+                 )
             )
         toString (Dom.NotFound e) =
             "Cannot find #" ++ todayCellID ++ ": " ++ e
