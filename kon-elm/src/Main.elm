@@ -261,7 +261,7 @@ appUpdateCmd msg model =
         viewportAdjustCmd =
             case (model.calendar, model.mealPlansLoaded, model.page) of
                 (Just _, Success _, PageTop NotStarted) ->
-                    let cmd = Debug.log "viewportAdjustCmd" <| Task.attempt ViewportAdjusted
+                    let cmd = Task.attempt ViewportAdjusted
                               <| setCalendarViewportTask relative_adjust
                         new_page = PageTop Pending
                         relative_adjust = -10.0
@@ -314,16 +314,12 @@ showHttpError e =
 setCalendarViewportTask : Float -> Task String ()
 setCalendarViewportTask rel_y =
     let result = Task.mapError toString <| action
-        sleep_msec = 2.0
         action =
-            Process.sleep sleep_msec |> Task.andThen  --- TODO: do we really have to insert this delay????
-            (\ () ->
-                 Dom.getElement todayCellID |> Task.andThen
-                 (\ elem ->
-                      let new_x = Debug.log "new x" <| elem.viewport.x
-                          new_y = Debug.log "new y" <| elem.element.y + rel_y
-                      in Dom.setViewport new_x new_y
-                 )
+            Dom.getElement todayCellID |> Task.andThen
+            (\ elem ->
+                 let new_x = elem.viewport.x
+                     new_y = elem.element.y + rel_y
+                 in Dom.setViewport new_x new_y
             )
         toString (Dom.NotFound e) =
             "Cannot find #" ++ todayCellID ++ ": " ++ e
