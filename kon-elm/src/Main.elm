@@ -66,7 +66,9 @@ type alias Model =
     , page : Page
     , navKey : Nav.Key
     , calendar : Maybe Calendar
-      -- | 'True' if MealPlans are loaded to the calendar.
+    -- | Y position of the viewport (in a calendar view) relative to the "today" element.
+    , calendarViewport : Float
+    -- | 'Success' if MealPlans are loaded to the calendar.
     , mealPlansLoaded : Coming String ()
     , errorMsg : (Alert.Visibility, String)
     , loadedRecipe : Coming String MRecipe  -- TODO: maybe we should move this under PageRecipe varient.
@@ -142,6 +144,8 @@ type Msg = NoOp
          | RecipeLoaded (Result String MRecipe)
          -- | Got result of adjusting viewport.
          | ViewportAdjusted (Result String ())
+         -- | Got result of getting relative Y position of the viewport.
+         | ViewportObtained (Result String Float)
          -- | Got window.onscroll event (from a port).
          | ScrollEvent
 
@@ -152,6 +156,7 @@ appInit _ url key =
                      , page = Page.initPage
                      , navKey = key
                      , calendar = Nothing
+                     , calendarViewport = -10.0
                      , mealPlansLoaded = NotStarted
                      , errorMsg = (Alert.closed, "")
                      , loadedRecipe = NotStarted
@@ -215,7 +220,11 @@ appUpdateModel msg model =
                                  , page = PageTop (Failure e)
                                  }
                 _ -> { model | errorMsg = (Alert.shown, "Unexpected ViewportAdjust msg to non-PageTop page.") }
-        ScrollEvent -> model -- TODO.
+        ViewportObtained v_ret ->
+            case v_ret of
+                Ok v -> { model | calendarViewport = v }
+                Err e -> { model | errorMsg = (Alert.shown, "ViewportObtained error: " ++ e) }
+        ScrollEvent -> model
 
 appUrlChange : Url -> Model -> Model
 appUrlChange u model = 
@@ -234,7 +243,7 @@ concatCmds cs =
 appUpdateCmd : Msg -> Model -> List (Cmd Msg, Model -> Model)
 appUpdateCmd msg model =
     let result = initTimeCmd ++ loadMealPlanCmd ++ urlRequestCmd
-                 ++ loadRecipeCmd ++ viewportAdjustCmd
+                 ++ loadRecipeCmd ++ viewportAdjustCmd ++ viewportObtainCmd
         initTimeCmd =
             case model.clock of
                 Nothing -> [(Task.perform identity <| Task.map2 InitTime Time.now Time.here, identity)]
@@ -274,19 +283,26 @@ appUpdateCmd msg model =
             case (model.calendar, model.mealPlansLoaded, model.page) of
                 (Just _, Success _, PageTop NotStarted) ->
                     let cmd = Task.attempt ViewportAdjusted
-                              <| setCalendarViewportTask relative_adjust
+                              <| setCalendarViewportTask model.calendarViewport
                         new_page = PageTop Pending
-                        relative_adjust = -10.0
                     in [(cmd, (\m -> { m | page = new_page }))]
+                _ -> []
+        viewportObtainCmd =
+            case (msg, model.page) of
+                (ScrollEvent, PageTop (Success ())) ->
+                    let cmd = Task.attempt ViewportObtained <| getCalendarViewportTask
+                    in [(cmd, identity)]
                 _ -> []
     in result
 
 appSub : Model -> Sub Msg
 appSub model =
-    Sub.batch
-        [ Time.every 5000 TickTime
-        , portOnScroll (\_ -> ScrollEvent)
-        ]
+    let result = Sub.batch ([Time.every 5000 TickTime] ++ sub_scroll_events)
+        sub_scroll_events =
+            case model.page of
+                PageTop _ -> [portOnScroll (\_ -> ScrollEvent)]
+                _ -> []
+    in result
 
 appOnUrlRequest : UrlRequest -> Msg
 appOnUrlRequest = UrlRequestMsg
@@ -321,21 +337,36 @@ showHttpError e =
         Http.BadStatus s -> "Server returned error status " ++ String.fromInt s
         Http.BadBody b -> "Bad HTTP response body: " ++ b
 
+{- | Same as 'Dom.getElement' except that the error is a
+human-readable string.
+-}
+getElementTask : String -> Task String Dom.Element
+getElementTask elem_id =
+    let toString (Dom.NotFound e) =
+            "Cannot find #" ++ elem_id ++ ": " ++ e
+    in Task.mapError toString <| Dom.getElement elem_id
+
 {- | Task to set viewport (y position) relative to the element of
 "today".
 -}
 setCalendarViewportTask : Float -> Task String ()
 setCalendarViewportTask rel_y =
-    let result = Task.mapError toString <| action
-        action =
-            Dom.getElement todayCellID |> Task.andThen
+    let result =
+            getElementTask todayCellID |> Task.andThen
             (\ elem ->
                  let new_x = elem.viewport.x
                      new_y = elem.element.y + rel_y
                  in Dom.setViewport new_x new_y
             )
-        toString (Dom.NotFound e) =
-            "Cannot find #" ++ todayCellID ++ ": " ++ e
+    in result
+
+{- | Task to get the viewport (y position) relative to the element of
+"today".
+-}
+getCalendarViewportTask : Task String Float
+getCalendarViewportTask =
+    let result = Task.map calcRelative <| getElementTask todayCellID
+        calcRelative e = e.viewport.y - e.element.y
     in result
     
 
