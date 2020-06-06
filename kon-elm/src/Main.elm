@@ -132,12 +132,17 @@ type Msg = NoOp
          | InitTime Time.Posix Time.Zone
          -- | Update the current time
          | TickTime Time.Posix
+         -- | Got result of loading MealPlans from backend.
          | MealPlansLoaded (Result String (List BMealPlan))
+         -- | Change visibility of error message box
          | ErrorMsgVisibility Alert.Visibility
          | UrlRequestMsg UrlRequest
          | UrlChangeMsg Url
+         -- | Got result of laoding a Recipe from backend.
          | RecipeLoaded (Result String MRecipe)
+         -- | Got result of adjusting viewport.
          | ViewportAdjusted (Result String ())
+         -- | Got window.onscroll event (from a port).
          | ScrollEvent
 
 appInit : () -> Url -> Nav.Key -> (Model, Cmd Msg)
