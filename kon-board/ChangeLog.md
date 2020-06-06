@@ -1,5 +1,11 @@
 # Revision history for kon-board
 
+## 0.1.1.0  -- 2020-06-06
+
+* Add the kon-board icon to navbar and favicon.
+* Now the calendar keeps a lot more days, especially in the past.
+* Initially the browser viewport is now adjusted around today's entry in the calendar.
+
 ## 0.1.0.2  -- 2020-05-25
 
 * (internal change) kon-board-gen-elm and kon-board-server projects
