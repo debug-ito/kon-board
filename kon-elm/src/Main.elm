@@ -146,8 +146,8 @@ type Msg = NoOp
          | ViewportAdjusted (Result String ())
          -- | Got result of getting relative Y position of the viewport.
          | ViewportObtained (Result String Float)
-         -- | Got window.onscroll event (from a port).
-         | ScrollEvent
+         -- | Got window.onscroll event (from a port) for a calendar view.
+         | CalendarScrollEvent
 
 appInit : () -> Url -> Nav.Key -> (Model, Cmd Msg)
 appInit _ url key =
@@ -224,7 +224,7 @@ appUpdateModel msg model =
             case v_ret of
                 Ok v -> { model | calendarViewport = v }
                 Err e -> { model | errorMsg = (Alert.shown, "ViewportObtained error: " ++ e) }
-        ScrollEvent -> model
+        CalendarScrollEvent -> model
 
 appUrlChange : Url -> Model -> Model
 appUrlChange u model = 
@@ -289,7 +289,7 @@ appUpdateCmd msg model =
                 _ -> []
         viewportObtainCmd =
             case (msg, model.page) of
-                (ScrollEvent, PageTop (Success ())) ->
+                (CalendarScrollEvent, PageTop (Success ())) ->
                     let cmd = Task.attempt ViewportObtained <| getCalendarViewportTask
                     in [(cmd, identity)]
                 _ -> []
@@ -300,7 +300,7 @@ appSub model =
     let result = Sub.batch ([Time.every 5000 TickTime] ++ sub_scroll_events)
         sub_scroll_events =
             case model.page of
-                PageTop _ -> [portOnScroll (\_ -> ScrollEvent)]
+                PageTop _ -> [portOnScroll (\_ -> CalendarScrollEvent)]
                 _ -> []
     in result
 
