@@ -10,6 +10,9 @@
   <script src="/static/main.js"></script>
 </head>
 <body>
-  <script>var app = Elm.Main.init();</script>
+  <script>
+    var app = Elm.Main.init();
+    window.onscroll = function() { app.ports.portOnScroll.send(); };
+  </script>
 </body>
 </html>

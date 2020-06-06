@@ -1,4 +1,4 @@
-module Main exposing
+port module Main exposing
    (..)
 
 {- | The application main. -}
@@ -13,6 +13,7 @@ import Browser
 import Browser exposing (Document, UrlRequest)
 import Browser.Dom as Dom
 import Browser.Navigation as Nav
+import Json.Decode exposing (Value)
 import Html exposing (Html, div, text, ul, li, h1, h2, h3)
 import Html
 import Html.Attributes exposing (href)
@@ -49,6 +50,10 @@ import MealPhase
 import Page exposing (Page(..), recipePageLink)
 import Page
 import Recipe exposing (recipeName)
+
+---- Ports
+
+port portOnScroll : (Value -> msg) -> Sub msg
 
 ---- Model Types
 
@@ -133,6 +138,7 @@ type Msg = NoOp
          | UrlChangeMsg Url
          | RecipeLoaded (Result String MRecipe)
          | ViewportAdjusted (Result String ())
+         | ScrollEvent
 
 appInit : () -> Url -> Nav.Key -> (Model, Cmd Msg)
 appInit _ url key =
@@ -204,6 +210,7 @@ appUpdateModel msg model =
                                  , page = PageTop (Failure e)
                                  }
                 _ -> { model | errorMsg = (Alert.shown, "Unexpected ViewportAdjust msg to non-PageTop page.") }
+        ScrollEvent -> model -- TODO.
 
 appUrlChange : Url -> Model -> Model
 appUrlChange u model = 
@@ -273,6 +280,7 @@ appSub : Model -> Sub Msg
 appSub model =
     Sub.batch
         [ Time.every 5000 TickTime
+        , portOnScroll (\_ -> ScrollEvent)
         ]
 
 appOnUrlRequest : UrlRequest -> Msg
