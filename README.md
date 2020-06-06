@@ -4,7 +4,7 @@
 
 kon-board is a personal Web application that manages meal plans and recipes.
 
-At the top page, it shows calendar with upcoming meal plans.
+At the top page, it shows calendar with meal plans.
 
 <a href="screenshots/shot_calendar.png"><img src="screenshots/shot_calendar.png" alt="Calendar" width="500" /></a>
 
