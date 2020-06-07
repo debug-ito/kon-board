@@ -32,6 +32,8 @@ body > .alert-danger {
 .navbar {
     padding-top: 4px;
     padding-bottom: 5px;
+    padding-left: 8px;
+    padding-right: 8px;
 }
 
 /******* clock *******/
