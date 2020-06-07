@@ -1,5 +1,10 @@
 # Revision history for kon-board
 
+## 0.1.2.0  -- ?
+
+* Fix the initial viewport position, considering the height of navbar.
+
+
 ## 0.1.1.0  -- 2020-06-06
 
 * Add the kon-board icon to navbar and favicon.
