@@ -473,12 +473,21 @@ viewNavbar page (NavbarMenuState menu_state) =
                               , Attr.alt "..."
                               ] []
                         ]
-                -- , options = [Dropdown.alignMenuRight]
                 , options = []
                 , items =
-                      [ Dropdown.buttonItem [] [Html.text "foobar"]
+                      [ Dropdown.buttonItem [] [Html.img [ Attr.src <| iconPath "twbs/view-list.svg"
+                                                         , Attr.width menu_icon_size
+                                                         , Attr.height menu_icon_size
+                                                         ] []
+                                               ]
+                      , Dropdown.buttonItem [] [Html.img [ Attr.src <| iconPath "twbs/table.svg"
+                                                         , Attr.width menu_icon_size
+                                                         , Attr.height menu_icon_size
+                                                         ] []
+                                               ]
                       ]
                 }
+        menu_icon_size = 16
     in result
 
 tableMealPhases : List MealPhase
