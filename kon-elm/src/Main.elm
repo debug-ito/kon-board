@@ -66,6 +66,7 @@ type alias Model =
     , clock : Maybe MClock
     , page : Page
     , navKey : Nav.Key
+    , navbarMenuState : NavbarMenuState
     , calendar : Maybe Calendar
     -- | Y position of the viewport (in a calendar view) relative to the "today" element.
     , calendarViewport : Float
@@ -88,6 +89,10 @@ type alias MRecipe =
     { id : BRecipeID
     , recipe : BRecipe
     }
+
+{- | newtype for 'Dropdown.State' of navbar menu.
+-}
+type NavbarMenuState = NavbarMenuState Dropdown.State
 
 setClock : Time.Zone -> Time.Posix -> Model -> Model
 setClock tz t model = { model | clock = Just { curTime = t, timeZone = tz } }
@@ -149,6 +154,8 @@ type Msg = NoOp
          | ViewportObtained (Result String Float)
          -- | Got window.onscroll event (from a port) for a calendar view.
          | CalendarScrollEvent
+         -- | Navbar menu is updated.
+         | NavbarMenuUpdate NavbarMenuState
 
 appInit : () -> Url -> Nav.Key -> (Model, Cmd Msg)
 appInit _ url key =
@@ -156,6 +163,7 @@ appInit _ url key =
                      , clock = Nothing
                      , page = Page.initPage
                      , navKey = key
+                     , navbarMenuState = NavbarMenuState Dropdown.initialState
                      , calendar = Nothing
                      , calendarViewport = -130.0
                      , mealPlansLoaded = NotStarted
@@ -226,6 +234,7 @@ appUpdateModel msg model =
                 Ok v -> { model | calendarViewport = v }
                 Err e -> { model | errorMsg = (Alert.shown, "ViewportObtained error: " ++ e) }
         CalendarScrollEvent -> model
+        NavbarMenuUpdate s -> { model | navbarMenuState = s }
 
 appUrlChange : Url -> Model -> Model
 appUrlChange u model = 
@@ -298,11 +307,14 @@ appUpdateCmd msg model =
 
 appSub : Model -> Sub Msg
 appSub model =
-    let result = Sub.batch ([Time.every 5000 TickTime] ++ sub_scroll_events)
+    let result = Sub.batch ([Time.every 5000 TickTime] ++ sub_scroll_events ++ sub_navbar)
         sub_scroll_events =
             case model.page of
                 PageTop _ -> [portOnScroll (\_ -> CalendarScrollEvent)]
                 _ -> []
+        sub_navbar =
+            let (NavbarMenuState dstate) = model.navbarMenuState
+            in [Dropdown.subscriptions dstate (\s -> NavbarMenuUpdate <| NavbarMenuState s)]
     in result
 
 appOnUrlRequest : UrlRequest -> Msg
@@ -375,7 +387,7 @@ getCalendarViewportTask =
 
 viewBody : Model -> List (Html Msg)
 viewBody model =
-    let result = viewNavbar model.page ++ main_container ++ err_msg
+    let result = viewNavbar model.page model.navbarMenuState ++ main_container ++ err_msg
         main_container =
             [ Grid.container []
                   [ Grid.row []
@@ -428,30 +440,30 @@ viewCurTime locale mc =
                 minute = String.padLeft 2 '0' <| String.fromInt <| Time.toMinute c.timeZone c.curTime
             in result
 
-viewNavbar : Page -> List (Html Msg)
-viewNavbar page =
+viewNavbar : Page -> NavbarMenuState -> List (Html Msg)
+viewNavbar page (NavbarMenuState menu_state) =
     let result = [ Html.nav
                        (List.map Attr.class ["navbar", "fixed-top", "navbar-light", "bg-light"])
                        navbar_content
                  ]
         navbar_content =
-            [ Html.form [Attr.class "form-inline"]
-              [ Html.a [href <| UrlB.absolute [] []]
-                    [ Html.img
-                          [ Attr.src <| iconPath "d/kon.svg"
-                          , Attr.alt "Home"
-                          , Attr.width 22
-                          , Attr.height 22
-                          ]
-                          []
-                    ]
-              ]
-            , Html.form [Attr.class "form-inline"] [dropdown_menu]
+            [ Html.form [Attr.class "form-inline"] [dropdown_menu]
+            , Html.form [Attr.class "form-inline"] [kon_icon]
             ]
+        kon_icon =
+            Html.a [href <| UrlB.absolute [] []]
+                [ Html.img
+                      [ Attr.src <| iconPath "d/kon.svg"
+                      , Attr.alt "Home"
+                      , Attr.width 22
+                      , Attr.height 22
+                      ]
+                      []
+                ]
         dropdown_menu =
             Dropdown.dropdown
-                Dropdown.initialState -- TODO: update state
-                { toggleMsg = (\_ -> NoOp) -- TODO: send msg
+                menu_state
+                { toggleMsg = (\s -> NavbarMenuUpdate <| NavbarMenuState s)
                 , toggleButton =
                     Dropdown.toggle [Button.small]
                         [ Html.img
@@ -461,8 +473,11 @@ viewNavbar page =
                               , Attr.alt "..."
                               ] []
                         ]
+                -- , options = [Dropdown.alignMenuRight]
                 , options = []
-                , items = []
+                , items =
+                      [ Dropdown.buttonItem [] [Html.text "foobar"]
+                      ]
                 }
     in result
 
