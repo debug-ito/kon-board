@@ -9,6 +9,7 @@ import Bootstrap.Grid.Row as Row
 import Bootstrap.Alert as Alert
 import Bootstrap.Button as Button
 import Bootstrap.Utilities.Display as Display
+import Bootstrap.Dropdown as Dropdown
 import Browser
 import Browser exposing (Document, UrlRequest)
 import Browser.Dom as Dom
@@ -445,7 +446,24 @@ viewNavbar page =
                           []
                     ]
               ]
+            , Html.form [Attr.class "form-inline"] [dropdown_menu]
             ]
+        dropdown_menu =
+            Dropdown.dropdown
+                Dropdown.initialState -- TODO: update state
+                { toggleMsg = (\_ -> NoOp) -- TODO: send msg
+                , toggleButton =
+                    Dropdown.toggle [Button.small]
+                        [ Html.img
+                              [ Attr.src <| iconPath "twbs/list.svg"
+                              , Attr.width 16
+                              , Attr.height 16
+                              , Attr.alt "..."
+                              ] []
+                        ]
+                , options = []
+                , items = []
+                }
     in result
 
 tableMealPhases : List MealPhase
