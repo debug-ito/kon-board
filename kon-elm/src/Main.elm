@@ -440,8 +440,8 @@ viewNavbar page =
                     [ Html.img
                           [ Attr.src <| iconPath "d/kon.svg"
                           , Attr.alt "Home"
-                          , Attr.width 16
-                          , Attr.height 16
+                          , Attr.width 22
+                          , Attr.height 22
                           ]
                           []
                     ]
@@ -456,8 +456,8 @@ viewNavbar page =
                     Dropdown.toggle [Button.small]
                         [ Html.img
                               [ Attr.src <| iconPath "twbs/list.svg"
-                              , Attr.width 16
-                              , Attr.height 16
+                              , Attr.width 18
+                              , Attr.height 18
                               , Attr.alt "..."
                               ] []
                         ]

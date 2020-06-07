@@ -27,6 +27,13 @@ body > .alert-danger {
     right: 0;
 }
 
+/******* navbar *******/
+
+.navbar {
+    padding-top: 4px;
+    padding-bottom: 5px;
+}
+
 /******* clock *******/
 
 .clock-panel {
