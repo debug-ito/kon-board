@@ -50,7 +50,7 @@ import Locale
 import Locale exposing (Locale(..), LocaleImpl)
 import MealPhase exposing (MealPhase(..))
 import MealPhase
-import Page exposing (Page(..), CalendarView(..), recipePageLink)
+import Page exposing (Page(..), recipePageLink)
 import Page
 import Recipe exposing (recipeName)
 
@@ -72,6 +72,7 @@ type alias Model =
     , calendar : Maybe Calendar
     -- | Y position of the viewport (in a calendar view) relative to the "today" element.
     , calendarViewport : Float
+    , calendarViewType : CalendarView
     -- | 'Success' if MealPlans are loaded to the calendar.
     , mealPlansLoaded : Coming String ()
     , errorMsg : (Alert.Visibility, String)
@@ -95,6 +96,11 @@ type alias MRecipe =
 {- | newtype for 'Dropdown.State' of navbar menu.
 -}
 type NavbarMenuState = NavbarMenuState Dropdown.State
+
+{- | Type of calendar view.
+-}
+type CalendarView = CalViewList
+                  | CalViewTable
 
 setClock : Time.Zone -> Time.Posix -> Model -> Model
 setClock tz t model = { model | clock = Just { curTime = t, timeZone = tz } }
@@ -170,6 +176,7 @@ appInit _ url key =
                      , navbarMenuState = NavbarMenuState Dropdown.initialState
                      , calendar = Nothing
                      , calendarViewport = -130.0
+                     , calendarViewType = CalViewList
                      , mealPlansLoaded = NotStarted
                      , errorMsg = (Alert.closed, "")
                      , loadedRecipe = NotStarted
@@ -185,7 +192,7 @@ appView m =
                  }
         page_title =
             case m.page of
-                PageTop _ _ -> []
+                PageTop _ -> []
                 PageRecipe _ ->
                     case Coming.success m.loadedRecipe of
                         Nothing -> []
@@ -226,11 +233,11 @@ appUpdateModel msg model =
                 Ok mr -> { model | loadedRecipe = Success mr }
         ViewportAdjusted adjust_ret ->
             case model.page of
-                PageTop v cv ->
+                PageTop v ->
                     case adjust_ret of
-                        Ok () -> { model | page = PageTop (Success ()) cv }
+                        Ok () -> { model | page = PageTop (Success ()) }
                         Err e -> { model | errorMsg = (Alert.shown, "ViewportAdjust error: " ++ e)
-                                 , page = PageTop (Failure e) cv
+                                 , page = PageTop (Failure e)
                                  }
                 _ -> { model | errorMsg = (Alert.shown, "Unexpected ViewportAdjust msg to non-PageTop page.") }
         ViewportObtained v_ret ->
@@ -239,10 +246,7 @@ appUpdateModel msg model =
                 Err e -> { model | errorMsg = (Alert.shown, "ViewportObtained error: " ++ e) }
         CalendarScrollEvent -> model
         NavbarMenuUpdate s -> { model | navbarMenuState = s }
-        CalViewChanged cv ->
-            case model.page of
-                (PageTop va _) -> { model | page = PageTop va cv }
-                _ -> { model | errorMsg = (Alert.shown, "Unexpected CalViewChanged message.") }
+        CalViewChanged cv -> { model | calendarViewType = cv }
 
 appUrlChange : Url -> Model -> Model
 appUrlChange u model = 
@@ -299,15 +303,15 @@ appUpdateCmd msg model =
                    _ -> []
         viewportAdjustCmd =
             case (model.calendar, model.mealPlansLoaded, model.page) of
-                (Just _, Success _, PageTop NotStarted cv) ->
+                (Just _, Success _, PageTop NotStarted) ->
                     let cmd = Task.attempt ViewportAdjusted
                               <| setCalendarViewportTask model.calendarViewport
-                        new_page = PageTop Pending cv
+                        new_page = PageTop Pending
                     in [(cmd, (\m -> { m | page = new_page }))]
                 _ -> []
         viewportObtainCmd =
             case (msg, model.page) of
-                (CalendarScrollEvent, PageTop (Success ()) _) ->
+                (CalendarScrollEvent, PageTop (Success ())) ->
                     let cmd = Task.attempt ViewportObtained <| getCalendarViewportTask
                     in [(cmd, identity)]
                 _ -> []
@@ -318,7 +322,7 @@ appSub model =
     let result = Sub.batch ([Time.every 5000 TickTime] ++ sub_scroll_events ++ sub_navbar)
         sub_scroll_events =
             case model.page of
-                PageTop _ _ -> [portOnScroll (\_ -> CalendarScrollEvent)]
+                PageTop _ -> [portOnScroll (\_ -> CalendarScrollEvent)]
                 _ -> []
         sub_navbar =
             let (NavbarMenuState dstate) = model.navbarMenuState
@@ -395,7 +399,7 @@ getCalendarViewportTask =
 
 viewBody : Model -> List (Html Msg)
 viewBody model =
-    let result = viewNavbar model.locale model.page model.navbarMenuState ++ main_container ++ err_msg
+    let result = viewNavbar model.locale model.page model.calendarViewType model.navbarMenuState ++ main_container ++ err_msg
         main_container =
             [ Grid.container []
                   [ Grid.row []
@@ -416,9 +420,9 @@ viewBody model =
         sidebar = viewCurTime model.locale model.clock
         mainbox =
             case model.page of
-                PageTop _ calview ->
+                PageTop _  ->
                     case (modelToday model, model.calendar) of
-                        (Just today, Just cal) -> viewCalendar model.locale today calview cal
+                        (Just today, Just cal) -> viewCalendar model.locale today model.calendarViewType cal
                         _ -> []
                 PageRecipe r -> viewRecipePage r model
         err_msg =
@@ -448,8 +452,8 @@ viewCurTime locale mc =
                 minute = String.padLeft 2 '0' <| String.fromInt <| Time.toMinute c.timeZone c.curTime
             in result
 
-viewNavbar : Locale -> Page -> NavbarMenuState -> List (Html Msg)
-viewNavbar locale page (NavbarMenuState menu_state) =
+viewNavbar : Locale -> Page -> CalendarView -> NavbarMenuState -> List (Html Msg)
+viewNavbar locale page calview (NavbarMenuState menu_state) =
     let result = [ Html.nav
                        (List.map Attr.class ["navbar", "fixed-top", "navbar-light", "bg-light"])
                        navbar_content
@@ -481,7 +485,7 @@ viewNavbar locale page (NavbarMenuState menu_state) =
                 }
         cal_view_items =
             case page of
-                (PageTop _ calview) -> viewMenuCalView locale calview
+                (PageTop _) -> viewMenuCalView locale calview
                 _ -> []
     in result
 

@@ -1,6 +1,5 @@
 module Page exposing
     ( Page(..)
-    , CalendarView(..)
     , initPage
     , parseUrl
     , recipePageLink
@@ -18,17 +17,14 @@ import Coming exposing (Coming(..))
 -}
 type Page =
       -- | The top page
-      PageTop ViewportAdjusted CalendarView
+      PageTop ViewportAdjusted
       -- | The recipe page
     | PageRecipe BRecipeID
 
 type alias ViewportAdjusted = Coming String ()
 
-type CalendarView = CalViewList
-                  | CalViewTable
-
 initPage : Page
-initPage = PageTop NotStarted CalViewList
+initPage = PageTop NotStarted
 
 parseUrl : Url -> Maybe Page
 parseUrl = P.parse parserPage
@@ -36,7 +32,7 @@ parseUrl = P.parse parserPage
 parserPage : Parser (Page -> a) a
 parserPage =
     oneOf
-    [ P.map (PageTop NotStarted CalViewList) P.top
+    [ P.map (PageTop NotStarted) P.top
     , P.map PageRecipe (P.s "recipes" </> P.string)
     ]
 
