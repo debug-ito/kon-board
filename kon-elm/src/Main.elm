@@ -20,6 +20,7 @@ import Html exposing (Html, div, text, ul, li, h1, h2, h3)
 import Html
 import Html.Attributes exposing (href)
 import Html.Attributes as Attr
+import Html.Events as Events
 import Http
 import List
 import Markdown
@@ -157,6 +158,8 @@ type Msg = NoOp
          | CalendarScrollEvent
          -- | Navbar menu is updated.
          | NavbarMenuUpdate NavbarMenuState
+         -- | Calendar view style has been changed.
+         | CalViewChanged CalendarView
 
 appInit : () -> Url -> Nav.Key -> (Model, Cmd Msg)
 appInit _ url key =
@@ -236,6 +239,10 @@ appUpdateModel msg model =
                 Err e -> { model | errorMsg = (Alert.shown, "ViewportObtained error: " ++ e) }
         CalendarScrollEvent -> model
         NavbarMenuUpdate s -> { model | navbarMenuState = s }
+        CalViewChanged cv ->
+            case model.page of
+                (PageTop va _) -> { model | page = PageTop va cv }
+                _ -> { model | errorMsg = (Alert.shown, "Unexpected CalViewChanged message.") }
 
 appUrlChange : Url -> Model -> Model
 appUrlChange u model = 
@@ -409,9 +416,9 @@ viewBody model =
         sidebar = viewCurTime model.locale model.clock
         mainbox =
             case model.page of
-                PageTop _ _ ->
+                PageTop _ calview ->
                     case (modelToday model, model.calendar) of
-                        (Just today, Just cal) -> viewCalendar model.locale today cal
+                        (Just today, Just cal) -> viewCalendar model.locale today calview cal
                         _ -> []
                 PageRecipe r -> viewRecipePage r model
         err_msg =
@@ -497,16 +504,21 @@ viewMenuCalView locale calview =
             ]
         (attrs_list, attrs_table) =
             case calview of
-                CalViewList ->  ([Attr.class "active"], [])
-                CalViewTable -> ([], [Attr.class "active"])
+                CalViewList ->  ([Attr.class "active"] ++ events_list, [] ++ events_table)
+                CalViewTable -> ([] ++ events_list, [Attr.class "active"] ++ events_table)
+        events_list =  [Events.onClick <| CalViewChanged CalViewList]
+        events_table = [Events.onClick <| CalViewChanged CalViewTable]
     in result
 
 
 tableMealPhases : List MealPhase
 tableMealPhases = [Lunch, Dinner]
         
-viewCalendar : Locale -> Date -> Calendar -> List (Html Msg)
-viewCalendar locale today cal = List.concatMap (viewCalEntry locale today) <| Cal.entries cal
+viewCalendar : Locale -> Date -> CalendarView -> Calendar -> List (Html Msg)
+viewCalendar locale today calview cal =
+    case calview of
+        CalViewList -> List.concatMap (viewCalEntry locale today) <| Cal.entries cal
+        CalViewTable -> [] --- TODO
 
 todayCellID : String
 todayCellID = "cal-today-cell"
