@@ -48,7 +48,7 @@ import Locale
 import Locale exposing (Locale(..), LocaleImpl)
 import MealPhase exposing (MealPhase(..))
 import MealPhase
-import Page exposing (Page(..), recipePageLink)
+import Page exposing (Page(..), CalendarView(..), recipePageLink)
 import Page
 import Recipe exposing (recipeName)
 
@@ -181,7 +181,7 @@ appView m =
                  }
         page_title =
             case m.page of
-                PageTop _ -> []
+                PageTop _ _ -> []
                 PageRecipe _ ->
                     case Coming.success m.loadedRecipe of
                         Nothing -> []
@@ -222,11 +222,11 @@ appUpdateModel msg model =
                 Ok mr -> { model | loadedRecipe = Success mr }
         ViewportAdjusted adjust_ret ->
             case model.page of
-                PageTop v ->
+                PageTop v cv ->
                     case adjust_ret of
-                        Ok () -> { model | page = PageTop (Success ()) }
+                        Ok () -> { model | page = PageTop (Success ()) cv }
                         Err e -> { model | errorMsg = (Alert.shown, "ViewportAdjust error: " ++ e)
-                                 , page = PageTop (Failure e)
+                                 , page = PageTop (Failure e) cv
                                  }
                 _ -> { model | errorMsg = (Alert.shown, "Unexpected ViewportAdjust msg to non-PageTop page.") }
         ViewportObtained v_ret ->
@@ -291,15 +291,15 @@ appUpdateCmd msg model =
                    _ -> []
         viewportAdjustCmd =
             case (model.calendar, model.mealPlansLoaded, model.page) of
-                (Just _, Success _, PageTop NotStarted) ->
+                (Just _, Success _, PageTop NotStarted cv) ->
                     let cmd = Task.attempt ViewportAdjusted
                               <| setCalendarViewportTask model.calendarViewport
-                        new_page = PageTop Pending
+                        new_page = PageTop Pending cv
                     in [(cmd, (\m -> { m | page = new_page }))]
                 _ -> []
         viewportObtainCmd =
             case (msg, model.page) of
-                (CalendarScrollEvent, PageTop (Success ())) ->
+                (CalendarScrollEvent, PageTop (Success ()) _) ->
                     let cmd = Task.attempt ViewportObtained <| getCalendarViewportTask
                     in [(cmd, identity)]
                 _ -> []
@@ -310,7 +310,7 @@ appSub model =
     let result = Sub.batch ([Time.every 5000 TickTime] ++ sub_scroll_events ++ sub_navbar)
         sub_scroll_events =
             case model.page of
-                PageTop _ -> [portOnScroll (\_ -> CalendarScrollEvent)]
+                PageTop _ _ -> [portOnScroll (\_ -> CalendarScrollEvent)]
                 _ -> []
         sub_navbar =
             let (NavbarMenuState dstate) = model.navbarMenuState
@@ -408,7 +408,7 @@ viewBody model =
         sidebar = viewCurTime model.locale model.clock
         mainbox =
             case model.page of
-                PageTop _ ->
+                PageTop _ _ ->
                     case (modelToday model, model.calendar) of
                         (Just today, Just cal) -> viewCalendar model.locale today cal
                         _ -> []
@@ -474,25 +474,43 @@ viewNavbar locale page (NavbarMenuState menu_state) =
                               ] []
                         ]
                 , options = [Dropdown.menuAttrs [Attr.class "kon-navbar-menu"]]
-                , items =
-                      [ Dropdown.buttonItem [] [ Html.img [ Attr.src <| iconPath "twbs/view-list.svg"
-                                                          , Attr.width menu_icon_size
-                                                          , Attr.height menu_icon_size
-                                                          ] []
-                                               , text " "
-                                               , text <| (.showNavMenuCalList) <| Locale.get locale
-                                               ]
-                      , Dropdown.buttonItem [] [ Html.img [ Attr.src <| iconPath "twbs/table.svg"
-                                                          , Attr.width menu_icon_size
-                                                          , Attr.height menu_icon_size
-                                                          ] []
-                                               , text " "
-                                               , text <| (.showNavMenuCalTable) <| Locale.get locale
-                                               ]
-                      ]
+                , items = cal_view_items
                 }
-        menu_icon_size = 16
+        cal_view_items =
+            case page of
+                (PageTop _ calview) -> viewMenuCalView locale calview
+                _ -> []
     in result
+
+navbarMenuIconSize : Int
+navbarMenuIconSize = 16
+
+viewMenuCalView : Locale -> CalendarView -> List (Dropdown.DropdownItem Msg)
+viewMenuCalView locale calview =
+    let result = 
+            [ Dropdown.buttonItem (attrs_list)
+                  [ Html.img [ Attr.src <| iconPath "twbs/view-list.svg"
+                             , Attr.width navbarMenuIconSize
+                             , Attr.height navbarMenuIconSize
+                             ] []
+                  , text " "
+                  , text <| (.showNavMenuCalList) <| Locale.get locale
+                  ]
+            , Dropdown.buttonItem (attrs_table)
+                [ Html.img [ Attr.src <| iconPath "twbs/table.svg"
+                           , Attr.width navbarMenuIconSize
+                           , Attr.height navbarMenuIconSize
+                           ] []
+                , text " "
+                , text <| (.showNavMenuCalTable) <| Locale.get locale
+                ]
+            ]
+        (attrs_list, attrs_table) =
+            case calview of
+                CalViewList ->  ([Attr.class "active"], [])
+                CalViewTable -> ([], [Attr.class "active"])
+    in result
+
 
 tableMealPhases : List MealPhase
 tableMealPhases = [Lunch, Dinner]
