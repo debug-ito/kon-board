@@ -14,6 +14,7 @@ import Browser
 import Browser exposing (Document, UrlRequest)
 import Browser.Dom as Dom
 import Browser.Navigation as Nav
+import FeatherIcons as FIcons
 import Json.Decode exposing (Value)
 import Html exposing (Html, div, text, ul, li, h1, h2, h3)
 import Html
@@ -466,12 +467,7 @@ viewNavbar locale page (NavbarMenuState menu_state) =
                 { toggleMsg = (\s -> NavbarMenuUpdate <| NavbarMenuState s)
                 , toggleButton =
                     Dropdown.toggle [Button.small]
-                        [ Html.img
-                              [ Attr.src <| iconPath "twbs/list.svg"
-                              , Attr.width 18
-                              , Attr.height 18
-                              , Attr.alt "..."
-                              ] []
+                        [ FIcons.toHtml [] <| FIcons.withSize 18 <| FIcons.menu
                         ]
                 , options = [Dropdown.menuAttrs [Attr.class "kon-navbar-menu"]]
                 , items = cal_view_items
@@ -482,25 +478,19 @@ viewNavbar locale page (NavbarMenuState menu_state) =
                 _ -> []
     in result
 
-navbarMenuIconSize : Int
+navbarMenuIconSize : Float
 navbarMenuIconSize = 16
 
 viewMenuCalView : Locale -> CalendarView -> List (Dropdown.DropdownItem Msg)
 viewMenuCalView locale calview =
     let result = 
             [ Dropdown.buttonItem (attrs_list)
-                  [ Html.img [ Attr.src <| iconPath "twbs/view-list.svg"
-                             , Attr.width navbarMenuIconSize
-                             , Attr.height navbarMenuIconSize
-                             ] []
+                  [ FIcons.toHtml [] <| FIcons.withSize navbarMenuIconSize <| FIcons.list
                   , text " "
                   , text <| (.showNavMenuCalList) <| Locale.get locale
                   ]
             , Dropdown.buttonItem (attrs_table)
-                [ Html.img [ Attr.src <| iconPath "twbs/table.svg"
-                           , Attr.width navbarMenuIconSize
-                           , Attr.height navbarMenuIconSize
-                           ] []
+                [ FIcons.toHtml [] <| FIcons.withSize navbarMenuIconSize <| FIcons.grid
                 , text " "
                 , text <| (.showNavMenuCalTable) <| Locale.get locale
                 ]

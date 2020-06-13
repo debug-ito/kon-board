@@ -14,6 +14,12 @@ body > div.container {
     margin-top: 42px;
 }
 
+/******* feather icons *******/
+
+.feather {
+    vertical-align: middle;
+}
+
 /******* error alert *******/
 
 /* We should assign a unique class or ID to the alert box. However,
