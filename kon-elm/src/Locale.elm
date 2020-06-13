@@ -32,6 +32,8 @@ type alias LocaleImpl msg =
     , showIngredients : String
     , showRecipeSteps : String
     , showRecipeReference : String
+    , showNavMenuCalList : String
+    , showNavMenuCalTable : String
     }
 
 get : Locale -> LocaleImpl msg
@@ -51,6 +53,8 @@ localeJaJP =
             , showIngredients = "材料"
             , showRecipeSteps = "手順"
             , showRecipeReference = "参考"
+            , showNavMenuCalList = "リスト"
+            , showNavMenuCalTable = "表"
             }
         jaViewIngredient ing = [text (ing.food ++ ": " ++ ing.qtty)]
         jaShowMealPhase mp =
@@ -119,6 +123,8 @@ localeEnUS =
             , showIngredients = "Ingredients"
             , showRecipeSteps = "Steps"
             , showRecipeReference = "Reference"
+            , showNavMenuCalList = "List"
+            , showNavMenuCalTable = "Table"
             }
         enViewIngredient ing = [text (ing.qtty ++ ", " ++ ing.food)]
         enShowMealPhase mp =

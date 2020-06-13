@@ -387,7 +387,7 @@ getCalendarViewportTask =
 
 viewBody : Model -> List (Html Msg)
 viewBody model =
-    let result = viewNavbar model.page model.navbarMenuState ++ main_container ++ err_msg
+    let result = viewNavbar model.locale model.page model.navbarMenuState ++ main_container ++ err_msg
         main_container =
             [ Grid.container []
                   [ Grid.row []
@@ -440,8 +440,8 @@ viewCurTime locale mc =
                 minute = String.padLeft 2 '0' <| String.fromInt <| Time.toMinute c.timeZone c.curTime
             in result
 
-viewNavbar : Page -> NavbarMenuState -> List (Html Msg)
-viewNavbar page (NavbarMenuState menu_state) =
+viewNavbar : Locale -> Page -> NavbarMenuState -> List (Html Msg)
+viewNavbar locale page (NavbarMenuState menu_state) =
     let result = [ Html.nav
                        (List.map Attr.class ["navbar", "fixed-top", "navbar-light", "bg-light"])
                        navbar_content
@@ -473,17 +473,21 @@ viewNavbar page (NavbarMenuState menu_state) =
                               , Attr.alt "..."
                               ] []
                         ]
-                , options = []
+                , options = [Dropdown.menuAttrs [Attr.class "kon-navbar-menu"]]
                 , items =
-                      [ Dropdown.buttonItem [] [Html.img [ Attr.src <| iconPath "twbs/view-list.svg"
-                                                         , Attr.width menu_icon_size
-                                                         , Attr.height menu_icon_size
-                                                         ] []
+                      [ Dropdown.buttonItem [] [ Html.img [ Attr.src <| iconPath "twbs/view-list.svg"
+                                                          , Attr.width menu_icon_size
+                                                          , Attr.height menu_icon_size
+                                                          ] []
+                                               , text " "
+                                               , text <| (.showNavMenuCalList) <| Locale.get locale
                                                ]
-                      , Dropdown.buttonItem [] [Html.img [ Attr.src <| iconPath "twbs/table.svg"
-                                                         , Attr.width menu_icon_size
-                                                         , Attr.height menu_icon_size
-                                                         ] []
+                      , Dropdown.buttonItem [] [ Html.img [ Attr.src <| iconPath "twbs/table.svg"
+                                                          , Attr.width menu_icon_size
+                                                          , Attr.height menu_icon_size
+                                                          ] []
+                                               , text " "
+                                               , text <| (.showNavMenuCalTable) <| Locale.get locale
                                                ]
                       ]
                 }
