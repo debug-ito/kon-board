@@ -2,6 +2,7 @@ module ListUtil exposing
     ( replaceOrAdd
     , join
     , last
+    , blocks
     )
 
 import List exposing (foldr)
@@ -37,3 +38,19 @@ last l =
         [] -> Nothing
         [x] -> Just x
         (_ :: rest) -> last rest
+
+{- | Group elements in the given list with fixed size.
+-}
+blocks : Int -> List a -> List (List a)
+blocks size input =
+    if size <= 0
+    then []
+    else let result = finalize <| List.foldr f ([], []) input
+             f cur_elem (cur_group, acc) =
+                 if List.length cur_group == size
+                 then ([cur_elem], cur_group :: acc)
+                 else (cur_elem :: cur_group, acc)
+             finalize (group, acc) = if List.length group == 0
+                                     then acc
+                                     else group :: acc
+         in result
