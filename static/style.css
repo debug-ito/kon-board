@@ -97,6 +97,7 @@ body > .alert-danger {
 }
 
 .cal-col-meal-plan {
+    padding-left: 8px;
     padding-right: 0;
 }
 
