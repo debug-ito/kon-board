@@ -562,16 +562,18 @@ viewCalEntry locale today centry =
 
 viewCalWeek : Locale -> Date -> List CalEntry -> List (Html Msg)
 viewCalWeek locale today entries =
-    let result = [Grid.row [Row.attrs [Attr.class "row-caltable"]] <| List.map mkCol entries]
+    let result = [Grid.row [] <| List.map mkCol entries]
         mkCol entry = Grid.col
-                      [Col.attrs [Attr.class "col-1-over-7", Attr.class "col-caltable"]]
+                      [Col.attrs [Attr.class "col-1-over-7", Attr.class "col-caltable", Attr.class "col-caltable-day"]]
                       (mkDateRow entry ++ List.map (mkPhaseRow entry) tableMealPhases)
         mkDateRow entry = [ Grid.row (mkDateRowAttrs entry)
                                 [ Grid.col [Col.attrs [Attr.class "col-caltable"]]
                                       <| viewDateLabelWith (today == entry.day) [text <| String.fromInt <| Date.day entry.day]
                                 ]
                           ]
-        mkPhaseRow entry p = Grid.row [] [Grid.col [] <| viewDayMeal p <| Cal.mealFor p entry]
+        mkPhaseRow entry p = Grid.row [Row.attrs [Attr.class "row-caltable"]]
+                             [Grid.col [Col.attrs [Attr.class "col-caltable"]]
+                             <| viewDayMeal p <| Cal.mealFor p entry]
         mkDateRowAttrs entry =
             [ Row.attrs
                   ( [Attr.class "row-caltable"]

@@ -79,7 +79,7 @@ body > .alert-danger {
     color: #c60c26;
 }
 
-/******* calendar *******/
+/******* calendar (common and list view) *******/
 
 .cal-day-row {
     padding-top: 3px;
@@ -154,7 +154,7 @@ body > .alert-danger {
     padding-left: 20px;
 }
 
-/******* calendar table view *******/
+/******* calendar (table view) *******/
 
 .row-caltable {
     margin-left: -2px;
@@ -164,6 +164,11 @@ body > .alert-danger {
 .col-caltable {
     padding-left: 2px;
     padding-right: 2px;
+}
+
+.col-caltable-day {
+    border-bottom: 1px solid #dee2e6;
+    border-right: 1px solid #dee2e6;
 }
 
 /******* sidebar nav *******/
