@@ -154,6 +154,18 @@ body > .alert-danger {
     padding-left: 20px;
 }
 
+/******* calendar table view *******/
+
+.row-caltable {
+    margin-left: -2px;
+    margin-right: -2px;
+}
+
+.col-caltable {
+    padding-left: 2px;
+    padding-right: 2px;
+}
+
 /******* sidebar nav *******/
 
 .kon-nav-button {

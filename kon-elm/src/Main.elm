@@ -527,15 +527,18 @@ viewCalendar locale today calview cal =
 todayCellID : String
 todayCellID = "cal-today-cell"
 
+viewDateLabelWith : Bool -> List (Html msg) -> List (Html msg)
+viewDateLabelWith is_today content =
+    let result = [div attrs content]
+        attrs = [Attr.class "cal-day"]
+                ++ if is_today
+                   then [Attr.class "cal-today"]
+                   else []
+    in result
+
 viewDateLabel : Locale -> Date -> Date -> List (Html msg)
 viewDateLabel locale today target_date =
-    let result = [div date_head_attrs <| (.viewDateShort) (Locale.get locale) target_date]
-        date_head_attrs = [Attr.class "cal-day"]
-                          ++ if today == target_date
-                             then [Attr.class "cal-today"]
-                             else []
-    in result
-            
+    viewDateLabelWith (today == target_date) <| (.viewDateShort) (Locale.get locale) target_date
 
 viewCalEntry : Locale -> Date -> CalEntry -> List (Html Msg)
 viewCalEntry locale today centry =
@@ -559,17 +562,24 @@ viewCalEntry locale today centry =
 
 viewCalWeek : Locale -> Date -> List CalEntry -> List (Html Msg)
 viewCalWeek locale today entries =
-    let result = [Grid.row [] <| List.map mkCol entries]
-        mkCol entry = Grid.col [Col.attrs [Attr.class "col-1-over-7"]] (mkDateRow entry ++ List.map (mkPhaseRow entry) tableMealPhases)
+    let result = [Grid.row [Row.attrs [Attr.class "row-caltable"]] <| List.map mkCol entries]
+        mkCol entry = Grid.col
+                      [Col.attrs [Attr.class "col-1-over-7", Attr.class "col-caltable"]]
+                      (mkDateRow entry ++ List.map (mkPhaseRow entry) tableMealPhases)
         mkDateRow entry = [ Grid.row (mkDateRowAttrs entry)
-                                [ Grid.col [] <| viewDateLabel locale today entry.day
+                                [ Grid.col [Col.attrs [Attr.class "col-caltable"]]
+                                      <| viewDateLabelWith (today == entry.day) [text <| String.fromInt <| Date.day entry.day]
                                 ]
                           ]
         mkPhaseRow entry p = Grid.row [] [Grid.col [] <| viewDayMeal p <| Cal.mealFor p entry]
         mkDateRowAttrs entry =
-            if entry.day == today
-            then [Row.attrs [Attr.id todayCellID]]
-            else []
+            [ Row.attrs
+                  ( [Attr.class "row-caltable"]
+                    ++ if entry.day == today
+                       then [Attr.id todayCellID]
+                       else []
+                  )
+            ]
     in result
 
 viewDayMeal : MealPhase -> Maybe DayMeal -> List (Html Msg)
