@@ -9,6 +9,7 @@ import Date exposing (fromCalendarDate)
 import String
 import Test exposing (Test, describe, test)
 import Time
+import Time exposing (Weekday(..))
 
 import Bridge exposing (BMealPlan)
 import Calendar as Cal
@@ -85,4 +86,14 @@ suite =
                           got = Result.map Cal.entries <| Cal.addMealPlan bm start_cal
                       in Exp.equal got <| Ok expected
               ]
+        , describe "oneWeek"
+            [ test "sunday 3 3" <|
+                  \_ -> let cal = Cal.forWeeks (fromCalendarDate 2020 Time.Jun 10) Time.Sun 3 3
+                            expected = [Sun, Mon, Tue, Wed, Thu, Fri, Sat]
+                        in Exp.equal (Cal.oneWeek cal) expected
+            , test "monday 1 1" <|
+                \_ -> let cal = Cal.forWeeks (fromCalendarDate 2020 Time.Jun 15) Time.Mon 1 1
+                          expected = [Mon, Tue, Wed, Thu, Fri, Sat, Sun]
+                      in Exp.equal (Cal.oneWeek cal) expected
+            ]
         ]

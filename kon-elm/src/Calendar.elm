@@ -6,6 +6,7 @@ module Calendar exposing
     , startAndEnd
     , entries
     , weekEntries
+    , oneWeek
     , addMealPlan
     , addMealPlans
     , mealFor
@@ -139,3 +140,13 @@ entries (Calendar c) = c.entries
 -}
 weekEntries : Calendar -> List (List CalEntry)
 weekEntries (Calendar c) = ListUtil.blocks 7 c.entries
+
+{- | One week of 'Weekday's, starting with the start date of the
+calendar.
+-}
+oneWeek : Calendar -> List Weekday
+oneWeek (Calendar c) =
+    let result = List.map toWday <| List.range 0 6
+        toWday i = Date.numberToWeekday <| (modBy 7 (i + start_wday_idx)) + 1
+        start_wday_idx = (Date.weekdayToNumber <| Date.weekday c.start) - 1
+    in result
