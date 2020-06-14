@@ -568,9 +568,13 @@ viewCalWeek locale today entries =
                       (mkDateRow entry ++ List.map (mkPhaseRow entry) tableMealPhases)
         mkDateRow entry = [ Grid.row (mkDateRowAttrs entry)
                                 [ Grid.col [Col.attrs [Attr.class "col-caltable"]]
-                                      <| viewDateLabelWith (today == entry.day) [text <| String.fromInt <| Date.day entry.day]
+                                      <| viewDateLabelWith (today == entry.day) <| mkDateText entry.day
                                 ]
                           ]
+        mkDateText day =
+            if Date.day day == 1
+            then (.viewDateShort) (Locale.get locale) day  --- TODO: actually we don't need to show the Weekday.
+            else [text <| String.fromInt <| Date.day day]
         mkPhaseRow entry p = Grid.row [Row.attrs [Attr.class "row-caltable"]]
                              [Grid.col [Col.attrs [Attr.class "col-caltable"]]
                              <| viewDayMeal p <| Cal.mealFor p entry]
