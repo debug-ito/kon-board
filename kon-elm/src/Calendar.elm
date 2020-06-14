@@ -5,6 +5,7 @@ module Calendar exposing
     , forWeeks
     , startAndEnd
     , entries
+    , weekEntries
     , addMealPlan
     , addMealPlans
     , mealFor
@@ -128,5 +129,13 @@ addMealPlans bps cal =
 startAndEnd : Calendar -> (Date, Date)
 startAndEnd (Calendar c) = (c.start, c.end)
 
+{- | Get all 'CalEntry's in 'Calendar', with increasing date and meal
+phase.
+-}
 entries : Calendar -> List CalEntry
 entries (Calendar c) = c.entries
+
+{- | Get all 'CalEntry's in 'Calendar', grouped by week.
+-}
+weekEntries : Calendar -> List (List CalEntry)
+weekEntries (Calendar c) = ListUtil.blocks 7 c.entries
