@@ -522,7 +522,9 @@ viewCalendar : Locale -> Date -> CalendarView -> Calendar -> List (Html Msg)
 viewCalendar locale today calview cal =
     case calview of
         CalViewList -> List.concatMap (viewCalEntry locale today) <| Cal.entries cal
-        CalViewTable -> List.concatMap (viewCalWeek locale today) <| Cal.weekEntries cal
+        CalViewTable ->
+            (viewCalWeekHead locale <| Cal.oneWeek cal)
+            ++ (List.concatMap (viewCalWeek locale today) <| Cal.weekEntries cal)
 
 todayCellID : String
 todayCellID = "cal-today-cell"
@@ -558,6 +560,14 @@ viewCalEntry locale today centry =
                         [Col.xs9, Col.md10]
                         [Grid.row [] <| List.map mkColForPhase tableMealPhases]
         mkColForPhase p = Grid.col [Col.xs12, Col.sm6, Col.attrs [Attr.class "cal-col-meal-plan"]] <| viewDayMeal p <| Cal.mealFor p centry
+    in result
+
+viewCalWeekHead : Locale -> List Time.Weekday -> List (Html Msg)
+viewCalWeekHead locale wdays =
+    let result = [Grid.row [] <| List.map mkCol wdays]
+        mkCol wday = Grid.col
+                     [Col.attrs [Attr.class "col-1-over-7", Attr.class "col-caltable", Attr.class "col-caltable-day"]]
+                     [text ("W" ++ (String.fromInt <| Date.weekdayToNumber wday))] --- TODO
     in result
 
 viewCalWeek : Locale -> Date -> List CalEntry -> List (Html Msg)
