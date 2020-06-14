@@ -171,6 +171,18 @@ body > .alert-danger {
     border-right: 1px solid #dee2e6;
 }
 
+.col-caltable .cal-phase {
+    padding: 4px;
+}
+
+.col-caltable .cal-meal-plan-item-meal {
+    background-image: none;
+    padding-left: 0;
+    overflow: hidden;
+    word-break: keep-all;
+    white-space: nowrap;
+}
+
 /******* sidebar nav *******/
 
 .kon-nav-button {
