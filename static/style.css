@@ -186,6 +186,9 @@ body > .alert-danger {
 
 .caltable-wday-head {
     font-size: 0.85rem;
+    position: sticky;
+    top: 40px;
+    z-index: 1020;
 }
 
 /******* sidebar nav *******/
