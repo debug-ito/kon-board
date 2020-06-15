@@ -57,8 +57,7 @@ getCalLayoutTask = Debug.todo "TODO: implement it"
 {- | Get Y position of the viewport relative to "today" cell.
 -}
 relativeCalendarViewportY : CalLayout -> Float
-relativeCalendarViewportY = Debug.todo "TODO: implement it"
-
+relativeCalendarViewportY (CalLayout c) = c.viewport.y - c.today.y
 
 {- | Task to set viewport (y position) relative to the element of
 "today".
