@@ -47,6 +47,7 @@ body > .alert-danger {
     padding-bottom: 5px;
     padding-left: 8px;
     padding-right: 8px;
+    height: 40px;
 }
 
 /******* clock *******/
