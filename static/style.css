@@ -170,6 +170,7 @@ body > .alert-danger {
 .col-caltable-day {
     border-bottom: 1px solid #dee2e6;
     border-right: 1px solid #dee2e6;
+    background-color: white;
 }
 
 .col-caltable .cal-phase {
@@ -188,8 +189,7 @@ body > .alert-danger {
     font-size: 0.85rem;
     position: sticky;
     top: 40px;
-    z-index: 1050;
-    background-color: white;
+    z-index: 1020;
 }
 
 /******* sidebar nav *******/
