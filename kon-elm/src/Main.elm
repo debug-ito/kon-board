@@ -564,10 +564,10 @@ viewCalEntry locale today centry =
 
 viewCalWeekHead : Locale -> List Time.Weekday -> List (Html Msg)
 viewCalWeekHead locale wdays =
-    let result = [Grid.row [] <| List.map mkCol wdays]
+    let result = [Grid.row [Row.attrs [Attr.class "caltable-wday-head"]] <| List.map mkCol wdays]
         mkCol wday = Grid.col
                      [Col.attrs [Attr.class "col-1-over-7", Attr.class "col-caltable", Attr.class "col-caltable-day"]]
-                     [ Html.div [Attr.class "caltable-wday-head", Attr.class <| colorClass wday]
+                     [ Html.span [Attr.class <| colorClass wday]
                        [text <| (.showWeekday) (Locale.get locale) wday]
                      ]
         colorClass wday =

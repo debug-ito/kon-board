@@ -7,7 +7,7 @@
 }
 
 .mainbox {
-    overflow: hidden;
+    
 }
 
 body > div.container {
@@ -188,7 +188,8 @@ body > .alert-danger {
     font-size: 0.85rem;
     position: sticky;
     top: 40px;
-    z-index: 1020;
+    z-index: 1050;
+    background-color: white;
 }
 
 /******* sidebar nav *******/
@@ -203,6 +204,10 @@ body > .alert-danger {
 .recipe-id-box {
     font-size: 0.6rem;
     color: #666;
+}
+
+.recipe-box {
+    overflow: hidden;
 }
 
 .recipe-box h1 {
