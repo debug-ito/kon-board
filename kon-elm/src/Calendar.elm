@@ -2,11 +2,13 @@ module Calendar exposing
     ( Calendar
     , CalEntry
     , DayMeal
+    , MonthAnchor
     , forWeeks
     , startAndEnd
     , entries
     , weekEntries
     , oneWeek
+    , monthAnchors
     , addMealPlan
     , addMealPlans
     , mealFor
@@ -39,6 +41,13 @@ type alias DayMeal =
 type alias CalEntry =
     { day : Date
     , meals : List DayMeal
+    }
+
+{- | A beginning of a month.
+-}
+type alias MonthAnchor =
+    { year : Int
+    , month : Time.Month
     }
 
 {- | Opaque Calendar
@@ -150,3 +159,8 @@ oneWeek (Calendar c) =
         toWday i = Date.numberToWeekday <| (modBy 7 (i + start_wday_idx)) + 1
         start_wday_idx = (Date.weekdayToNumber <| Date.weekday c.start) - 1
     in result
+
+{- | Get list of 'MonthAnchor's in the calendar.
+-}
+monthAnchors : Calendar -> List MonthAnchor
+monthAnchors = Debug.todo "TODO: implement it"
