@@ -567,7 +567,14 @@ viewCalWeekHead locale wdays =
     let result = [Grid.row [] <| List.map mkCol wdays]
         mkCol wday = Grid.col
                      [Col.attrs [Attr.class "col-1-over-7", Attr.class "col-caltable", Attr.class "col-caltable-day"]]
-                     [text ("W" ++ (String.fromInt <| Date.weekdayToNumber wday))] --- TODO
+                     [ Html.span [Attr.class "caltable-wday-head", Attr.class <| colorClass wday]
+                       [text <| (.showWeekday) (Locale.get locale) wday]
+                     ]
+        colorClass wday =
+            case wday of
+                Time.Sun -> "day-sun"
+                Time.Sat -> "day-sat"
+                _ -> "day-week"
     in result
 
 viewCalWeek : Locale -> Date -> List CalEntry -> List (Html Msg)

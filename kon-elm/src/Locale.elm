@@ -27,6 +27,7 @@ type alias LocaleImpl msg =
     { viewDateLong : Date -> List (Html msg)
     , viewDateShort : Date -> List (Html msg)
     , viewIngredient : BIngredient -> List (Html msg)
+    , showWeekday : Weekday -> String
     , showMealPhase : MealPhase -> String
     , showCalDay : String
     , showIngredients : String
@@ -48,6 +49,7 @@ localeJaJP =
             { viewDateLong = jaViewDateLong
             , viewDateShort = jaViewDateShort
             , viewIngredient = jaViewIngredient
+            , showWeekday = jaFormatWeekday
             , showMealPhase = jaShowMealPhase
             , showCalDay = "日付"
             , showIngredients = "材料"
@@ -118,6 +120,7 @@ localeEnUS =
             { viewDateLong = enViewDateLong
             , viewDateShort = enViewDateShort
             , viewIngredient = enViewIngredient
+            , showWeekday = enFormatWeekday
             , showMealPhase = enShowMealPhase
             , showCalDay = "Date"
             , showIngredients = "Ingredients"

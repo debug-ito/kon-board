@@ -184,6 +184,10 @@ body > .alert-danger {
     white-space: nowrap;
 }
 
+.caltable-wday-head {
+    font-size: 0.85rem;
+}
+
 /******* sidebar nav *******/
 
 .kon-nav-button {
