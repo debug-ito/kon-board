@@ -594,7 +594,7 @@ viewCalWeek locale today entries =
                           ]
         mkDateText day =
             if Date.day day == 1
-            then (.viewDateMDA) (Locale.get locale) day  --- TODO: actually we don't need to show the Weekday.
+            then (.viewDateMD) (Locale.get locale) day
             else [text <| String.fromInt <| Date.day day]
         mkPhaseRow entry p = Grid.row [Row.attrs [Attr.class "row-caltable"]]
                              [Grid.col [Col.attrs [Attr.class "col-caltable"]]
