@@ -441,7 +441,7 @@ viewCurTime locale mc =
         Just c ->
             let result = [Alert.simpleInfo [Attr.class "clock-panel"] panel_content]
                 panel_content =
-                    (.viewDateLong) (Locale.get locale) date
+                    (.viewDateYMDA) (Locale.get locale) date
                         ++
                         [ div [] [ Html.span [Attr.class "clock-time", Attr.class "text-nowrap"]
                                        [text (hour ++ ":" ++ minute)]
@@ -544,7 +544,7 @@ viewDateLabelWith is_today content =
 
 viewDateLabel : Locale -> Date -> Date -> List (Html msg)
 viewDateLabel locale today target_date =
-    viewDateLabelWith (today == target_date) <| (.viewDateShort) (Locale.get locale) target_date
+    viewDateLabelWith (today == target_date) <| (.viewDateMDA) (Locale.get locale) target_date
 
 viewCalEntry : Locale -> Date -> CalEntry -> List (Html Msg)
 viewCalEntry locale today centry =
@@ -594,7 +594,7 @@ viewCalWeek locale today entries =
                           ]
         mkDateText day =
             if Date.day day == 1
-            then (.viewDateShort) (Locale.get locale) day  --- TODO: actually we don't need to show the Weekday.
+            then (.viewDateMDA) (Locale.get locale) day  --- TODO: actually we don't need to show the Weekday.
             else [text <| String.fromInt <| Date.day day]
         mkPhaseRow entry p = Grid.row [Row.attrs [Attr.class "row-caltable"]]
                              [Grid.col [Col.attrs [Attr.class "col-caltable"]]

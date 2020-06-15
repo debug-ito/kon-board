@@ -24,8 +24,10 @@ type Locale = LEnUS
 {- | Locale-dependent functions.
 -}
 type alias LocaleImpl msg =
-    { viewDateLong : Date -> List (Html msg)
-    , viewDateShort : Date -> List (Html msg)
+    { -- | Format date with Year, Month, Date and day of week.
+      viewDateYMDA : Date -> List (Html msg)
+      -- | Format date with Month, Date and day of week.
+    , viewDateMDA : Date -> List (Html msg)
     , viewIngredient : BIngredient -> List (Html msg)
     , showWeekday : Weekday -> String
     , showMealPhase : MealPhase -> String
@@ -46,8 +48,8 @@ get l =
 localeJaJP : LocaleImpl msg
 localeJaJP =
     let result =
-            { viewDateLong = jaViewDateLong
-            , viewDateShort = jaViewDateShort
+            { viewDateYMDA = jaViewDateLong
+            , viewDateMDA = jaViewDateShort
             , viewIngredient = jaViewIngredient
             , showWeekday = jaFormatWeekday
             , showMealPhase = jaShowMealPhase
@@ -117,8 +119,8 @@ jaFormatWeekday w =
 localeEnUS : LocaleImpl msg
 localeEnUS =
     let result =
-            { viewDateLong = enViewDateLong
-            , viewDateShort = enViewDateShort
+            { viewDateYMDA = enViewDateLong
+            , viewDateMDA = enViewDateShort
             , viewIngredient = enViewIngredient
             , showWeekday = enFormatWeekday
             , showMealPhase = enShowMealPhase
