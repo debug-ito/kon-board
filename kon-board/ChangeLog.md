@@ -1,10 +1,10 @@
 # Revision history for kon-board
 
-## 0.1.2.0  -- ?
+## 0.1.2.0  -- 2020-06-15
 
 * Fix the initial viewport position, considering the height of navbar.
 * The Kon icon is moved from the left to the right of the navbar.
-* Now we use FeatherIcons, instead of Twitter Bootstrap icons.
+* Now we use [Feather icons](https://feathericons.com/), instead of Twitter Bootstrap icons.
 * Add the "table" view of the calendar.
 
 
