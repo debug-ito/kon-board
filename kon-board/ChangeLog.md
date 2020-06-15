@@ -3,6 +3,9 @@
 ## 0.1.2.0  -- ?
 
 * Fix the initial viewport position, considering the height of navbar.
+* The Kon icon is moved from the left to the right of the navbar.
+* Now we use FeatherIcons, instead of Twitter Bootstrap icons.
+* Add the "table" view of the calendar.
 
 
 ## 0.1.1.0  -- 2020-06-06
