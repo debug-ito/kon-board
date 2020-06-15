@@ -459,7 +459,7 @@ viewNavbar locale page calview (NavbarMenuState menu_state) =
                        navbar_content
                  ]
         navbar_content =
-            [ Html.form [Attr.class "form-inline"] [dropdown_menu]
+            [ Html.form [Attr.class "form-inline"] dropdown_menu
             , Html.form [Attr.class "form-inline"] [kon_icon]
             ]
         kon_icon =
@@ -473,17 +473,21 @@ viewNavbar locale page calview (NavbarMenuState menu_state) =
                       []
                 ]
         dropdown_menu =
-            Dropdown.dropdown
-                menu_state
-                { toggleMsg = (\s -> NavbarMenuUpdate <| NavbarMenuState s)
-                , toggleButton =
-                    Dropdown.toggle [Button.small]
-                        [ FIcons.toHtml [] <| FIcons.withSize 18 <| FIcons.menu
-                        ]
-                , options = [Dropdown.menuAttrs [Attr.class "kon-navbar-menu"]]
-                , items = cal_view_items
-                }
-        cal_view_items =
+            if List.length menu_items == 0
+            then []
+            else
+                [ Dropdown.dropdown
+                  menu_state
+                  { toggleMsg = (\s -> NavbarMenuUpdate <| NavbarMenuState s)
+                  , toggleButton =
+                      Dropdown.toggle [Button.small]
+                          [ FIcons.toHtml [] <| FIcons.withSize 18 <| FIcons.menu
+                          ]
+                  , options = [Dropdown.menuAttrs [Attr.class "kon-navbar-menu"]]
+                  , items = menu_items
+                  }
+                ]
+        menu_items =
             case page of
                 (PageTop _) -> viewMenuCalView locale calview
                 _ -> []
