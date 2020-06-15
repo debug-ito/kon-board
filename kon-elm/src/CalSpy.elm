@@ -5,6 +5,8 @@ module CalSpy exposing
     , currentMonthAnchor
     , relativeCalendarViewportY
     , todayCellID
+        
+    , testMakeCalLayout
     )
 
 {- | Spying viewport position relative to the calendar. -}
@@ -87,3 +89,15 @@ getElementTask elem_id =
     let toString (Dom.NotFound e) =
             "Cannot find #" ++ elem_id ++ ": " ++ e
     in Task.mapError toString <| Dom.getElement elem_id
+
+{- | (Only for test) Make CalLayout from Y positions.
+-}
+testMakeCalLayout : Float -> Float -> List (MonthAnchor, Float) -> CalLayout
+testMakeCalLayout viewport_y today_y manchors =
+    let result = CalLayout
+                 { viewport = { x = 0, y = viewport_y }
+                 , today = {x = 0, y = today_y}
+                 , months = List.map toMAPos manchors
+                 }
+        toMAPos (ma, ma_y) = { manchor = ma, pos = { x = 0, y = ma_y} }
+    in result
