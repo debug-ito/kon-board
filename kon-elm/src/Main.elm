@@ -42,6 +42,8 @@ import Bridge exposing
 import Bridge
 import Calendar exposing (CalEntry, Calendar, DayMeal)
 import Calendar as Cal
+import CalSpy exposing
+    (todayCellID, relativeCalendarViewportY, setCalendarViewportTask, getCalLayoutTask)
 import Coming exposing (Coming(..))
 import Coming
 import DateUtil
@@ -362,37 +364,16 @@ showHttpError e =
         Http.BadStatus s -> "Server returned error status " ++ String.fromInt s
         Http.BadBody b -> "Bad HTTP response body: " ++ b
 
-{- | Same as 'Dom.getElement' except that the error is a
-human-readable string.
--}
-getElementTask : String -> Task String Dom.Element
-getElementTask elem_id =
-    let toString (Dom.NotFound e) =
-            "Cannot find #" ++ elem_id ++ ": " ++ e
-    in Task.mapError toString <| Dom.getElement elem_id
-
-{- | Task to set viewport (y position) relative to the element of
-"today".
--}
-setCalendarViewportTask : Float -> Task String ()
-setCalendarViewportTask rel_y =
-    let result =
-            getElementTask todayCellID |> Task.andThen
-            (\ elem ->
-                 let new_x = elem.viewport.x
-                     new_y = elem.element.y + rel_y
-                 in Dom.setViewport new_x new_y
-            )
-    in result
 
 {- | Task to get the viewport (y position) relative to the element of
 "today".
 -}
 getCalendarViewportTask : Task String Float
-getCalendarViewportTask =
-    let result = Task.map calcRelative <| getElementTask todayCellID
-        calcRelative e = e.viewport.y - e.element.y
-    in result
+getCalendarViewportTask = Task.map relativeCalendarViewportY <| getCalLayoutTask
+
+----     let result = Task.map calcRelative <| getElementTask todayCellID
+----         calcRelative e = e.viewport.y - e.element.y
+----     in result
     
 
 ---- View
@@ -529,9 +510,6 @@ viewCalendar locale today calview cal =
         CalViewTable ->
             (viewCalWeekHead locale <| Cal.oneWeek cal)
             ++ (List.concatMap (viewCalWeek locale today) <| Cal.weekEntries cal)
-
-todayCellID : String
-todayCellID = "cal-today-cell"
 
 viewDateLabelWith : Bool -> List (Html msg) -> List (Html msg)
 viewDateLabelWith is_today content =

@@ -1,9 +1,17 @@
 module CalSpy exposing
     ( CalLayout
+    , getCalLayoutTask
+    , setCalendarViewportTask
     , currentMonthAnchor
+    , relativeCalendarViewportY
+    , todayCellID
     )
 
 {- | Spying viewport position relative to the calendar. -}
+
+import Browser.Dom as Dom
+import Task
+import Task exposing (Task)
 
 import Calendar exposing (MonthAnchor)
 
@@ -40,3 +48,43 @@ position.
 -}
 currentMonthAnchor : CalLayout -> MonthAnchor
 currentMonthAnchor = Debug.todo "TODO: implement it"
+
+{- | Task to get 'CalLayout'.
+-}
+getCalLayoutTask : Task String CalLayout
+getCalLayoutTask = Debug.todo "TODO: implement it"
+
+{- | Get Y position of the viewport relative to "today" cell.
+-}
+relativeCalendarViewportY : CalLayout -> Float
+relativeCalendarViewportY = Debug.todo "TODO: implement it"
+
+
+{- | Task to set viewport (y position) relative to the element of
+"today".
+-}
+setCalendarViewportTask : Float -> Task String ()
+setCalendarViewportTask rel_y =
+    let result =
+            getElementTask todayCellID |> Task.andThen
+            (\ elem ->
+                 let new_x = elem.viewport.x
+                     new_y = elem.element.y + rel_y
+                 in Dom.setViewport new_x new_y
+            )
+    in result
+
+
+{- | Element ID of "today" cell
+-}
+todayCellID : String
+todayCellID = "cal-today-cell"
+
+{- | Same as 'Dom.getElement' except that the error is a
+human-readable string.
+-}
+getElementTask : String -> Task String Dom.Element
+getElementTask elem_id =
+    let toString (Dom.NotFound e) =
+            "Cannot find #" ++ elem_id ++ ": " ++ e
+    in Task.mapError toString <| Dom.getElement elem_id
