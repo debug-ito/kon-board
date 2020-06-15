@@ -10,6 +10,8 @@ At the top page, it shows calendar with meal plans.
 
 (For now, **only Japanese locale** is supported)
 
+You can see the meal calendar [as a table](screenshots/shot_caltable.png) as well as a list.
+
 You can see the recipes for meals in the calendar.
 
 <a href="screenshots/shot_recipe.png"><img src="screenshots/shot_recipe.png" alt="Recipe" width="500" /></a>
