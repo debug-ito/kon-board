@@ -6,7 +6,7 @@ import Expect as Exp
 import Test exposing (Test, describe, test)
 import Tuple exposing (first)
 
-import ListUtil exposing (replaceOrAdd, blocks)
+import ListUtil exposing (replaceOrAdd, blocks, changes)
 
 eq1 : (a, b) -> (a, b) -> Bool
 eq1 l r = first l == first r
@@ -19,6 +19,7 @@ suite =
     describe "ListUtil"
         [ suite_replaceOrAdd
         , suite_blocks
+        , suite_changes
         ]
         
 suite_replaceOrAdd : Test
@@ -57,4 +58,19 @@ suite_blocks =
             \_ -> Exp.equal (blocks 3 [1,2,3,4,5,6,7,8]) [[1,2], [3,4,5], [6,7,8]]
         , test "1-elem groups" <|
             \_ -> Exp.equal (blocks 1 [1,2,3,4]) [[1], [2], [3], [4]]
+        ]
+
+suite_changes : Test
+suite_changes =
+    describe "changes"
+        [ test "empty" <|
+              \_ -> Exp.equal (changes []) []
+        , test "no changes" <|
+            \_ -> Exp.equal (changes [1,1,1,1,1,1]) []
+        , test "one change" <|
+            \_ -> Exp.equal (changes [1,1,1,2,2,2,2]) [2]
+        , test "two changes" <|
+            \_ -> Exp.equal (changes [1,1,2,3,3]) [2,3]
+        , test "returning change" <|
+            \_ -> Exp.equal (changes [1,2,2,2,1]) [2,1]
         ]

@@ -3,6 +3,7 @@ module ListUtil exposing
     , join
     , last
     , blocks
+    , changes
     )
 
 import List exposing (foldr)
@@ -54,3 +55,21 @@ blocks size input =
                                      then acc
                                      else group :: acc
          in result
+
+{- | Traverse the list items from the head and returns items that are
+different from the previous one.
+-}
+changes : List a -> List a
+changes input =
+    let result =
+            case input of
+                [] -> []
+                (head_a :: rest) -> List.reverse <| go head_a rest []
+        go head_a rest acc =
+            case rest of
+                [] -> acc
+                (next_a :: next_rest) ->
+                    if head_a == next_a
+                    then go next_a next_rest acc
+                    else go next_a next_rest (next_a :: acc)
+    in result
