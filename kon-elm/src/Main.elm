@@ -43,7 +43,7 @@ import Bridge
 import Calendar exposing (CalEntry, Calendar, DayMeal)
 import Calendar as Cal
 import CalSpy exposing
-    (todayCellID, relativeCalendarViewportY, setCalendarViewportTask, getCalLayoutTask)
+    (todayCellID, monthAnchorCellID, relativeCalendarViewportY, setCalendarViewportTask, getCalLayoutTask)
 import Coming exposing (Coming(..))
 import Coming
 import DateUtil
@@ -526,7 +526,8 @@ viewDateLabel locale today target_date =
 
 viewCalEntry : Locale -> Date -> CalEntry -> List (Html Msg)
 viewCalEntry locale today centry =
-    let result = [Grid.row row_attrs [col_date_head, col_date_body]]
+    let result = row_month_anchor
+                 ++ [Grid.row row_attrs [col_date_head, col_date_body]]
         row_attrs = [ Row.attrs ([Attr.class "cal-day-row", Attr.class stripe_class] ++ today_row_attrs)
                     ]
         today_row_attrs = if today == centry.day
@@ -542,6 +543,11 @@ viewCalEntry locale today centry =
                         [Col.xs9, Col.md10]
                         [Grid.row [] <| List.map mkColForPhase tableMealPhases]
         mkColForPhase p = Grid.col [Col.xs12, Col.sm6, Col.attrs [Attr.class "cal-col-meal-plan"]] <| viewDayMeal p <| Cal.mealFor p centry
+        row_month_anchor =
+            case Cal.dateToMonthAnchor centry.day of
+                Nothing -> []
+                Just ma -> [Grid.row [Row.attrs [Attr.id <| monthAnchorCellID ma]] <| colMonthAnchor ma]
+        colMonthAnchor ma = [Grid.col [] [text <| monthAnchorCellID ma ]] -- TODO: add proper style and locale support.
     in result
 
 viewCalWeekHead : Locale -> List Time.Weekday -> List (Html Msg)
@@ -563,8 +569,16 @@ viewCalWeek : Locale -> Date -> List CalEntry -> List (Html Msg)
 viewCalWeek locale today entries =
     let result = [Grid.row [] <| List.map mkCol entries]
         mkCol entry = Grid.col
-                      [Col.attrs [Attr.class "col-1-over-7", Attr.class "col-caltable", Attr.class "col-caltable-day"]]
+                      [ Col.attrs
+                        ( [Attr.class "col-1-over-7", Attr.class "col-caltable", Attr.class "col-caltable-day"]
+                          ++ monthAnchorAttrs entry
+                        )
+                      ]
                       (mkDateRow entry ++ List.map (mkPhaseRow entry) tableMealPhases)
+        monthAnchorAttrs entry =
+            case Cal.dateToMonthAnchor entry.day of
+                Nothing -> []
+                Just ma -> [Attr.id <| monthAnchorCellID ma]
         mkDateRow entry = [ Grid.row (mkDateRowAttrs entry)
                                 [ Grid.col [Col.attrs [Attr.class "col-caltable"]]
                                       <| viewDateLabelWith (today == entry.day) <| mkDateText entry.day
