@@ -5,6 +5,7 @@ module CalSpy exposing
     , currentMonthAnchor
     , relativeCalendarViewportY
     , todayCellID
+    , monthAnchorCellID
         
     , testMakeCalLayout
     )
@@ -12,6 +13,7 @@ module CalSpy exposing
 {- | Spying viewport position relative to the calendar. -}
 
 import Browser.Dom as Dom
+import Date exposing (monthToNumber)
 import Task
 import Task exposing (Task)
 
@@ -63,12 +65,32 @@ currentMonthAnchor today_anchor (CalLayout cl) =
                      [] -> head_a.manchor
                      (next_a :: next_rest) -> go next_a next_rest
     in result
-        
+
+{- | Get 'MonthAnchorPos' and the viewport position.
+-}
+getMonthAnchorPosTask : MonthAnchor -> Task String MonthAnchorPos
+getMonthAnchorPosTask ma =
+    let result = Task.map mkResult <| getElementTask (monthAnchorCellID ma)
+        mkResult e = {manchor = ma, pos = {x = e.element.x, y = e.element.y}}
+    in result
 
 {- | Task to get 'CalLayout'.
 -}
-getCalLayoutTask : Task String CalLayout
-getCalLayoutTask = Debug.todo "TODO: implement it"
+getCalLayoutTask : List MonthAnchor -> Task String CalLayout
+getCalLayoutTask mas =
+    let result =
+            getElementTask todayCellID |> Task.andThen
+            ( \today_elem -> Task.sequence (List.map getMonthAnchorPosTask mas) |> Task.andThen
+              ( \ma_poss ->
+                    Task.succeed
+                    <| CalLayout
+                       { viewport = { x = today_elem.viewport.x, y = today_elem.viewport.y }
+                       , today = { x = today_elem.element.x, y = today_elem.element.y }
+                       , months = ma_poss
+                       }
+              )
+            )
+    in result
 
 {- | Get Y position of the viewport relative to "today" cell.
 -}
@@ -94,6 +116,15 @@ setCalendarViewportTask rel_y =
 -}
 todayCellID : String
 todayCellID = "cal-today-cell"
+
+{- | Element ID of a cell of month anchor
+-}
+monthAnchorCellID : MonthAnchor -> String
+monthAnchorCellID ma =
+    let result = "cal-month-anchor-" ++ year_str ++ month_str
+        year_str = String.fromInt ma.year
+        month_str = String.padLeft 2 '0' <| String.fromInt <| monthToNumber <| ma.month
+    in result
 
 {- | Same as 'Dom.getElement' except that the error is a
 human-readable string.

@@ -312,9 +312,9 @@ appUpdateCmd msg model =
                     in [(cmd, (\m -> { m | page = new_page }))]
                 _ -> []
         viewportObtainCmd =
-            case (msg, model.page) of
-                (CalendarScrollEvent, PageTop (Success ())) ->
-                    let cmd = Task.attempt ViewportObtained <| getCalendarViewportTask
+            case (msg, model.page, model.calendar) of
+                (CalendarScrollEvent, PageTop (Success ()), Just cal) ->
+                    let cmd = Task.attempt ViewportObtained <| getCalendarViewportTask cal
                     in [(cmd, identity)]
                 _ -> []
     in result
@@ -368,8 +368,8 @@ showHttpError e =
 {- | Task to get the viewport (y position) relative to the element of
 "today".
 -}
-getCalendarViewportTask : Task String Float
-getCalendarViewportTask = Task.map relativeCalendarViewportY <| getCalLayoutTask
+getCalendarViewportTask : Calendar -> Task String Float
+getCalendarViewportTask cal = Task.map relativeCalendarViewportY <| getCalLayoutTask <| Cal.monthAnchors cal
 
 ----     let result = Task.map calcRelative <| getElementTask todayCellID
 ----         calcRelative e = e.viewport.y - e.element.y
