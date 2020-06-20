@@ -3,6 +3,8 @@ module Calendar exposing
     , CalEntry
     , DayMeal
     , MonthAnchor
+    , prevMonthAnchor
+    , compareMonthAnchors
     , forWeeks
     , startAndEnd
     , entries
@@ -14,13 +16,13 @@ module Calendar exposing
     , mealFor
     )
 
-import Date exposing (Date)
+import Date exposing (Date, numberToMonth, monthToNumber)
 import Date
 import List
 import Result
 import Result.Extra as ResultE
 import Time
-import Time exposing (Weekday)
+import Time exposing (Weekday, Month)
 
 import Bridge exposing (BMealPlan, BRecipeSummary)
 import DateUtil exposing (parseMonth)
@@ -49,6 +51,25 @@ type alias MonthAnchor =
     { year : Int
     , month : Time.Month
     }
+
+prevMonthAnchor : MonthAnchor -> MonthAnchor
+prevMonthAnchor ma =
+    let result =
+            if mnum == 1
+            then { year = ma.year - 1, month = Time.Dec }
+            else { year = ma.year, month = numberToMonth (mnum - 1) }
+        mnum = monthToNumber ma.month
+    in result
+
+compareMonthAnchors : MonthAnchor -> MonthAnchor -> Order
+compareMonthAnchors a b =
+    let result =
+            case order_y of
+                EQ -> order_m
+                _ -> order_y
+        order_y = compare a.year b.year
+        order_m = compare (monthToNumber a.month) (monthToNumber b.month)
+    in result
 
 {- | Opaque Calendar
 -}
