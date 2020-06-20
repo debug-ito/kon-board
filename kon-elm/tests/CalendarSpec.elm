@@ -96,4 +96,20 @@ suite =
                           expected = [Mon, Tue, Wed, Thu, Fri, Sat, Sun]
                       in Exp.equal (Cal.oneWeek cal) expected
             ]
+        , describe "monthAnchors"
+            [ test "no anchor" <|
+                  \_ -> let cal = Cal.forWeeks (fromCalendarDate 2020 Time.Jun 17) Time.Sun 1 1
+                        in Exp.equal (Cal.monthAnchors cal) []
+            , test "one anchor" <|
+                \_ -> let cal = Cal.forWeeks (fromCalendarDate 2020 Time.Jun 29) Time.Sun 1 1
+                      in Exp.equal (Cal.monthAnchors cal) [{ year = 2020, month = Time.Jul }]
+            , test "two anchors" <|
+                \_ -> let cal = Cal.forWeeks (fromCalendarDate 2020 Time.Jun 17) Time.Sun 3 3
+                      in Exp.equal (Cal.monthAnchors cal) [ { year = 2020, month = Time.Jun }
+                                                          , { year = 2020, month = Time.Jul }
+                                                          ]
+            , test "boundary" <|
+                \_ -> let cal = Cal.forWeeks (fromCalendarDate 2020 Time.Jun 4) Time.Mon 1 1
+                      in Exp.equal (Cal.monthAnchors cal) []
+            ]
         ]

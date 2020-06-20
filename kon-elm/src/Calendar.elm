@@ -181,7 +181,11 @@ oneWeek (Calendar c) =
         start_wday_idx = (Date.weekdayToNumber <| Date.weekday c.start) - 1
     in result
 
+dateToMonthAnchor : Date -> MonthAnchor
+dateToMonthAnchor d = { year = Date.year d, month = Date.month d }
+
 {- | Get list of 'MonthAnchor's in the calendar.
 -}
 monthAnchors : Calendar -> List MonthAnchor
-monthAnchors = Debug.todo "TODO: implement it"
+monthAnchors cl =
+    ListUtil.changes <| List.map (\ce -> dateToMonthAnchor ce.day) <| entries cl
