@@ -110,6 +110,11 @@ suite =
                                                           ]
             , test "boundary" <|
                 \_ -> let cal = Cal.forWeeks (fromCalendarDate 2020 Time.Jun 4) Time.Mon 1 1
-                      in Exp.equal (Cal.monthAnchors cal) []
+                      in Exp.all
+                         [ \() -> Exp.equal
+                                  (Cal.startAndEnd cal)
+                                  (fromCalendarDate 2020 Time.Jun 1, fromCalendarDate 2020 Time.Jun 8)
+                         , \() -> Exp.equal (Cal.monthAnchors cal) [{ year = 2020, month = Time.Jun }]
+                         ] ()
             ]
         ]

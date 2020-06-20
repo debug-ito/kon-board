@@ -5,12 +5,16 @@ module Calendar exposing
     , MonthAnchor
     , prevMonthAnchor
     , compareMonthAnchors
+    , dateToMonthAnchor
+        
     , forWeeks
+        
     , startAndEnd
     , entries
     , weekEntries
     , oneWeek
     , monthAnchors
+        
     , addMealPlan
     , addMealPlans
     , mealFor
@@ -70,6 +74,14 @@ compareMonthAnchors a b =
         order_y = compare a.year b.year
         order_m = compare (monthToNumber a.month) (monthToNumber b.month)
     in result
+
+{- | If the given 'Date' is the day 1st, return the 'MonthAnchor'.
+-}
+dateToMonthAnchor : Date -> Maybe MonthAnchor
+dateToMonthAnchor d =
+    if Date.day d == 1
+    then Just { year = Date.year d, month = Date.month d }
+    else Nothing
 
 {- | Opaque Calendar
 -}
@@ -155,7 +167,8 @@ addMealPlans bps cal =
                 Ok cur_cal -> addMealPlan bp cur_cal
     in List.foldr f (Ok cal) bps
 
-{- | Return the start and end of the calendar.
+{- | Return the start and end of the calendar. Start date is
+inclusive, end date is exclusive.
 -}
 startAndEnd : Calendar -> (Date, Date)
 startAndEnd (Calendar c) = (c.start, c.end)
@@ -181,11 +194,8 @@ oneWeek (Calendar c) =
         start_wday_idx = (Date.weekdayToNumber <| Date.weekday c.start) - 1
     in result
 
-dateToMonthAnchor : Date -> MonthAnchor
-dateToMonthAnchor d = { year = Date.year d, month = Date.month d }
-
 {- | Get list of 'MonthAnchor's in the calendar.
 -}
 monthAnchors : Calendar -> List MonthAnchor
 monthAnchors cl =
-    ListUtil.changes <| List.map (\ce -> dateToMonthAnchor ce.day) <| entries cl
+    List.filterMap (\ce -> dateToMonthAnchor ce.day) <| entries cl
