@@ -570,18 +570,18 @@ viewCalWeek locale today entries =
     let result = [Grid.row [] <| List.map mkCol entries]
         mkCol entry = Grid.col
                       [ Col.attrs
-                        ( [Attr.class "col-1-over-7", Attr.class "col-caltable", Attr.class "col-caltable-day"]
-                          ++ monthAnchorAttrs entry
-                        )
+                        [Attr.class "col-1-over-7", Attr.class "col-caltable", Attr.class "col-caltable-day"]
                       ]
                       (mkDateRow entry ++ List.map (mkPhaseRow entry) tableMealPhases)
-        monthAnchorAttrs entry =
+        monthAnchorElem entry =
             case Cal.dateToMonthAnchor entry.day of
                 Nothing -> []
-                Just ma -> [Attr.id <| monthAnchorCellID ma]
+                Just ma -> [Html.a [Attr.id <| monthAnchorCellID ma] []]
         mkDateRow entry = [ Grid.row (mkDateRowAttrs entry)
                                 [ Grid.col [Col.attrs [Attr.class "col-caltable"]]
-                                      <| viewDateLabelWith (today == entry.day) <| mkDateText entry.day
+                                  ( monthAnchorElem entry
+                                    ++ (viewDateLabelWith (today == entry.day) <| mkDateText entry.day)
+                                  )
                                 ]
                           ]
         mkDateText day =
