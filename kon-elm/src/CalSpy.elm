@@ -15,7 +15,8 @@ import Browser.Dom as Dom
 import Task
 import Task exposing (Task)
 
-import Calendar exposing (MonthAnchor)
+import Calendar exposing
+    (MonthAnchor, prevMonthAnchor, compareMonthAnchors)
 
 {- | 2D Position.
 -}
@@ -48,8 +49,21 @@ type alias CL =
 {- | Get the 'MonthAnchor' corresponding to the current viewport
 position.
 -}
-currentMonthAnchor : CalLayout -> MonthAnchor
-currentMonthAnchor = Debug.todo "TODO: implement it"
+currentMonthAnchor : MonthAnchor -> CalLayout -> MonthAnchor
+currentMonthAnchor today_anchor (CalLayout cl) =
+    let result =
+            case sorted_anchors of
+                [] -> today_anchor
+                (head_a :: rest) -> go head_a rest
+        sorted_anchors = List.sortWith (\a b -> compareMonthAnchors a.manchor b.manchor) cl.months
+        go head_a rest =
+            if cl.viewport.y < head_a.pos.y
+            then prevMonthAnchor head_a.manchor
+            else case rest of
+                     [] -> head_a.manchor
+                     (next_a :: next_rest) -> go next_a next_rest
+    in result
+        
 
 {- | Task to get 'CalLayout'.
 -}
