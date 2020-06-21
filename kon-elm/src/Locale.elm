@@ -14,6 +14,7 @@ import String
 import Time exposing (Month(..), Weekday(..))
 
 import Bridge exposing (BIngredient)
+import Calendar exposing (MonthAnchor)
 import MealPhase exposing (MealPhase(..))
 
 {- | Locale symbols.
@@ -31,6 +32,8 @@ type alias LocaleImpl msg =
       -- | Format date with Month and day of month
     , viewDateMD : Date -> List (Html msg)
     , viewIngredient : BIngredient -> List (Html msg)
+      -- | Format a MonthAnchor
+    , showMonthAnchor : MonthAnchor -> String
     , showWeekday : Weekday -> String
     , showMealPhase : MealPhase -> String
     , showCalDay : String
@@ -54,6 +57,7 @@ localeJaJP =
             , viewDateMDA = jaViewDateMDA
             , viewDateMD = jaViewDateMD
             , viewIngredient = jaViewIngredient
+            , showMonthAnchor = jaShowMonthAnchor
             , showWeekday = jaFormatWeekday
             , showMealPhase = jaShowMealPhase
             , showCalDay = "日付"
@@ -101,6 +105,12 @@ jaViewDateMD d =
         day = String.fromInt <| Date.day d
     in result
     
+jaShowMonthAnchor : MonthAnchor -> String
+jaShowMonthAnchor ma =
+    let result = year ++ "年 " ++ month ++ "月"
+        year = String.fromInt ma.year
+        month = String.fromInt <| monthToNumber <| ma.month
+    in result
 
 spanWeekday : Weekday -> String -> List (Html msg)
 spanWeekday w t =
@@ -132,6 +142,7 @@ localeEnUS =
             , viewDateMDA = enViewDateMDA
             , viewDateMD = enViewDateMD
             , viewIngredient = enViewIngredient
+            , showMonthAnchor = enShowMonthAnchor
             , showWeekday = enFormatWeekday
             , showMealPhase = enShowMealPhase
             , showCalDay = "Date"
@@ -202,3 +213,26 @@ enFormatMonth m =
         Oct -> "Oct"
         Nov -> "Nov"
         Dec -> "Dec"
+
+enFormatMonthLong : Month -> String
+enFormatMonthLong m =
+    case m of
+        Jan -> "January"
+        Feb -> "February"
+        Mar -> "March"
+        Apr -> "April"
+        May -> "May"
+        Jun -> "June"
+        Jul -> "July"
+        Aug -> "August"
+        Sep -> "September"
+        Oct -> "October"
+        Nov -> "November"
+        Dec -> "December"
+
+enShowMonthAnchor : MonthAnchor -> String
+enShowMonthAnchor ma =
+    let result = month ++ ", " ++ year
+        month = enFormatMonthLong ma.month
+        year = String.fromInt ma.year
+    in result
