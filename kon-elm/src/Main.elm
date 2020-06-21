@@ -40,13 +40,14 @@ import Tuple exposing (first, second)
 import Bridge exposing
     (BRecipeSummary, BMealPlan, BRecipeID, BRecipe(..))
 import Bridge
-import Calendar exposing (CalEntry, Calendar, DayMeal)
+import Calendar exposing (CalEntry, Calendar, DayMeal, MonthAnchor)
 import Calendar as Cal
 import CalSpy exposing
     ( CalLayout
     , todayCellID, monthAnchorCellID
     , relativeCalendarViewportY, setCalendarViewportTask, getCalLayoutTask
     )
+import CalSpy
 import Coming exposing (Coming(..))
 import Coming
 import DateUtil
@@ -133,6 +134,11 @@ initCalendar tz t model =
 
 modelToday : Model -> Maybe Date
 modelToday m = Maybe.map (\mc -> Date.fromPosix mc.timeZone mc.curTime) m.clock
+
+{- | Get MonthAnchor that includes today
+-}
+modelTodayAnchor : Model -> Maybe MonthAnchor
+modelTodayAnchor m = Maybe.map (\d -> { year = Date.year d, month = Date.month d } ) <| modelToday m
 
 ---- Main
 
@@ -247,7 +253,13 @@ appUpdateModel msg model =
                 _ -> { model | errorMsg = (Alert.shown, "Unexpected ViewportAdjust msg to non-PageTop page.") }
         CalLayoutObtained ret_cl ->
             case ret_cl of
-                Ok cl -> { model | calendarViewport = relativeCalendarViewportY cl }
+                Ok cl ->
+                    let new_page =
+                            case (model.page, modelTodayAnchor model) of
+                                (PageTop pt, Just today_ma) ->
+                                    PageTop { pt | currentAnchor = Success <| CalSpy.currentMonthAnchor today_ma cl }
+                                _ -> model.page
+                    in { model | calendarViewport = relativeCalendarViewportY cl, page = new_page }
                 Err e -> { model | errorMsg = (Alert.shown, "CalLayoutObtained error: " ++ e) }
         CalendarScrollEvent -> model
         NavbarMenuUpdate s -> { model | navbarMenuState = s }
