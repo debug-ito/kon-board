@@ -235,11 +235,11 @@ appUpdateModel msg model =
                 Ok mr -> { model | loadedRecipe = Success mr }
         ViewportAdjusted adjust_ret ->
             case model.page of
-                PageTop v ->
+                PageTop pt ->
                     case adjust_ret of
-                        Ok () -> { model | page = PageTop (Success ()) }
+                        Ok () -> { model | page = PageTop { pt | viewportAdjusted = Success () } }
                         Err e -> { model | errorMsg = (Alert.shown, "ViewportAdjust error: " ++ e)
-                                 , page = PageTop (Failure e)
+                                 , page = PageTop { pt | viewportAdjusted = Failure e }
                                  }
                 _ -> { model | errorMsg = (Alert.shown, "Unexpected ViewportAdjust msg to non-PageTop page.") }
         ViewportObtained v_ret ->
@@ -305,17 +305,23 @@ appUpdateCmd msg model =
                    _ -> []
         viewportAdjustCmd =
             case (model.calendar, model.mealPlansLoaded, model.page) of
-                (Just _, Success _, PageTop NotStarted) ->
-                    let cmd = Task.attempt ViewportAdjusted
-                              <| setCalendarViewportTask model.calendarViewport
-                        new_page = PageTop Pending
-                    in [(cmd, (\m -> { m | page = new_page }))]
+                (Just _, Success _, PageTop pt) ->
+                    case pt.viewportAdjusted of
+                        NotStarted -> 
+                            let cmd = Task.attempt ViewportAdjusted
+                                      <| setCalendarViewportTask model.calendarViewport
+                                new_page = PageTop { pt | viewportAdjusted = Pending }
+                            in [(cmd, (\m -> { m | page = new_page }))]
+                        _ -> []
                 _ -> []
         viewportObtainCmd =
             case (msg, model.page, model.calendar) of
-                (CalendarScrollEvent, PageTop (Success ()), Just cal) ->
-                    let cmd = Task.attempt ViewportObtained <| getCalendarViewportTask cal
-                    in [(cmd, identity)]
+                (CalendarScrollEvent, PageTop pt, Just cal) ->
+                    case pt.viewportAdjusted of
+                        Success () ->
+                            let cmd = Task.attempt ViewportObtained <| getCalendarViewportTask cal
+                            in [(cmd, identity)]
+                        _ -> []
                 _ -> []
     in result
 
