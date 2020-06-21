@@ -446,9 +446,9 @@ viewNavbar locale page calview (NavbarMenuState menu_state) =
                        navbar_content
                  ]
         navbar_content =
-            [ Html.form [Attr.class "form-inline"] dropdown_menu
-            , Html.form [Attr.class "form-inline"] [kon_icon]
-            ]
+            [ Html.form [Attr.class "form-inline"] dropdown_menu ]
+            ++ viewNavbarCenter locale page
+            ++ [ Html.form [Attr.class "form-inline"] [kon_icon] ]
         kon_icon =
             Html.a [href <| UrlB.absolute [] []]
                 [ Html.img
@@ -479,6 +479,19 @@ viewNavbar locale page calview (NavbarMenuState menu_state) =
                 (PageTop _) -> viewMenuCalView locale calview
                 _ -> []
     in result
+
+viewNavbarCenter : Locale -> Page -> List (Html Msg)
+viewNavbarCenter locale page =
+    let result =
+            case page of
+                PageTop pt ->
+                    case pt.currentAnchor of
+                        Success ma -> [Html.form [Attr.class "form-inline"] <| mkContent ma]
+                        _ -> []
+                _ -> []
+        mkContent ma = [text <| (.showMonthAnchor) (Locale.get locale) ma]
+    in result
+
 
 navbarMenuIconSize : Float
 navbarMenuIconSize = 16
