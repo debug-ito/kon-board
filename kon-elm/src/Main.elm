@@ -330,13 +330,18 @@ appUpdateCmd msg model =
                         _ -> []
                 _ -> []
         calLayoutObtainCmd =
-            case (msg, model.page, model.calendar) of
-                (CalendarScrollEvent, PageTop pt, Just cal) ->
-                    case pt.viewportAdjusted of
-                        Success () ->
-                            let cmd = Task.attempt CalLayoutObtained <| getCalLayoutTask <| Cal.monthAnchors cal
-                            in [(cmd, identity)]
-                        _ -> []
+            case model.calendar of
+                Just cal ->
+                    let the_cmds = [( Task.attempt CalLayoutObtained <| getCalLayoutTask <| Cal.monthAnchors cal
+                                    , identity
+                                    )]
+                    in case (msg, model.page) of
+                           (CalendarScrollEvent, PageTop pt) ->
+                               case pt.viewportAdjusted of
+                                   Success () -> the_cmds
+                                   _ -> []
+                           (ViewportAdjusted _, PageTop _) -> the_cmds
+                           _ -> []
                 _ -> []
     in result
 
