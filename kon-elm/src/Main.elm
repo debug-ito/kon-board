@@ -546,8 +546,16 @@ viewCalEntry locale today centry =
         row_month_anchor =
             case Cal.dateToMonthAnchor centry.day of
                 Nothing -> []
-                Just ma -> [Grid.row [Row.attrs [Attr.id <| monthAnchorCellID ma]] <| colMonthAnchor ma]
-        colMonthAnchor ma = [Grid.col [] [text <| monthAnchorCellID ma ]] -- TODO: add proper style and locale support.
+                Just ma -> [ Grid.row [ Row.attrs [ Attr.id <| monthAnchorCellID ma
+                                                  , Attr.class "cal-day-row"
+                                                  , Attr.class "cal-row-month-anchor"
+                                                  ]
+                                      ]
+                             <| colMonthAnchor ma
+                           ]
+        colMonthAnchor ma = [ Grid.col [Col.attrs [Attr.class "cal-col-month-anchor"]]
+                              [text <| (.showMonthAnchor) (Locale.get locale) ma ]
+                            ]
     in result
 
 viewCalWeekHead : Locale -> List Time.Weekday -> List (Html Msg)

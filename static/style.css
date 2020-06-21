@@ -102,6 +102,16 @@ body > .alert-danger {
     padding-right: 0;
 }
 
+.cal-row-month-anchor {
+    background-color: #baf0af;
+}
+
+.cal-col-month-anchor {
+    font-size: 1.05rem;
+    font-weight: bold;
+    padding: 5px 10px;
+}
+
 .cal-day {
     font-size: 1.0rem;
     padding: 4px;
