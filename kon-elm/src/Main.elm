@@ -43,7 +43,10 @@ import Bridge
 import Calendar exposing (CalEntry, Calendar, DayMeal)
 import Calendar as Cal
 import CalSpy exposing
-    (todayCellID, monthAnchorCellID, relativeCalendarViewportY, setCalendarViewportTask, getCalLayoutTask)
+    ( CalLayout
+    , todayCellID, monthAnchorCellID
+    , relativeCalendarViewportY, setCalendarViewportTask, getCalLayoutTask
+    )
 import Coming exposing (Coming(..))
 import Coming
 import DateUtil
@@ -160,8 +163,8 @@ type Msg = NoOp
          | RecipeLoaded (Result String MRecipe)
          -- | Got result of adjusting viewport.
          | ViewportAdjusted (Result String ())
-         -- | Got result of getting relative Y position of the viewport.
-         | ViewportObtained (Result String Float)
+         -- | Got result of getting the calendar layout.
+         | CalLayoutObtained (Result String CalLayout)
          -- | Got window.onscroll event (from a port) for a calendar view.
          | CalendarScrollEvent
          -- | Navbar menu is updated.
@@ -242,10 +245,10 @@ appUpdateModel msg model =
                                  , page = PageTop { pt | viewportAdjusted = Failure e }
                                  }
                 _ -> { model | errorMsg = (Alert.shown, "Unexpected ViewportAdjust msg to non-PageTop page.") }
-        ViewportObtained v_ret ->
-            case v_ret of
-                Ok v -> { model | calendarViewport = v }
-                Err e -> { model | errorMsg = (Alert.shown, "ViewportObtained error: " ++ e) }
+        CalLayoutObtained ret_cl ->
+            case ret_cl of
+                Ok cl -> { model | calendarViewport = relativeCalendarViewportY cl }
+                Err e -> { model | errorMsg = (Alert.shown, "CalLayoutObtained error: " ++ e) }
         CalendarScrollEvent -> model
         NavbarMenuUpdate s -> { model | navbarMenuState = s }
         CalViewChanged cv -> { model | calendarViewType = cv }
@@ -267,7 +270,7 @@ concatCmds cs =
 appUpdateCmd : Msg -> Model -> List (Cmd Msg, Model -> Model)
 appUpdateCmd msg model =
     let result = initTimeCmd ++ loadMealPlanCmd ++ urlRequestCmd
-                 ++ loadRecipeCmd ++ viewportAdjustCmd ++ viewportObtainCmd
+                 ++ loadRecipeCmd ++ viewportAdjustCmd ++ calLayoutObtainCmd
         initTimeCmd =
             case model.clock of
                 Nothing -> [(Task.perform identity <| Task.map2 InitTime Time.now Time.here, identity)]
@@ -314,12 +317,12 @@ appUpdateCmd msg model =
                             in [(cmd, (\m -> { m | page = new_page }))]
                         _ -> []
                 _ -> []
-        viewportObtainCmd =
+        calLayoutObtainCmd =
             case (msg, model.page, model.calendar) of
                 (CalendarScrollEvent, PageTop pt, Just cal) ->
                     case pt.viewportAdjusted of
                         Success () ->
-                            let cmd = Task.attempt ViewportObtained <| getCalendarViewportTask cal
+                            let cmd = Task.attempt CalLayoutObtained <| getCalLayoutTask <| Cal.monthAnchors cal
                             in [(cmd, identity)]
                         _ -> []
                 _ -> []
@@ -368,19 +371,7 @@ showHttpError e =
         Http.Timeout -> "HTTP timeout"
         Http.NetworkError -> "Network error"
         Http.BadStatus s -> "Server returned error status " ++ String.fromInt s
-        Http.BadBody b -> "Bad HTTP response body: " ++ b
-
-
-{- | Task to get the viewport (y position) relative to the element of
-"today".
--}
-getCalendarViewportTask : Calendar -> Task String Float
-getCalendarViewportTask cal = Task.map relativeCalendarViewportY <| getCalLayoutTask <| Cal.monthAnchors cal
-
-----     let result = Task.map calcRelative <| getElementTask todayCellID
-----         calcRelative e = e.viewport.y - e.element.y
-----     in result
-    
+        Http.BadBody b -> "Bad HTTP response body: " ++ b    
 
 ---- View
 
