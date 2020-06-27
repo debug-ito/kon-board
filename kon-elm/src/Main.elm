@@ -548,10 +548,6 @@ viewDateLabelWith is_today content =
                    else []
     in result
 
-viewDateLabel : Locale -> Date -> Date -> List (Html msg)
-viewDateLabel locale today target_date =
-    viewDateLabelWith (today == target_date) <| (.viewDateMDA) (Locale.get locale) target_date
-
 viewCalEntry : Locale -> Date -> CalEntry -> List (Html Msg)
 viewCalEntry locale today centry =
     let result = row_month_anchor
@@ -566,7 +562,7 @@ viewCalEntry locale today centry =
                        else "cal-day-row-odd"
         col_date_head = Grid.col
                         [Col.xs3, Col.md2, Col.attrs [Attr.class "cal-col-entry-head"]]
-                        <| viewDateLabel locale today centry.day
+                        <| viewDateLabelWith (today == centry.day) <| (.viewDateDA) (Locale.get locale) centry.day
         col_date_body = Grid.col
                         [Col.xs9, Col.md10]
                         [Grid.row [] <| List.map mkColForPhase tableMealPhases]

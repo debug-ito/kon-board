@@ -27,12 +27,12 @@ type Locale = LEnUS
 type alias LocaleImpl msg =
     { -- | Format date with Year, Month, day of month and day of week.
       viewDateYMDA : Date -> List (Html msg)
-      -- | Format date with Month, day of month and day of week.
-    , viewDateMDA : Date -> List (Html msg)
+      -- | Format date with day of month and day of week.
+    , viewDateDA : Date -> List (Html msg)
       -- | Format date with Month and day of month
     , viewDateMD : Date -> List (Html msg)
     , viewIngredient : BIngredient -> List (Html msg)
-      -- | Format a MonthAnchor
+      -- | Format a MonthAnchor (year and month)
     , showMonthAnchor : MonthAnchor -> String
     , showWeekday : Weekday -> String
     , showMealPhase : MealPhase -> String
@@ -54,7 +54,7 @@ localeJaJP : LocaleImpl msg
 localeJaJP =
     let result =
             { viewDateYMDA = jaViewDateLong
-            , viewDateMDA = jaViewDateMDA
+            , viewDateDA = jaViewDateDA
             , viewDateMD = jaViewDateMD
             , viewIngredient = jaViewIngredient
             , showMonthAnchor = jaShowMonthAnchor
@@ -83,19 +83,19 @@ jaViewDateLong date =
                            [text year]
                      , text " "
                      , Html.span [Attr.class "clock-day", Attr.class "text-nowrap"]
-                         <| jaViewDateMDA date
+                         ( jaViewDateMD date
+                           ++ [text " "]
+                           ++ (jaWeekdaySpan <| Date.weekday date)
+                         )
                      ]
             ]
         year = (String.fromInt <| Date.year date) ++ "年"
     in result
 
-jaViewDateMDA : Date -> List (Html msg)
-jaViewDateMDA d = 
-    let result = jaViewDateMD d ++ weekday
-        wday = Date.weekday d
-        weekday = [text " ("]
-                  ++ spanWeekday wday (jaFormatWeekday wday)
-                  ++ [text ")"]
+jaViewDateDA : Date -> List (Html msg)
+jaViewDateDA d = 
+    let result = [text (mday ++ " ")] ++ (jaWeekdaySpan <| Date.weekday d)
+        mday = String.fromInt <| Date.day d
     in result
 
 jaViewDateMD : Date -> List (Html msg)
@@ -111,6 +111,12 @@ jaShowMonthAnchor ma =
         year = String.fromInt ma.year
         month = String.fromInt <| monthToNumber <| ma.month
     in result
+
+jaWeekdaySpan : Weekday -> List (Html msg)
+jaWeekdaySpan wday =
+    [text "("]
+    ++ (spanWeekday wday <| jaFormatWeekday wday)
+    ++ [text ")"]
 
 spanWeekday : Weekday -> String -> List (Html msg)
 spanWeekday w t =
@@ -139,7 +145,7 @@ localeEnUS : LocaleImpl msg
 localeEnUS =
     let result =
             { viewDateYMDA = enViewDateLong
-            , viewDateMDA = enViewDateMDA
+            , viewDateDA = enViewDateDA
             , viewDateMD = enViewDateMD
             , viewIngredient = enViewIngredient
             , showMonthAnchor = enShowMonthAnchor
@@ -165,7 +171,10 @@ enViewDateLong : Date -> List (Html msg)
 enViewDateLong date =
     let result =
             [ div [] [ Html.span [Attr.class "clock-day", Attr.class "text-nowrap"]
-                           <| enViewDateMDA date
+                           <| ( (enWeekdaySpan <| Date.weekday date)
+                                ++ [text ", "]
+                                ++ enViewDateMD date
+                              )
                      , text ", "
                      , Html.span [Attr.class "clock-year", Attr.class "text-nowrap"]
                          [text <| String.fromInt <| Date.year date]
@@ -173,11 +182,10 @@ enViewDateLong date =
             ]
     in result
 
-enViewDateMDA : Date -> List (Html msg)
-enViewDateMDA d =
-    let result = weekday ++ [text ", "] ++ enViewDateMD d
-        weekday = spanWeekday wday <| enFormatWeekday wday
-        wday = Date.weekday d
+enViewDateDA : Date -> List (Html msg)
+enViewDateDA d =
+    let result = (enWeekdaySpan <| Date.weekday d) ++ [text (", " ++ mday)]
+        mday = String.fromInt <| Date.day d
     in result
 
 enViewDateMD : Date -> List (Html msg)
@@ -186,6 +194,9 @@ enViewDateMD d =
         day = String.fromInt <| Date.day d
         month = enFormatMonth <| Date.month d
     in result
+
+enWeekdaySpan : Weekday -> List (Html msg)
+enWeekdaySpan w = spanWeekday w <| enFormatWeekday w
 
 enFormatWeekday : Weekday -> String
 enFormatWeekday w =
