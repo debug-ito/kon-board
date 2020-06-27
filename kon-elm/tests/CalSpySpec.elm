@@ -16,37 +16,45 @@ suite =
     describe "CalSpy"
     [ describe "currentMonthAnchor"
       [ test "viewport - today" <|
-            \_ -> let cl = testMakeCalLayout 10.0 20.0 []
-                      got = currentMonthAnchor todayA cl
+            \_ -> let cl = testMakeCalLayout 10.0 20.0 todayA []
+                      got = currentMonthAnchor 0 cl
                   in Exp.equal got todayA
       , test "today - viewport" <|
-            \_ -> let cl = testMakeCalLayout 30.0 20.0 []
-                      got = currentMonthAnchor todayA cl
+            \_ -> let cl = testMakeCalLayout 30.0 20.0 todayA []
+                      got = currentMonthAnchor 0 cl
                   in Exp.equal got todayA
       , test "viewport - anchor" <|
-          \_ -> let cl = testMakeCalLayout 10.0 30.0 [({ year = 2020, month = Apr }, 20.0)]
-                    got = currentMonthAnchor todayA cl
+          \_ -> let cl = testMakeCalLayout 10.0 30.0 todayA [({ year = 2020, month = Apr }, 20.0)]
+                    got = currentMonthAnchor 0 cl
                 in Exp.equal got { year = 2020, month = Mar }
       , test "anchor - viewport" <|
-          \_ -> let cl = testMakeCalLayout 25.0 30.0 [({ year = 2020, month = Apr }, 20.0)]
-                    got = currentMonthAnchor todayA cl
+          \_ -> let cl = testMakeCalLayout 25.0 30.0 todayA [({ year = 2020, month = Apr }, 20.0)]
+                    got = currentMonthAnchor 0 cl
                 in Exp.equal got { year = 2020, month = Apr }
       , test "anchor - viewport - anchor" <|
-          \_ -> let cl = testMakeCalLayout 25.0 30.0 [({ year = 2020, month = Apr }, 20.0), ({ year = 2020, month = May }, 29.0)]
-                    got = currentMonthAnchor todayA cl
+          \_ -> let cl = testMakeCalLayout 25.0 30.0 todayA [({ year = 2020, month = Apr }, 20.0), ({ year = 2020, month = May }, 29.0)]
+                    got = currentMonthAnchor 0 cl
                 in Exp.equal got { year = 2020, month = Apr }
       , test "anchor - anchor - viewport" <|
-          \_ -> let cl = testMakeCalLayout 35.0 30.0 [({ year = 2020, month = Apr }, 20.0), ({ year = 2020, month = May }, 29.0)]
-                    got = currentMonthAnchor todayA cl
+          \_ -> let cl = testMakeCalLayout 35.0 30.0 todayA [({ year = 2020, month = Apr }, 20.0), ({ year = 2020, month = May }, 29.0)]
+                    got = currentMonthAnchor 0 cl
                 in Exp.equal got { year = 2020, month = May }
       , test "anchor - anchor - anchor - viewport - anchor (not sorted)" <|
-          \_ -> let cl = testMakeCalLayout 35.0 30.0
+          \_ -> let cl = testMakeCalLayout 35.0 30.0 todayA
                          [ ({ year = 2020, month = Feb }, 20.0)
                          , ({ year = 2020, month = Jan }, 10.0)
                          , ({ year = 2020, month = Apr }, 40.0)
                          , ({ year = 2020, month = Mar }, 30.0)
                          ]
-                    got = currentMonthAnchor todayA cl
+                    got = currentMonthAnchor 0 cl
+                in Exp.equal got { year = 2020, month = Mar }
+      , test "viewport - anchor - offsetted" <|
+          \_ -> let cl = testMakeCalLayout 25.0 30.0 todayA [({ year = 2020, month = Apr }, 30.0)]
+                    got = currentMonthAnchor 10.0 cl
+                in Exp.equal got { year = 2020, month = Apr }
+      , test "offsetted - anchor - viewport" <|
+          \_ -> let cl = testMakeCalLayout 35.0 30.0 todayA [({ year = 2020, month = Apr }, 30.0)]
+                    got = currentMonthAnchor (-10.0) cl
                 in Exp.equal got { year = 2020, month = Mar }
       ]
     ]

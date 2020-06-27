@@ -135,11 +135,6 @@ initCalendar tz t model =
 modelToday : Model -> Maybe Date
 modelToday m = Maybe.map (\mc -> Date.fromPosix mc.timeZone mc.curTime) m.clock
 
-{- | Get MonthAnchor that includes today
--}
-modelTodayAnchor : Model -> Maybe MonthAnchor
-modelTodayAnchor m = Maybe.map (\d -> { year = Date.year d, month = Date.month d } ) <| modelToday m
-
 ---- Main
 
 main = Browser.application
@@ -255,9 +250,9 @@ appUpdateModel msg model =
             case ret_cl of
                 Ok cl ->
                     let new_page =
-                            case (model.page, modelTodayAnchor model) of
-                                (PageTop pt, Just today_ma) ->
-                                    PageTop { pt | currentAnchor = Success <| CalSpy.currentMonthAnchor today_ma cl }
+                            case model.page of
+                                PageTop pt ->
+                                    PageTop { pt | currentAnchor = Success <| CalSpy.currentMonthAnchor 0 cl } -- TODO: set offset.
                                 _ -> model.page
                     in { model | calendarViewport = relativeCalendarViewportY cl, page = new_page }
                 Err e -> { model | errorMsg = (Alert.shown, "CalLayoutObtained error: " ++ e) }
@@ -330,9 +325,9 @@ appUpdateCmd msg model =
                         _ -> []
                 _ -> []
         calLayoutObtainCmd =
-            case model.calendar of
-                Just cal ->
-                    let the_cmds = [( Task.attempt CalLayoutObtained <| getCalLayoutTask <| Cal.monthAnchors cal
+            case (model.calendar, modelToday model) of
+                (Just cal, Just today) ->
+                    let the_cmds = [( Task.attempt CalLayoutObtained <| getCalLayoutTask today <| Cal.monthAnchors cal
                                     , identity
                                     )]
                     in case (msg, model.page) of

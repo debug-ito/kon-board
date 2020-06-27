@@ -13,7 +13,8 @@ module CalSpy exposing
 {- | Spying viewport position relative to the calendar. -}
 
 import Browser.Dom as Dom
-import Date exposing (monthToNumber)
+import Date exposing (monthToNumber, Date)
+import Date
 import Task
 import Task exposing (Task)
 
@@ -44,22 +45,23 @@ type alias CL =
     { -- | Position of the viewport.
       viewport : Pos
       -- | Position of the cell of today.
-    , today : Pos
+    , today : MonthAnchorPos
     , months : List MonthAnchorPos
     }
 
 {- | Get the 'MonthAnchor' corresponding to the current viewport
-position.
+position. `offset_y` is the offset in Y axis of the threshold position
+relative to the viewport position.
 -}
-currentMonthAnchor : MonthAnchor -> CalLayout -> MonthAnchor
-currentMonthAnchor today_anchor (CalLayout cl) =
+currentMonthAnchor : Float -> CalLayout -> MonthAnchor
+currentMonthAnchor offset_y (CalLayout cl) =
     let result =
             case sorted_anchors of
-                [] -> today_anchor
+                [] -> cl.today.manchor
                 (head_a :: rest) -> go head_a rest
         sorted_anchors = List.sortWith (\a b -> compareMonthAnchors a.manchor b.manchor) cl.months
         go head_a rest =
-            if cl.viewport.y < head_a.pos.y
+            if cl.viewport.y + offset_y < head_a.pos.y
             then prevMonthAnchor head_a.manchor
             else case rest of
                      [] -> head_a.manchor
@@ -76,8 +78,8 @@ getMonthAnchorPosTask ma =
 
 {- | Task to get 'CalLayout'.
 -}
-getCalLayoutTask : List MonthAnchor -> Task String CalLayout
-getCalLayoutTask mas =
+getCalLayoutTask : Date -> List MonthAnchor -> Task String CalLayout
+getCalLayoutTask today mas =
     let result =
             getElementTask todayCellID |> Task.andThen
             ( \today_elem -> Task.sequence (List.map getMonthAnchorPosTask mas) |> Task.andThen
@@ -85,7 +87,9 @@ getCalLayoutTask mas =
                     Task.succeed
                     <| CalLayout
                        { viewport = { x = today_elem.viewport.x, y = today_elem.viewport.y }
-                       , today = { x = today_elem.element.x, y = today_elem.element.y }
+                       , today = { manchor = { year = Date.year today, month = Date.month today }
+                                 , pos = { x = today_elem.element.x, y = today_elem.element.y }
+                                 }
                        , months = ma_poss
                        }
               )
@@ -95,7 +99,7 @@ getCalLayoutTask mas =
 {- | Get Y position of the viewport relative to "today" cell.
 -}
 relativeCalendarViewportY : CalLayout -> Float
-relativeCalendarViewportY (CalLayout c) = c.viewport.y - c.today.y
+relativeCalendarViewportY (CalLayout c) = c.viewport.y - c.today.pos.y
 
 {- | Task to set viewport (y position) relative to the element of
 "today".
@@ -137,11 +141,11 @@ getElementTask elem_id =
 
 {- | (Only for test) Make CalLayout from Y positions.
 -}
-testMakeCalLayout : Float -> Float -> List (MonthAnchor, Float) -> CalLayout
-testMakeCalLayout viewport_y today_y manchors =
+testMakeCalLayout : Float -> Float -> MonthAnchor -> List (MonthAnchor, Float) -> CalLayout
+testMakeCalLayout viewport_y today_y today_manchor manchors =
     let result = CalLayout
                  { viewport = { x = 0, y = viewport_y }
-                 , today = {x = 0, y = today_y}
+                 , today = { manchor = today_manchor, pos = {x = 0, y = today_y} }
                  , months = List.map toMAPos manchors
                  }
         toMAPos (ma, ma_y) = { manchor = ma, pos = { x = 0, y = ma_y} }
