@@ -4,6 +4,8 @@
 
 * Calendar views: add the current year and month to the navbar.
 * Calendar list view: add the month anchor rows.
+* Update Bootstrap CSS from v4.0.0 to v4.5.0.
+* Now the top containers uses .container-xl class.
 
 ## 0.1.2.0  -- 2020-06-15
 
