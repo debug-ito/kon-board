@@ -336,6 +336,7 @@ appUpdateCmd msg model =
                                    Success () -> the_cmds
                                    _ -> []
                            (ViewportAdjusted _, PageTop _) -> the_cmds
+                           (CalViewChanged _, PageTop _) -> the_cmds
                            _ -> []
                 _ -> []
     in result
