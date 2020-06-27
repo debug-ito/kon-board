@@ -392,7 +392,7 @@ viewBody : Model -> List (Html Msg)
 viewBody model =
     let result = viewNavbar model.locale model.page model.calendarViewType model.navbarMenuState ++ main_container ++ err_msg
         main_container =
-            [ Grid.container []
+            [ Grid.container [Attr.class "top-container"]
                   [ Grid.row []
                         [ Grid.col
                               [ Col.md3, Col.lg2

@@ -1,5 +1,9 @@
 /******* layout *******/
 
+.top-container {
+    margin-top: 42px;
+}
+
 .sidebar {
     position: sticky;
     top: 48px;
@@ -8,10 +12,6 @@
 
 .mainbox {
     
-}
-
-body > div.container {
-    margin-top: 42px;
 }
 
 .col-1-over-7 {
