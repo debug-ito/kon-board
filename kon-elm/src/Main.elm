@@ -252,7 +252,7 @@ appUpdateModel msg model =
                     let new_page =
                             case model.page of
                                 PageTop pt ->
-                                    PageTop { pt | currentAnchor = Success <| CalSpy.currentMonthAnchor 0 cl } -- TODO: set offset.
+                                    PageTop { pt | currentAnchor = Success <| CalSpy.currentMonthAnchor (navbarHeight model) cl }
                                 _ -> model.page
                     in { model | calendarViewport = relativeCalendarViewportY cl, page = new_page }
                 Err e -> { model | errorMsg = (Alert.shown, "CalLayoutObtained error: " ++ e) }
@@ -441,6 +441,12 @@ viewCurTime locale mc =
                 hour = String.padLeft 2 '0' <| String.fromInt <| Time.toHour c.timeZone c.curTime
                 minute = String.padLeft 2 '0' <| String.fromInt <| Time.toMinute c.timeZone c.curTime
             in result
+
+navbarHeight : Model -> Float
+navbarHeight m =
+    case (m.page, m.calendarViewType) of
+        (PageTop _, CalViewTable) -> 61
+        _ -> 40
 
 viewNavbar : Locale -> Page -> CalendarView -> NavbarMenuState -> List (Html Msg)
 viewNavbar locale page calview (NavbarMenuState menu_state) =
