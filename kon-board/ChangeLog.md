@@ -1,7 +1,8 @@
 # Revision history for kon-board
 
-## 0.1.3.0  -- ?
+## 0.2.0.0  -- ?
 
+* Remove the sidebar.
 * Calendar views: add the current year and month to the navbar.
 * Calendar list view: add the month anchor rows.
 * Update Bootstrap CSS from v4.0.0 to v4.5.0.

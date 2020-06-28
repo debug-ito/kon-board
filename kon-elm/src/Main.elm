@@ -394,18 +394,20 @@ viewBody model =
         main_container =
             [ Html.div [Attr.class "container-xl", Attr.class "top-container"]
                   [ Grid.row []
-                        [ Grid.col
-                              [ Col.md3, Col.lg2
-                              , Col.attrs
-                                  [ Display.none
-                                  , Display.blockMd
-                                  ]
-                              ]
-                              [div [Attr.class "sidebar"] sidebar]
-                        , Grid.col [ Col.xs12, Col.md9, Col.lg10
-                                   , Col.attrs [Attr.class "mainbox"]
-                                   ] mainbox
+                        [ Grid.col [Col.attrs [Attr.class "mainbox"]] mainbox
                         ]
+                        ---- [ Grid.col
+                        ----       [ Col.md3, Col.lg2
+                        ----       , Col.attrs
+                        ----           [ Display.none
+                        ----           , Display.blockMd
+                        ----           ]
+                        ----       ]
+                        ----       [div [Attr.class "sidebar"] sidebar]
+                        ---- , Grid.col [ Col.xs12, Col.md9, Col.lg10
+                        ----            , Col.attrs [Attr.class "mainbox"]
+                        ----            ] mainbox
+                        ---- ]
                   ]
             ]
         sidebar = viewCurTime model.locale model.clock
