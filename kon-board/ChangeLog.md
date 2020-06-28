@@ -1,6 +1,6 @@
 # Revision history for kon-board
 
-## 0.2.0.0  -- ?
+## 0.2.0.0  -- 2020-06-28
 
 * Remove the sidebar.
 * Calendar views: add the current year and month to the navbar.
