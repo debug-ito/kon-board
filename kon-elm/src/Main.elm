@@ -536,11 +536,17 @@ tableMealPhases = [Lunch, Dinner]
         
 viewCalendar : Locale -> Date -> CalendarView -> Calendar -> List (Html Msg)
 viewCalendar locale today calview cal =
-    case calview of
-        CalViewList -> List.concatMap (viewCalEntry locale today) <| Cal.entries cal
-        CalViewTable ->
-            (viewCalWeekHead locale <| Cal.oneWeek cal)
-            ++ (List.concatMap (viewCalWeek locale today) <| Cal.weekEntries cal)
+    let result =
+            -- TODO: show "load meal plans in past" button
+            calendar_body
+            -- TODO: show "load meal plans in future" button
+        calendar_body = 
+            case calview of
+                CalViewList -> List.concatMap (viewCalEntry locale today) <| Cal.entries cal
+                CalViewTable ->
+                    (viewCalWeekHead locale <| Cal.oneWeek cal)
+                    ++ (List.concatMap (viewCalWeek locale today) <| Cal.weekEntries cal)
+    in result
 
 viewDateLabelWith : Bool -> List (Html msg) -> List (Html msg)
 viewDateLabelWith is_today content =
