@@ -5,20 +5,94 @@ module CalendarSpec exposing
 {-| Unit tests -}
 
 import Expect as Exp
-import Date exposing (fromCalendarDate)
+import Date exposing (fromCalendarDate, Date)
 import String
 import Test exposing (Test, describe, test)
 import Time
-import Time exposing (Weekday(..))
+import Time exposing (Weekday(..), Month(..))
 
 import Bridge exposing (BMealPlan)
 import Calendar as Cal
 import MealPhase exposing (MealPhase(..))
 
+calDate : Int -> Month -> Int -> Date
+calDate = fromCalendarDate
+
+emptyCE : Int -> Month -> Int -> Cal.CalEntry
+emptyCE y m d = { day = calDate y m d, meals = [] }
+
 suite : Test
 suite =
     describe "Calendar"
-        [ describe "addMealPlan"
+        [ describe "forWeeks"
+              [ test "not on start_wday" <|
+                    \_ ->
+                    let got = Cal.forWeeks (calDate 2020 Jul 1) Sun 1 1
+                        exp_period = (calDate 2020 Jun 28, calDate 2020 Jul 5)
+                        exp_es = [ emptyCE 2020 Jun 28
+                                 , emptyCE 2020 Jun 29
+                                 , emptyCE 2020 Jun 30
+                                 , emptyCE 2020 Jul 1
+                                 , emptyCE 2020 Jul 2
+                                 , emptyCE 2020 Jul 3
+                                 , emptyCE 2020 Jul 4
+                                 ]
+                    in Exp.all [ (\_ -> Exp.equal (Cal.startAndEnd got) exp_period)
+                               , (\_ -> Exp.equal (Cal.entries got) exp_es)
+                               ] got
+              , test "on start_wday" <|
+                  \_ ->
+                      let got = Cal.forWeeks (calDate 2020 Jul 9) Thu 1 1
+                          exp_period = (calDate 2020 Jul 2, calDate 2020 Jul 16)
+                          exp_es = [ emptyCE 2020 Jul 2
+                                   , emptyCE 2020 Jul 3
+                                   , emptyCE 2020 Jul 4
+                                   , emptyCE 2020 Jul 5
+                                   , emptyCE 2020 Jul 6
+                                   , emptyCE 2020 Jul 7
+                                   , emptyCE 2020 Jul 8
+                                   , emptyCE 2020 Jul 9
+                                   , emptyCE 2020 Jul 10
+                                   , emptyCE 2020 Jul 11
+                                   , emptyCE 2020 Jul 12
+                                   , emptyCE 2020 Jul 13
+                                   , emptyCE 2020 Jul 14
+                                   , emptyCE 2020 Jul 15
+                                   ]
+                      in Exp.all [ (\_ -> Exp.equal (Cal.startAndEnd got) exp_period)
+                                 , (\_ -> Exp.equal (Cal.entries got) exp_es)
+                                 ] got
+              , test "multiple weeks" <|
+                  \_ ->
+                      let got = Cal.forWeeks (calDate 2020 Jul 1) Sat 2 2
+                          exp_period = (calDate 2020 Jun 20, calDate 2020 Jul 11)
+                          exp_es = [ emptyCE 2020 Jun 20
+                                   , emptyCE 2020 Jun 21
+                                   , emptyCE 2020 Jun 22
+                                   , emptyCE 2020 Jun 23
+                                   , emptyCE 2020 Jun 24
+                                   , emptyCE 2020 Jun 25
+                                   , emptyCE 2020 Jun 26
+                                   , emptyCE 2020 Jun 27
+                                   , emptyCE 2020 Jun 28
+                                   , emptyCE 2020 Jun 29
+                                   , emptyCE 2020 Jun 30
+                                   , emptyCE 2020 Jul 1
+                                   , emptyCE 2020 Jul 2
+                                   , emptyCE 2020 Jul 3
+                                   , emptyCE 2020 Jul 4
+                                   , emptyCE 2020 Jul 5
+                                   , emptyCE 2020 Jul 6
+                                   , emptyCE 2020 Jul 7
+                                   , emptyCE 2020 Jul 8
+                                   , emptyCE 2020 Jul 9
+                                   , emptyCE 2020 Jul 10
+                                   ]
+                      in Exp.all [ (\_ -> Exp.equal (Cal.startAndEnd got) exp_period)
+                                 , (\_ -> Exp.equal (Cal.entries got) exp_es)
+                                 ] got
+              ]
+        , describe "addMealPlan"
               [ test "no match" <|
                     \_ ->
                     let input = { year = 2019, month = 4, day = 20
