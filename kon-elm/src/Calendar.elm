@@ -51,6 +51,9 @@ type alias CalEntry =
     , meals : List DayMeal
     }
 
+emptyCalEntry : Date -> CalEntry
+emptyCalEntry d = { day = d, meals = [] }
+
 {- | A beginning of a month.
 -}
 type alias MonthAnchor =
@@ -213,4 +216,29 @@ exclusive. If `weeks` is zero, both start and end is the start date of
 the calendar.
 -}
 extend : Int -> Calendar -> (Calendar, Date, Date)
-extend weeks cal = Debug.todo "TODO: test and implement it."
+extend weeks cal =
+    let result =
+            if weeks > 0 then
+                ret_positive
+            else if weeks < 0 then
+                ret_negative
+            else
+                ret_zero
+        ret_zero =
+            let (orig_start, _) = startAndEnd cal
+            in (cal, orig_start, orig_start)
+        ret_positive =
+            let (Calendar cali) = cal
+                new_cal = Calendar { cali | entries = new_entries, end = new_end }
+                new_end = Date.add Date.Days (weeks * 7) cali.end
+                new_entries = cali.entries ++ added_entries
+                added_entries = List.map emptyCalEntry <| Date.range Date.Day 1 cali.end new_end
+            in (new_cal, cali.end, new_end)
+        ret_negative =
+            let (Calendar cali) = cal
+                new_cal = Calendar { cali | entries = new_entries, start = new_start }
+                new_start = Date.add Date.Days (weeks * 7) cali.start
+                new_entries = added_entries ++ cali.entries
+                added_entries = List.map emptyCalEntry <| Date.range Date.Day 1 new_start cali.start
+            in (new_cal, new_start, cali.start)
+    in result

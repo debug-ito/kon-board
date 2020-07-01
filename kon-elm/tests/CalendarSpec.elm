@@ -199,10 +199,37 @@ suite =
             [ test "+1" <|
                   \_ -> let cal = Cal.forWeeks (calDate 2020 Jul 1) Sun 1 1
                             got = Cal.extend 1 cal
-                            exp_period = (calDate 2020 Jun 21, calDate 2020 Jul 5)
-                            exp_ex_start = calDate 2020 Jun 21
-                            exp_ex_end = calDate 2020 Jun 28
+                            exp_period = (calDate 2020 Jun 28, calDate 2020 Jul 12)
+                            exp_ex_start = calDate 2020 Jul 5
+                            exp_ex_end = calDate 2020 Jul 12
                         in Exp.equal (periodT got) (exp_period, exp_ex_start, exp_ex_end)
+            , test "+2" <|
+                \_ -> let cal = Cal.forWeeks (calDate 2020 Jul 1) Sun 1 1
+                          got = Cal.extend 2 cal
+                          exp_period = (calDate 2020 Jun 28, calDate 2020 Jul 19)
+                          exp_ex_start = calDate 2020 Jul 5
+                          exp_ex_end = calDate 2020 Jul 19
+                      in Exp.equal (periodT got) (exp_period, exp_ex_start, exp_ex_end)
+            , test "-1" <|
+                \_ -> let cal = Cal.forWeeks (calDate 2020 Jul 1) Sun 1 1
+                          got = Cal.extend (-1) cal
+                          exp_period = (calDate 2020 Jun 21, calDate 2020 Jul 5)
+                          exp_ex_start = calDate 2020 Jun 21
+                          exp_ex_end = calDate 2020 Jun 28
+                      in Exp.equal (periodT got) (exp_period, exp_ex_start, exp_ex_end)
+            , test "-2" <|
+                \_ -> let cal = Cal.forWeeks (calDate 2020 Jul 1) Sun 1 1
+                          got = Cal.extend (-2) cal
+                          exp_period = (calDate 2020 Jun 14, calDate 2020 Jul 5)
+                          exp_ex_start = calDate 2020 Jun 14
+                          exp_ex_end = calDate 2020 Jun 28
+                      in Exp.equal (periodT got) (exp_period, exp_ex_start, exp_ex_end)
+            , test "0" <|
+                \_ -> let cal = Cal.forWeeks (calDate 2020 Jul 1) Sun 1 1
+                          got = Cal.extend 0 cal
+                          exp_period = (calDate 2020 Jun 28, calDate 2020 Jul 5)
+                          exp_ex_start = calDate 2020 Jun 28
+                          exp_ex_end = calDate 2020 Jun 28
+                      in Exp.equal (periodT got) (exp_period, exp_ex_start, exp_ex_end)
             ]
-            --- TODO: add more test cases
         ]
