@@ -2,6 +2,8 @@ module Calendar exposing
     ( Calendar
     , CalEntry
     , DayMeal
+    , mealFor
+        
     , MonthAnchor
     , prevMonthAnchor
     , compareMonthAnchors
@@ -17,7 +19,7 @@ module Calendar exposing
         
     , addMealPlan
     , addMealPlans
-    , mealFor
+    , extend
     )
 
 import Date exposing (Date, numberToMonth, monthToNumber)
@@ -199,3 +201,16 @@ oneWeek (Calendar c) =
 monthAnchors : Calendar -> List MonthAnchor
 monthAnchors cl =
     List.filterMap (\ce -> dateToMonthAnchor ce.day) <| entries cl
+
+{- | Extend the calendar by the given number of weeks. If `weeks` is
+positive, it extends the calendar in the future. If `weeks` is
+negative, it extends the calendar in the past. If `weeks` is zero, it
+doesn't modify the calendar.
+
+It returns the updated calendar, and start and end dates of the
+extended period of days. The start is inclusive, and the end is
+exclusive. If `weeks` is zero, both start and end is the start date of
+the calendar.
+-}
+extend : Int -> Calendar -> (Calendar, Date, Date)
+extend weeks cal = Debug.todo "TODO: test and implement it."

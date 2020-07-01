@@ -12,6 +12,7 @@ import Time
 import Time exposing (Weekday(..), Month(..))
 
 import Bridge exposing (BMealPlan)
+import Calendar exposing (Calendar)
 import Calendar as Cal
 import MealPhase exposing (MealPhase(..))
 
@@ -20,6 +21,9 @@ calDate = fromCalendarDate
 
 emptyCE : Int -> Month -> Int -> Cal.CalEntry
 emptyCE y m d = { day = calDate y m d, meals = [] }
+
+periodT : (Calendar, a, b) -> ((Date, Date), a, b)
+periodT (cal, a, b) = (Cal.startAndEnd cal, a, b)
 
 suite : Test
 suite =
@@ -191,4 +195,14 @@ suite =
                          , \() -> Exp.equal (Cal.monthAnchors cal) [{ year = 2020, month = Time.Jun }]
                          ] ()
             ]
+        , describe "extend"
+            [ test "+1" <|
+                  \_ -> let cal = Cal.forWeeks (calDate 2020 Jul 1) Sun 1 1
+                            got = Cal.extend 1 cal
+                            exp_period = (calDate 2020 Jun 21, calDate 2020 Jul 5)
+                            exp_ex_start = calDate 2020 Jun 21
+                            exp_ex_end = calDate 2020 Jun 28
+                        in Exp.equal (periodT got) (exp_period, exp_ex_start, exp_ex_end)
+            ]
+            --- TODO: add more test cases
         ]
