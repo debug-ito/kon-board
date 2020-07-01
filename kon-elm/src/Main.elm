@@ -21,7 +21,6 @@ import Html
 import Html.Attributes exposing (href)
 import Html.Attributes as Attr
 import Html.Events as Events
-import Http
 import List
 import Markdown
 import Task exposing (Task)
@@ -51,11 +50,14 @@ import CalSpy
 import Coming exposing (Coming(..))
 import Coming
 import DateUtil
+import HttpUtil exposing (showHttpError)
 import ListUtil
 import Locale
 import Locale exposing (Locale(..), LocaleImpl)
 import MealPhase exposing (MealPhase(..))
 import MealPhase
+import MealPlanLoader exposing (MealPlanLoader)
+import MealPlanLoader
 import Page exposing (Page(..), recipePageLink)
 import Page
 import Recipe exposing (recipeName)
@@ -79,8 +81,7 @@ type alias Model =
     -- | Y position of the viewport (in a calendar view) relative to the "today" element.
     , calendarViewport : Float
     , calendarViewType : CalendarView
-    -- | 'Success' if MealPlans are loaded to the calendar.
-    , mealPlansLoaded : Coming String ()
+    , mealPlanLoader : Coming String MealPlanLoader
     , errorMsg : (Alert.Visibility, String)
     , loadedRecipe : Coming String MRecipe  -- TODO: maybe we should move this under PageRecipe varient.
     }
@@ -150,12 +151,12 @@ main = Browser.application
 -}
 type Msg = NoOp
          | InitModel
-         -- | Initiallize the current time
+         -- | Current time is initialized
          | InitTime Time.Posix Time.Zone
          -- | Update the current time
          | TickTime Time.Posix
-         -- | Got result of loading MealPlans from backend.
-         | MealPlansLoaded (Result String (List BMealPlan))
+         -- | MealPlanLoader is initialized with the initial meal plans.
+         | InitMealPlanLoader (Result String (MealPlanLoader, List BMealPlan))
          -- | Change visibility of error message box
          | ErrorMsgVisibility Alert.Visibility
          | UrlRequestMsg UrlRequest
@@ -183,7 +184,7 @@ appInit _ url key =
                      , calendar = Nothing
                      , calendarViewport = -130.0
                      , calendarViewType = CalViewList
-                     , mealPlansLoaded = NotStarted
+                     , mealPlanLoader = NotStarted
                      , errorMsg = (Alert.closed, "")
                      , loadedRecipe = NotStarted
                      }
@@ -218,18 +219,22 @@ appUpdateModel msg model =
         InitModel -> model
         InitTime t z -> initCalendar z t <| setClock z t model
         TickTime t -> tickClock t model
-        MealPlansLoaded e_mps ->
-            let e_new_cal =
-                    e_mps |> Result.andThen
-                    (\ mps -> e_cal |> Result.andThen
-                         (\ cal ->
-                              Cal.addMealPlans mps cal
-                         )
-                    )
+        InitMealPlanLoader ret ->
+            let setErrorToModel e =
+                    { model | errorMsg = (Alert.shown, e), mealPlanLoader = Failure e }
                 e_cal = Result.fromMaybe "MealPlansLoaded: Calendar is not initialized yet." model.calendar
-            in case e_new_cal of
-                   Err e -> { model | errorMsg = (Alert.shown, e), mealPlansLoaded = Failure e }
-                   Ok new_cal -> { model | calendar = Just new_cal, mealPlansLoaded = Success () }
+                final_ret =
+                    ret |> Result.andThen
+                    ( \(loader, mps) -> e_cal |> Result.andThen
+                      ( \cal -> Cal.addMealPlans mps cal |> Result.andThen
+                        ( \new_cal -> Ok (loader, new_cal)
+                        )
+                      )
+                    )
+            in case final_ret of
+                   Err e -> setErrorToModel e
+                   Ok (loader, new_cal) ->
+                       { model | calendar = Just new_cal, mealPlanLoader = Success loader }
         ErrorMsgVisibility v -> { model | errorMsg = (v, second model.errorMsg) }
         UrlRequestMsg _ -> model
         UrlChangeMsg u -> appUrlChange u model
@@ -283,17 +288,16 @@ appUpdateCmd msg model =
                 Nothing -> [(Task.perform identity <| Task.map2 InitTime Time.now Time.here, identity)]
                 Just _ -> []
         loadMealPlanCmd =
-            if Coming.hasStarted model.mealPlansLoaded
+            if Coming.hasStarted model.mealPlanLoader
             then []
             else
                 case model.calendar of
                     Nothing -> []
                     Just cal ->
-                        let (start, end) = Cal.startAndEnd cal
-                        in [ ( loadMealPlans start end
-                             , (\m -> { m | mealPlansLoaded = Pending })
-                             )
-                           ]
+                        [ ( MealPlanLoader.loadInit cal InitMealPlanLoader
+                          , (\m -> { m | mealPlanLoader = Pending })
+                          )
+                        ]
         urlRequestCmd =
             case msg of
                 UrlRequestMsg (Browser.Internal u) ->
@@ -314,7 +318,7 @@ appUpdateCmd msg model =
                        else mkResult rid
                    _ -> []
         viewportAdjustCmd =
-            case (model.calendar, model.mealPlansLoaded, model.page) of
+            case (model.calendar, model.mealPlanLoader, model.page) of
                 (Just _, Success _, PageTop pt) ->
                     case pt.viewportAdjusted of
                         NotStarted -> 
@@ -359,13 +363,6 @@ appOnUrlRequest = UrlRequestMsg
 appOnUrlChange : Url -> Msg
 appOnUrlChange = UrlChangeMsg
 
-loadMealPlans : Date -> Date -> Cmd Msg
-loadMealPlans start_day end_day =
-    let handle ret =
-            let mkErrorMsg http_err = "Error in loadMealPlans: " ++ showHttpError http_err
-            in MealPlansLoaded <| Result.mapError mkErrorMsg ret
-    in Bridge.getApiV1Mealplans (Date.toIsoString start_day) (Date.toIsoString end_day) handle
-
 loadRecipeByID : BRecipeID -> Cmd Msg
 loadRecipeByID rid =
     let result = Bridge.getApiV1RecipesByRecipeid rid handle
@@ -376,15 +373,6 @@ loadRecipeByID rid =
                         Err err -> Err <| "Error in loadRecipeByID: " ++ showHttpError err
             in RecipeLoaded content
     in result
-
-showHttpError : Http.Error -> String
-showHttpError e =
-    case e of
-        Http.BadUrl u -> "Bad URL: " ++ u
-        Http.Timeout -> "HTTP timeout"
-        Http.NetworkError -> "Network error"
-        Http.BadStatus s -> "Server returned error status " ++ String.fromInt s
-        Http.BadBody b -> "Bad HTTP response body: " ++ b    
 
 ---- View
 
