@@ -296,7 +296,7 @@ appUpdateModel msg model =
         CalLoadMore _ -> model
         CalLoadMoreDone mpl ret_mps ->
             let mpl_model = { model | mealPlanLoader = Success mpl }
-                ret_model = addMealPlansToModel "CalLoadMoreDone" ret_mps model
+                ret_model = addMealPlansToModel "CalLoadMoreDone" ret_mps mpl_model
             in case ret_model of
                    Err e -> { mpl_model | errorMsg = (Alert.shown, e) }
                    Ok m -> m
