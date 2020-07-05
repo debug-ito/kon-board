@@ -230,6 +230,19 @@ appUpdate msg model =
         (cmd, modifyModel) = concatCmds <| appUpdateCmd msg new_model
     in (modifyModel new_model, cmd)
 
+addMealPlansToModel : String -> Result String (List BMealPlan) -> Model -> Result String Model
+addMealPlansToModel error_label ret_mps model =
+    let result = 
+            ret_mps |> Result.andThen
+            ( \mps -> e_cal |> Result.andThen
+              ( \cal -> Cal.addMealPlans mps cal |> Result.andThen
+                ( \new_cal -> Ok { model | calendar = Just new_cal }
+                )
+              )
+            )
+        e_cal = Result.fromMaybe (error_label ++ ": Calendar is not initialized yet.") model.calendar
+    in result
+
 appUpdateModel : Msg -> Model -> Model
 appUpdateModel msg model =
     case msg of
@@ -240,19 +253,17 @@ appUpdateModel msg model =
         InitMealPlanLoader ret ->
             let setErrorToModel e =
                     { model | errorMsg = (Alert.shown, e), mealPlanLoader = Failure e }
-                e_cal = Result.fromMaybe "MealPlansLoaded: Calendar is not initialized yet." model.calendar
+                ret_updated_model =
+                    addMealPlansToModel "InitMealPlanLoader" (Result.map (\(_, c) -> c) ret) model
                 final_ret =
                     ret |> Result.andThen
-                    ( \(loader, mps) -> e_cal |> Result.andThen
-                      ( \cal -> Cal.addMealPlans mps cal |> Result.andThen
-                        ( \new_cal -> Ok (loader, new_cal)
-                        )
+                    ( \(loader, _) -> ret_updated_model |> Result.andThen
+                      ( \updated_model -> Ok { updated_model | mealPlanLoader = Success loader }
                       )
                     )
             in case final_ret of
                    Err e -> setErrorToModel e
-                   Ok (loader, new_cal) ->
-                       { model | calendar = Just new_cal, mealPlanLoader = Success loader }
+                   Ok m -> m
         ErrorMsgVisibility v -> { model | errorMsg = (v, second model.errorMsg) }
         UrlRequestMsg _ -> model
         UrlChangeMsg u -> appUrlChange u model
@@ -283,10 +294,12 @@ appUpdateModel msg model =
         NavbarMenuUpdate s -> { model | navbarMenuState = s }
         CalViewChanged cv -> { model | calendarViewType = cv }
         CalLoadMore _ -> model
-        CalLoadMoreDone mpl _ ->
+        CalLoadMoreDone mpl ret_mps ->
             let mpl_model = { model | mealPlanLoader = Success mpl }
-                new_model = mpl_model -- TODO: add meal plans to calendar. Reuse the logic in InitMealPlanLoader.
-            in new_model
+                ret_model = addMealPlansToModel "CalLoadMoreDone" ret_mps model
+            in case ret_model of
+                   Err e -> { mpl_model | errorMsg = (Alert.shown, e) }
+                   Ok m -> m
 
 appUrlChange : Url -> Model -> Model
 appUrlChange u model = 
