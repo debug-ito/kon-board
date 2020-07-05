@@ -385,17 +385,11 @@ appUpdateCmd msg model =
                 (CalLoadMore direction, Success mploader, Just cal) ->
                     let extend_width = loadMoreWidth 4 direction
                         (new_cal, load_start, load_end) = Cal.extend extend_width cal
-                        ret_load_more = MealPlanLoader.loadMore load_start load_end mploader CalLoadMoreDone
-                    in case ret_load_more of
-                           Err e -> [ ( Cmd.none
-                                      , (\m -> { m | errorMsg = (Alert.shown, e) })
-                                      )
-                                    ]
-                           Ok (new_mpl, load_cmd) ->
-                               [ ( load_cmd
-                                 , (\m -> { m | mealPlanLoader = Success new_mpl, calendar = Just new_cal })
-                                 )
-                               ]
+                        load_cmd = MealPlanLoader.loadMore load_start load_end mploader CalLoadMoreDone
+                    in [ ( load_cmd
+                         , (\m -> { m | mealPlanLoader = Pending, calendar = Just new_cal })
+                         )
+                       ]
                 _ -> []
     in result
 
@@ -596,7 +590,10 @@ viewLoadMoreButton load_more cmploader =
     let result =
             [ Grid.row [] [Grid.col [] [Button.button button_attrs button_label]]
             ]
-        is_load_ok = (Maybe.map MealPlanLoader.isLoading <| Coming.success cmploader) == Just False
+        is_load_ok =
+            case cmploader of
+                Success _ -> True
+                _ -> False
         button_label =
             case load_more of
                 LoadMoreFuture -> [text "Load future"] -- TODO: add icon.
