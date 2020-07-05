@@ -403,7 +403,8 @@ viewBody model =
             case model.page of
                 PageTop _  ->
                     case (modelToday model, model.calendar) of
-                        (Just today, Just cal) -> viewCalendar model.locale today model.calendarViewType cal
+                        (Just today, Just cal) ->
+                            viewCalendar model.locale model.mealPlanLoader today model.calendarViewType cal
                         _ -> []
                 PageRecipe r -> viewRecipePage r model
         err_msg =
@@ -522,18 +523,32 @@ viewMenuCalView locale calview =
 tableMealPhases : List MealPhase
 tableMealPhases = [Lunch, Dinner]
         
-viewCalendar : Locale -> Date -> CalendarView -> Calendar -> List (Html Msg)
-viewCalendar locale today calview cal =
+viewCalendar : Locale -> Coming e MealPlanLoader -> Date -> CalendarView -> Calendar -> List (Html Msg)
+viewCalendar locale cmploader today calview cal =
     let result =
-            -- TODO: show "load meal plans in past" button
-            calendar_body
-            -- TODO: show "load meal plans in future" button
+            viewLoadMoreButton False cmploader
+            ++ calendar_body
+            ++ viewLoadMoreButton True cmploader
         calendar_body = 
             case calview of
                 CalViewList -> List.concatMap (viewCalEntry locale today) <| Cal.entries cal
                 CalViewTable ->
                     (viewCalWeekHead locale <| Cal.oneWeek cal)
                     ++ (List.concatMap (viewCalWeek locale today) <| Cal.weekEntries cal)
+    in result
+
+viewLoadMoreButton : Bool -> Coming e MealPlanLoader -> List (Html Msg)
+viewLoadMoreButton load_future cmploader =
+    let result =
+            [ Grid.row [] [Grid.col [] [Button.button button_attrs button_label]]
+            ]
+        is_load_ok = (Maybe.map MealPlanLoader.isLoading <| Coming.success cmploader) == Just False
+        button_label =
+            if load_future then
+                [text "Load future"]
+            else
+                [text "Load past"]
+        button_attrs = [Button.disabled <| not is_load_ok]
     in result
 
 viewDateLabelWith : Bool -> List (Html msg) -> List (Html msg)
