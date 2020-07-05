@@ -173,6 +173,24 @@ type Msg = NoOp
          | NavbarMenuUpdate NavbarMenuState
          -- | Calendar view style has been changed.
          | CalViewChanged CalendarView
+         -- | Pressed a button to load more calendar entries.
+         | CalLoadMore LoadMore
+         -- | "Load more" is done.
+         | CalLoadMoreDone MealPlanLoader (Result String (List BMealPlan))
+
+{- | Type of "loadMore".
+-}
+type LoadMore = LoadMorePast
+              | LoadMoreFuture
+
+loadMoreWidth : Int -> LoadMore -> Int
+loadMoreWidth w lm =
+    let result = sign * abs w
+        sign =
+            case lm of
+                LoadMorePast -> (-1)
+                LoadMoreFuture -> 1
+    in result
 
 appInit : () -> Url -> Nav.Key -> (Model, Cmd Msg)
 appInit _ url key =
@@ -264,6 +282,11 @@ appUpdateModel msg model =
         CalendarScrollEvent -> model
         NavbarMenuUpdate s -> { model | navbarMenuState = s }
         CalViewChanged cv -> { model | calendarViewType = cv }
+        CalLoadMore _ -> model
+        CalLoadMoreDone mpl _ ->
+            let mpl_model = { model | mealPlanLoader = Success mpl }
+                new_model = mpl_model -- TODO: add meal plans to calendar. Reuse the logic in InitMealPlanLoader.
+            in new_model
 
 appUrlChange : Url -> Model -> Model
 appUrlChange u model = 
@@ -281,13 +304,14 @@ concatCmds cs =
 
 appUpdateCmd : Msg -> Model -> List (Cmd Msg, Model -> Model)
 appUpdateCmd msg model =
-    let result = initTimeCmd ++ loadMealPlanCmd ++ urlRequestCmd
+    let result = initTimeCmd ++ initMealPlanCmd ++ urlRequestCmd
                  ++ loadRecipeCmd ++ viewportAdjustCmd ++ calLayoutObtainCmd
+                 ++ loadMoreMealPlansCmd
         initTimeCmd =
             case model.clock of
                 Nothing -> [(Task.perform identity <| Task.map2 InitTime Time.now Time.here, identity)]
                 Just _ -> []
-        loadMealPlanCmd =
+        initMealPlanCmd =
             if Coming.hasStarted model.mealPlanLoader
             then []
             else
@@ -342,6 +366,23 @@ appUpdateCmd msg model =
                            (ViewportAdjusted _, PageTop _) -> the_cmds
                            (CalViewChanged _, PageTop _) -> the_cmds
                            _ -> []
+                _ -> []
+        loadMoreMealPlansCmd =
+            case (msg, model.mealPlanLoader, model.calendar) of
+                (CalLoadMore direction, Success mploader, Just cal) ->
+                    let extend_width = loadMoreWidth 4 direction
+                        (new_cal, load_start, load_end) = Cal.extend extend_width cal
+                        ret_load_more = MealPlanLoader.loadMore load_start load_end mploader CalLoadMoreDone
+                    in case ret_load_more of
+                           Err e -> [ ( Cmd.none
+                                      , (\m -> { m | errorMsg = (Alert.shown, e) })
+                                      )
+                                    ]
+                           Ok (new_mpl, load_cmd) ->
+                               [ ( load_cmd
+                                 , (\m -> { m | mealPlanLoader = Success new_mpl, calendar = Just new_cal })
+                                 )
+                               ]
                 _ -> []
     in result
 
@@ -526,9 +567,9 @@ tableMealPhases = [Lunch, Dinner]
 viewCalendar : Locale -> Coming e MealPlanLoader -> Date -> CalendarView -> Calendar -> List (Html Msg)
 viewCalendar locale cmploader today calview cal =
     let result =
-            viewLoadMoreButton False cmploader
+            viewLoadMoreButton LoadMorePast cmploader
             ++ calendar_body
-            ++ viewLoadMoreButton True cmploader
+            ++ viewLoadMoreButton LoadMoreFuture cmploader
         calendar_body = 
             case calview of
                 CalViewList -> List.concatMap (viewCalEntry locale today) <| Cal.entries cal
@@ -537,18 +578,21 @@ viewCalendar locale cmploader today calview cal =
                     ++ (List.concatMap (viewCalWeek locale today) <| Cal.weekEntries cal)
     in result
 
-viewLoadMoreButton : Bool -> Coming e MealPlanLoader -> List (Html Msg)
-viewLoadMoreButton load_future cmploader =
+viewLoadMoreButton : LoadMore -> Coming e MealPlanLoader -> List (Html Msg)
+viewLoadMoreButton load_more cmploader =
     let result =
             [ Grid.row [] [Grid.col [] [Button.button button_attrs button_label]]
             ]
         is_load_ok = (Maybe.map MealPlanLoader.isLoading <| Coming.success cmploader) == Just False
         button_label =
-            if load_future then
-                [text "Load future"]
-            else
-                [text "Load past"]
-        button_attrs = [Button.disabled <| not is_load_ok]
+            case load_more of
+                LoadMoreFuture -> [text "Load future"] -- TODO: add icon.
+                LoadMorePast -> [text "Load past"]
+        button_attrs =
+            [ Button.disabled <| not is_load_ok -- TODO: add spinner.
+            , Button.primary
+            , Button.onClick <| CalLoadMore load_more
+            ]
     in result
 
 viewDateLabelWith : Bool -> List (Html msg) -> List (Html msg)
