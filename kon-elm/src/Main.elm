@@ -596,11 +596,14 @@ viewLoadMoreButton load_more cmploader =
                 _ -> False
         button_label =
             case load_more of
-                LoadMoreFuture -> [text "Load future"] -- TODO: add icon.
-                LoadMorePast -> [text "Load past"]
+                LoadMoreFuture ->
+                    [FIcons.toHtml [] <| FIcons.chevronDown]
+                LoadMorePast ->
+                    [FIcons.toHtml [] <| FIcons.chevronUp]
         button_attrs =
             [ Button.disabled <| not is_load_ok -- TODO: add spinner.
             , Button.primary
+            , Button.block -- TODO: adjust margin-left and -right of the row.
             , Button.onClick <| CalLoadMore load_more
             ]
     in result
