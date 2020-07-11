@@ -242,6 +242,12 @@ addMealPlansToModel error_label ret_mps model =
         e_cal = Result.fromMaybe (error_label ++ ": Calendar is not initialized yet.") model.calendar
     in result
 
+triggerViewportAdjust : Model -> Model
+triggerViewportAdjust model =
+    case model.page of
+        PageTop tm -> { model | page = PageTop { tm | viewportAdjusted = NotStarted } }
+        _ -> model
+
 appUpdateModel : Msg -> Model -> Model
 appUpdateModel msg model =
     case msg of
@@ -304,7 +310,7 @@ appUpdateModel msg model =
         CalViewChanged cv -> { model | calendarViewType = cv }
         CalLoadMore _ -> model
         CalLoadMoreDone mpl ret_mps ->
-            let mpl_model = { model | mealPlanLoader = Success mpl }
+            let mpl_model = triggerViewportAdjust <| { model | mealPlanLoader = Success mpl }
                 ret_model = addMealPlansToModel "CalLoadMoreDone" ret_mps mpl_model
             in case ret_model of
                    Err e -> { mpl_model | errorMsg = (Alert.shown, e) }
