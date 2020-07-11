@@ -208,6 +208,10 @@ body > .alert-danger {
     z-index: 1020;
 }
 
+.cal-month-even {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
 /******* sidebar nav *******/
 
 .kon-nav-button {

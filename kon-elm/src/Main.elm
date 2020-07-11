@@ -691,9 +691,15 @@ viewCalWeek locale today entries =
     let result = [Grid.row [] <| List.map mkCol entries]
         mkCol entry = Grid.col
                       [ Col.attrs
-                        [Attr.class "col-1-over-7", Attr.class "col-caltable", Attr.class "col-caltable-day"]
+                        [ Attr.class "col-1-over-7", Attr.class "col-caltable", Attr.class "col-caltable-day"
+                        , Attr.class <| monthAttr entry.day
+                        ]
                       ]
                       (mkDateRow entry ++ List.map (mkPhaseRow entry) tableMealPhases)
+        monthAttr day =
+            if modBy 2 (Date.monthToNumber <| Date.month day) == 0
+            then "cal-month-even"
+            else "cal-month-odd"
         monthAnchorElem entry =
             case Cal.dateToMonthAnchor entry.day of
                 Nothing -> []
