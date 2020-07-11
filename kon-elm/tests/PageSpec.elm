@@ -24,6 +24,8 @@ suite =
                         let pt = { viewportAdjusted = NotStarted, currentAnchor = NotStarted }
                         in Exp.equal (parseUrl_ "http://example.com/") (Just <| PageTop pt)
               , test "recipe page" <|
-                  \_ -> Exp.equal (parseUrl_ "http://192.168.0.1/recipes/foobar") (Just <| PageRecipe "foobar")
+                  \_ -> let got = parseUrl_ "http://192.168.0.1/recipes/foobar"
+                            expected = Just <| PageRecipe { recipeID = "foobar", recipe = NotStarted }
+                        in Exp.equal got expected
               ]
         ]
