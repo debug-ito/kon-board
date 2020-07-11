@@ -2,6 +2,9 @@
 
 ## 0.2.1.0  -- ?
 
+* Now it's possible to load meal plans in past and future, by pressing buttons.
+* Now it shows a spinner icon (instead of Kon icon) when it's loading something.
+
 ## 0.2.0.0  -- 2020-06-28
 
 * Remove the sidebar.
