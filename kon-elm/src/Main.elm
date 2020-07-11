@@ -588,7 +588,10 @@ viewCalendar locale cmploader today calview cal =
 viewLoadMoreButton : LoadMore -> Coming e MealPlanLoader -> List (Html Msg)
 viewLoadMoreButton load_more cmploader =
     let result =
-            [ Grid.row [] [Grid.col [] [Button.button button_attrs button_label]]
+            [ Grid.row [] [ Grid.col
+                            [Col.attrs [Attr.class "cal-col-load-more-button"]]
+                            [Button.button button_attrs button_label]
+                          ]
             ]
         is_load_ok =
             case cmploader of
@@ -603,7 +606,7 @@ viewLoadMoreButton load_more cmploader =
         button_attrs =
             [ Button.disabled <| not is_load_ok -- TODO: add spinner.
             , Button.primary
-            , Button.block -- TODO: adjust margin-left and -right of the row.
+            , Button.block
             , Button.onClick <| CalLoadMore load_more
             ]
     in result

@@ -112,6 +112,11 @@ body > .alert-danger {
     padding: 5px 10px;
 }
 
+.cal-col-load-more-button {
+    padding-left: 0;
+    padding-right: 0;
+}
+
 .cal-day {
     font-size: 1.0rem;
     padding: 4px;
