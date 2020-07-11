@@ -60,7 +60,7 @@ import MealPhase exposing (MealPhase(..))
 import MealPhase
 import MealPlanLoader exposing (MealPlanLoader)
 import MealPlanLoader
-import Page exposing (Page(..), recipePageLink)
+import Page exposing (Page(..), recipePageLink, PRecipeModel)
 import Page
 import Recipe exposing (recipeName)
 
@@ -85,7 +85,6 @@ type alias Model =
     , calendarViewType : CalendarView
     , mealPlanLoader : Coming String MealPlanLoader
     , errorMsg : (Alert.Visibility, String)
-    , loadedRecipe : Coming String MRecipe  -- TODO: maybe we should move this under PageRecipe varient.
     }
 
 {- | Clock in the model.
@@ -93,13 +92,6 @@ type alias Model =
 type alias MClock =
     { curTime : Time.Posix
     , timeZone : Time.Zone
-    }
-
-{- | Loaded recipe in the model.
--}
-type alias MRecipe =
-    { id : BRecipeID
-    , recipe : BRecipe
     }
 
 {- | newtype for 'Dropdown.State' of navbar menu.
@@ -164,7 +156,7 @@ type Msg = NoOp
          | UrlRequestMsg UrlRequest
          | UrlChangeMsg Url
          -- | Got result of laoding a Recipe from backend.
-         | RecipeLoaded (Result String MRecipe)
+         | RecipeLoaded (Result String (BRecipeID, BRecipe))
          -- | Got result of adjusting viewport.
          | ViewportAdjusted (Result String ())
          -- | Got result of getting the calendar layout.
@@ -212,7 +204,6 @@ appInit _ url key =
                      , calendarViewType = CalViewList
                      , mealPlanLoader = NotStarted
                      , errorMsg = (Alert.closed, "")
-                     , loadedRecipe = NotStarted
                      }
         model = appUrlChange url model_base
         (cmd, modifyModel) = concatCmds <| appUpdateCmd InitModel model
@@ -226,10 +217,10 @@ appView m =
         page_title =
             case m.page of
                 PageTop _ -> []
-                PageRecipe _ ->
-                    case Coming.success m.loadedRecipe of
+                PageRecipe t ->
+                    case Coming.success t.recipe of
                         Nothing -> []
-                        Just mr -> [recipeName mr.recipe]
+                        Just r -> [recipeName r]
     in result
 
 appUpdate : Msg -> Model -> (Model, Cmd Msg)
@@ -275,10 +266,20 @@ appUpdateModel msg model =
         ErrorMsgVisibility v -> { model | errorMsg = (v, second model.errorMsg) }
         UrlRequestMsg _ -> model
         UrlChangeMsg u -> appUrlChange u model
-        RecipeLoaded e_mr ->
-            case e_mr of
-                Err e -> { model | errorMsg = (Alert.shown, e), loadedRecipe = Failure e }
-                Ok mr -> { model | loadedRecipe = Success mr }
+        RecipeLoaded ret ->
+            let setError e =
+                    case model.page of
+                        PageRecipe rm -> { model | errorMsg = (Alert.shown, e), page = PageRecipe <| { rm | recipe = Failure e } }
+                        _ -> { model | errorMsg = (Alert.shown, e) }
+            in case ret of
+                   Err e -> setError e
+                   Ok (rid, r) ->
+                       case model.page of
+                           PageRecipe rm ->
+                               if rm.recipeID == rid
+                               then { model | page = PageRecipe <| { rm | recipe = Success r } }
+                               else setError ("Got recipe for " ++ rid ++ ", but expects " ++ rm.recipeID)
+                           _ -> setError ("Got recipe for " ++ rid ++ ", but the page is not PageRecipe.")
         ViewportAdjusted adjust_ret ->
             case model.page of
                 PageTop pt ->
@@ -314,7 +315,7 @@ appUrlChange u model =
     case Page.parseUrl u of
         Nothing -> let err = ("Unknown URL: " ++ Url.toString u)
                    in { model | errorMsg = (Alert.shown, err) }
-        Just p -> { model | page = p, loadedRecipe = NotStarted }
+        Just p -> { model | page = p }
 
 concatCmds : List (Cmd m, Model -> Model) -> (Cmd m, Model -> Model)
 concatCmds cs =
@@ -351,17 +352,16 @@ appUpdateCmd msg model =
                     [(Nav.load s, identity)]
                 _ -> []
         loadRecipeCmd =
-            let mkResult rid = [(loadRecipeByID rid, (\m -> { m | loadedRecipe = Pending }))]
-            in case (model.page, Coming.success model.loadedRecipe) of
-                   (PageRecipe rid, Nothing) ->
-                       if Coming.hasStarted model.loadedRecipe
-                       then []
-                       else mkResult rid
-                   (PageRecipe rid, Just mr) ->
-                       if rid == mr.id
-                       then []
-                       else mkResult rid
-                   _ -> []
+            case model.page of
+                PageRecipe rp ->
+                    case rp.recipe of
+                        NotStarted ->
+                            [ ( loadRecipeByID rp.recipeID
+                              , (\m -> { m | page = PageRecipe <| { rp | recipe = Pending } } )
+                              )
+                            ]
+                        _ -> []
+                _ -> []
         viewportAdjustCmd =
             case (model.calendar, model.mealPlanLoader, model.page) of
                 (Just _, Success _, PageTop pt) ->
@@ -425,7 +425,7 @@ loadRecipeByID rid =
         handle ret =
             let content = 
                     case ret of
-                        Ok r -> Ok <| { id = rid, recipe = r }
+                        Ok r -> Ok (rid, r)
                         Err err -> Err <| "Error in loadRecipeByID: " ++ showHttpError err
             in RecipeLoaded content
     in result
@@ -464,7 +464,7 @@ viewBody model =
                         (Just today, Just cal) ->
                             viewCalendar model.locale model.mealPlanLoader today model.calendarViewType cal
                         _ -> []
-                PageRecipe r -> viewRecipePage r model
+                PageRecipe rm -> viewRecipePage model.locale rm
         err_msg =
             let alert_conf =
                     Alert.children [text <| second model.errorMsg]
@@ -615,7 +615,7 @@ viewLoadMoreButton load_more cmploader =
                 LoadMorePast ->
                     [FIcons.toHtml [] <| FIcons.chevronUp]
         button_attrs =
-            [ Button.disabled <| not is_load_ok -- TODO: add spinner.
+            [ Button.disabled <| not is_load_ok
             , Button.primary
             , Button.block
             , Button.onClick <| CalLoadMore load_more
@@ -738,14 +738,14 @@ viewLinkRecipe rid content =
         attrs = [href <| recipePageLink rid]
     in result
 
-viewRecipePage : BRecipeID -> Model -> List (Html Msg)
-viewRecipePage rid model =
+viewRecipePage : Locale -> PRecipeModel -> List (Html Msg)
+viewRecipePage locale rmodel =
     let result = recipe_body
-                 ++ [div [Attr.class "recipe-id-box"] [text ("Recipe ID: " ++ rid)]]
+                 ++ [div [Attr.class "recipe-id-box"] [text ("Recipe ID: " ++ rmodel.recipeID)]]
         recipe_body =
-            case Coming.success model.loadedRecipe of
+            case Coming.success rmodel.recipe of
                 Nothing -> []
-                Just mr -> viewRecipe model.locale mr.recipe
+                Just r -> viewRecipe locale r
     in result
 
 viewRecipe : Locale -> BRecipe -> List (Html Msg)
