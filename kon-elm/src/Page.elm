@@ -3,6 +3,7 @@ module Page exposing
     , initPage
     , parseUrl
     , recipePageLink
+    , isLoading
     )
 
 import Url exposing (Url)
@@ -12,7 +13,7 @@ import Url.Builder as B
 
 import Bridge exposing (BRecipeID)
 import Calendar exposing (MonthAnchor)
-import Coming exposing (Coming(..))
+import Coming exposing (Coming(..), isPending)
 
 {- | The page associated with URL.
 -}
@@ -42,3 +43,9 @@ parserPage =
 
 recipePageLink : BRecipeID -> String
 recipePageLink rid = B.absolute ["recipes", rid] []
+
+isLoading : Page -> Bool
+isLoading p =
+    case p of
+        PageTop t -> isPending t.viewportAdjusted || isPending t.currentAnchor
+        PageRecipe _ -> False

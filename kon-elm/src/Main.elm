@@ -10,6 +10,7 @@ import Bootstrap.Alert as Alert
 import Bootstrap.Button as Button
 import Bootstrap.Utilities.Display as Display
 import Bootstrap.Dropdown as Dropdown
+import Bootstrap.Spinner as Spinner
 import Browser
 import Browser exposing (Document, UrlRequest)
 import Browser.Dom as Dom
@@ -23,6 +24,7 @@ import Html.Attributes as Attr
 import Html.Events as Events
 import List
 import Markdown
+import Maybe.Extra exposing (isNothing)
 import Task exposing (Task)
 import Time
 import Date exposing (Date)
@@ -47,7 +49,7 @@ import CalSpy exposing
     , relativeCalendarViewportY, setCalendarViewportTask, getCalLayoutTask
     )
 import CalSpy
-import Coming exposing (Coming(..))
+import Coming exposing (Coming(..), isPending)
 import Coming
 import DateUtil
 import HttpUtil exposing (showHttpError)
@@ -190,6 +192,12 @@ loadMoreWidth w lm =
             case lm of
                 LoadMorePast -> (-1)
                 LoadMoreFuture -> 1
+    in result
+
+isLoading : Model -> Bool
+isLoading m =
+    let result = Page.isLoading m.page || model_loading
+        model_loading = isNothing m.clock || isNothing m.calendar || isPending m.mealPlanLoader 
     in result
 
 appInit : () -> Url -> Nav.Key -> (Model, Cmd Msg)
@@ -426,7 +434,9 @@ loadRecipeByID rid =
 
 viewBody : Model -> List (Html Msg)
 viewBody model =
-    let result = viewNavbar model.locale model.page model.calendarViewType model.navbarMenuState ++ main_container ++ err_msg
+    let result = viewNavbar model.locale model.page model.calendarViewType model.navbarMenuState (isLoading model)
+                 ++ main_container
+                 ++ err_msg
         main_container =
             [ Html.div [Attr.class "container-xl", Attr.class "ml-xl-2", Attr.class "top-container"]
                   [ Grid.row []
@@ -488,8 +498,8 @@ navbarHeight m =
         (PageTop _, CalViewTable) -> 61
         _ -> 40
 
-viewNavbar : Locale -> Page -> CalendarView -> NavbarMenuState -> List (Html Msg)
-viewNavbar locale page calview (NavbarMenuState menu_state) =
+viewNavbar : Locale -> Page -> CalendarView -> NavbarMenuState -> Bool -> List (Html Msg)
+viewNavbar locale page calview (NavbarMenuState menu_state) is_loading =
     let result = [ Html.nav
                        (List.map Attr.class ["navbar", "fixed-top", "navbar-light", "bg-light"])
                        navbar_content
@@ -497,17 +507,18 @@ viewNavbar locale page calview (NavbarMenuState menu_state) =
         navbar_content =
             [ Html.form [Attr.class "form-inline"] dropdown_menu ]
             ++ viewNavbarCenter locale page
-            ++ [ Html.form [Attr.class "form-inline"] [kon_icon] ]
+            ++ [ Html.form [Attr.class "form-inline"] [kon_main_button] ]
+        kon_main_button = Html.a [href <| UrlB.absolute [] []] [if is_loading then kon_spinner else kon_icon]
+        kon_spinner =
+            Spinner.spinner [Spinner.small] [Spinner.srMessage "Loading"]
         kon_icon =
-            Html.a [href <| UrlB.absolute [] []]
-                [ Html.img
-                      [ Attr.src <| iconPath "d/kon.svg"
-                      , Attr.alt "Home"
-                      , Attr.width 22
-                      , Attr.height 22
-                      ]
-                      []
+            Html.img
+                [ Attr.src <| iconPath "d/kon.svg"
+                , Attr.alt "Home"
+                , Attr.width 22
+                , Attr.height 22
                 ]
+                []
         dropdown_menu =
             if List.length menu_items == 0
             then []

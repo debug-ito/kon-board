@@ -2,6 +2,7 @@ module Coming exposing
     ( Coming(..)
     , hasStarted
     , success
+    , isPending
     )
 
 {- | 'Coming' is like a future or promise. Difference from future is
@@ -25,3 +26,9 @@ success c =
     case c of
         Success a -> Just a
         _ -> Nothing
+
+isPending : Coming e a -> Bool
+isPending c =
+    case c of
+        Pending -> True
+        _ -> False
