@@ -33,6 +33,7 @@ type alias LocaleImpl msg =
     , viewDateMD : Date -> List (Html msg)
     , viewIngredient : BIngredient -> List (Html msg)
       -- | Format a MonthAnchor (year and month)
+    , showDateYMDA : Date -> String
     , showMonthAnchor : MonthAnchor -> String
     , showWeekday : Weekday -> String
     , showMealPhase : MealPhase -> String
@@ -57,6 +58,7 @@ localeJaJP =
             , viewDateDA = jaViewDateDA
             , viewDateMD = jaViewDateMD
             , viewIngredient = jaViewIngredient
+            , showDateYMDA = jaShowDateYMDA
             , showMonthAnchor = jaShowMonthAnchor
             , showWeekday = jaFormatWeekday
             , showMealPhase = jaShowMealPhase
@@ -139,6 +141,15 @@ jaFormatWeekday w =
         Sat -> "土"
         Sun -> "日"
 
+jaShowDateYMDA : Date -> String
+jaShowDateYMDA d =
+    let result = year ++ "年" ++ month ++ "月" ++ day ++ "日 (" ++ wday ++ ")"
+        year = String.fromInt <| Date.year d
+        month = String.fromInt <| Date.monthToNumber <| Date.month d
+        day = String.fromInt <| Date.day d
+        wday = jaFormatWeekday <| Date.weekday d
+    in result
+
 ---------------
 
 localeEnUS : LocaleImpl msg
@@ -148,6 +159,7 @@ localeEnUS =
             , viewDateDA = enViewDateDA
             , viewDateMD = enViewDateMD
             , viewIngredient = enViewIngredient
+            , showDateYMDA = enShowDateYMDA
             , showMonthAnchor = enShowMonthAnchor
             , showWeekday = enFormatWeekday
             , showMealPhase = enShowMealPhase
@@ -246,4 +258,13 @@ enShowMonthAnchor ma =
     let result = month ++ ", " ++ year
         month = enFormatMonthLong ma.month
         year = String.fromInt ma.year
+    in result
+
+enShowDateYMDA : Date -> String
+enShowDateYMDA d =
+    let result = wday ++ " " ++ day ++ " " ++ month ++ ", " ++ year
+        wday = enFormatWeekday <| Date.weekday d
+        day = String.fromInt <| Date.day d
+        month = enFormatMonthLong <| Date.month d
+        year = String.fromInt <| Date.year d
     in result

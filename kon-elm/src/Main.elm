@@ -60,7 +60,7 @@ import MealPhase exposing (MealPhase(..))
 import MealPhase
 import MealPlanLoader exposing (MealPlanLoader)
 import MealPlanLoader
-import Page exposing (Page(..), recipePageLink, PRecipeModel)
+import Page exposing (Page(..), recipePageLink, PRecipeModel, PDayModel)
 import Page
 import Recipe exposing (recipeName)
 
@@ -221,7 +221,7 @@ appView m =
                     case Coming.success t.recipe of
                         Nothing -> []
                         Just r -> [recipeName r]
-                PageDay _ -> [] -- TODO: show the date, probably with locale support.
+                PageDay d -> [(.showDateYMDA) (Locale.get m.locale) d.day]
     in result
 
 appUpdate : Msg -> Model -> (Model, Cmd Msg)
@@ -472,7 +472,7 @@ viewBody model =
                             viewCalendar model.locale model.mealPlanLoader today model.calendarViewType cal
                         _ -> []
                 PageRecipe rm -> viewRecipePage model.locale rm
-                PageDay _ -> [] -- TODO: make view of the day page.
+                PageDay dm -> viewDayPage model.locale dm
         err_msg =
             let alert_conf =
                     Alert.children [text <| second model.errorMsg]
@@ -817,3 +817,11 @@ iconImg mclass icon_path malt =
 
 iconBootstrap : Maybe String -> String -> Maybe String -> Html Msg
 iconBootstrap mclass icon_name malt = iconImg mclass ("twbs/" ++ icon_name ++ ".svg") malt
+
+viewDayPage : Locale -> PDayModel -> List (Html Msg)
+viewDayPage locale dm =
+    let result =
+            [ Html.h1 [] [text <| (.showDateYMDA) (Locale.get locale) <| dm.day]
+              -- TODO: add content
+            ]
+    in result

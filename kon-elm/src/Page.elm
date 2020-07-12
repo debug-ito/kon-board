@@ -2,9 +2,11 @@ module Page exposing
     ( Page(..)
     , PTopModel
     , PRecipeModel
+    , PDayModel
     , initPage
     , parseUrl
     , recipePageLink
+    , dayPageLink
     , isLoading
     )
 
@@ -76,6 +78,9 @@ parserPage =
 
 recipePageLink : BRecipeID -> String
 recipePageLink rid = B.absolute ["recipes", rid] []
+
+dayPageLink : Date -> String
+dayPageLink d = B.absolute ["days", Date.toIsoString d] []
 
 isLoading : Page -> Bool
 isLoading p =
