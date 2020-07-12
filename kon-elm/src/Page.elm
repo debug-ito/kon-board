@@ -50,14 +50,28 @@ initRecipePage : BRecipeID -> Page
 initRecipePage rid =
     PageRecipe { recipeID = rid, recipe = NotStarted }
 
+initDayPage : Date -> Page
+initDayPage d =
+    PageDay { day = d, calEntry = NotStarted }
+
 parseUrl : Url -> Maybe Page
 parseUrl = P.parse parserPage
+
+parserDate : Parser (Date -> a) a
+parserDate =
+    let result = P.custom "DATE" parser
+        parser s =
+            case Date.fromIsoString s of
+                Err _ -> Nothing
+                Ok d -> Just d
+    in result
 
 parserPage : Parser (Page -> a) a
 parserPage =
     oneOf
     [ P.map initPage P.top
     , P.map initRecipePage (P.s "recipes" </> P.string)
+    , P.map initDayPage (P.s "days" </> parserDate)
     ]
 
 recipePageLink : BRecipeID -> String

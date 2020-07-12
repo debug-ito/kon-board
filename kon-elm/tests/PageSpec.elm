@@ -1,8 +1,10 @@
 module PageSpec exposing (suite)
 
+import Date exposing (fromCalendarDate)
 import Expect as Exp
 import Maybe
 import Test exposing (Test, describe, test)
+import Time exposing (Month(..))
 import Url exposing (Url)
 import Url
 
@@ -26,6 +28,10 @@ suite =
               , test "recipe page" <|
                   \_ -> let got = parseUrl_ "http://192.168.0.1/recipes/foobar"
                             expected = Just <| PageRecipe { recipeID = "foobar", recipe = NotStarted }
+                        in Exp.equal got expected
+              , test "day page" <|
+                  \_ -> let got = parseUrl_ "http://192.168.1.1/days/2020-07-12"
+                            expected = Just <| PageDay { day = fromCalendarDate 2020 Jul 12, calEntry = NotStarted }
                         in Exp.equal got expected
               ]
         ]
