@@ -221,6 +221,7 @@ appView m =
                     case Coming.success t.recipe of
                         Nothing -> []
                         Just r -> [recipeName r]
+                PageDay _ -> [] -- TODO: show the date, probably with locale support.
     in result
 
 appUpdate : Msg -> Model -> (Model, Cmd Msg)
@@ -471,6 +472,7 @@ viewBody model =
                             viewCalendar model.locale model.mealPlanLoader today model.calendarViewType cal
                         _ -> []
                 PageRecipe rm -> viewRecipePage model.locale rm
+                PageDay _ -> [] -- TODO: make view of the day page.
         err_msg =
             let alert_conf =
                     Alert.children [text <| second model.errorMsg]

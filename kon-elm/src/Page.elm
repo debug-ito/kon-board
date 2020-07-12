@@ -8,13 +8,14 @@ module Page exposing
     , isLoading
     )
 
+import Date exposing (Date)
 import Url exposing (Url)
 import Url.Parser exposing (Parser, oneOf, (</>))
 import Url.Parser as P
 import Url.Builder as B
 
 import Bridge exposing (BRecipeID, BRecipe)
-import Calendar exposing (MonthAnchor)
+import Calendar exposing (MonthAnchor, CalEntry)
 import Coming exposing (Coming(..), isPending)
 
 {- | The page associated with URL.
@@ -24,6 +25,8 @@ type Page =
       PageTop PTopModel
       -- | The recipe page
     | PageRecipe PRecipeModel
+      -- | The day page
+    | PageDay PDayModel
 
 type alias PTopModel =
     { viewportAdjusted : Coming String ()
@@ -33,6 +36,11 @@ type alias PTopModel =
 type alias PRecipeModel =
     { recipeID : BRecipeID
     , recipe : Coming String BRecipe
+    }
+
+type alias PDayModel =
+    { day : Date
+    , calEntry : Coming String CalEntry
     }
 
 initPage : Page
@@ -60,3 +68,4 @@ isLoading p =
     case p of
         PageTop t -> isPending t.viewportAdjusted || isPending t.currentAnchor
         PageRecipe r -> isPending r.recipe
+        PageDay d -> isPending d.calEntry
