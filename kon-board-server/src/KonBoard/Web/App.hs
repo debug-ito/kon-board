@@ -94,6 +94,7 @@ appWith Server { sMealPlanStore = mp_store,
         index_page = ["static", "index.html"]
         rewrite ([], q) _ = (index_page, q)
         rewrite (("recipes" : _ : _), q) _ = (index_page, q)
+        rewrite (("days" : _), q) _ = (index_page, q)
         rewrite pq _ = pq
 
 makeDefaultServer :: IO Server
