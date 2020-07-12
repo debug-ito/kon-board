@@ -1,5 +1,7 @@
 # Revision history for kon-board
 
+## 0.2.2.0  -- ?
+
 ## 0.2.1.0  -- 2020-07-11
 
 * Now it's possible to load meal plans in past and future, by pressing buttons.
