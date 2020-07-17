@@ -20,6 +20,7 @@ module Calendar exposing
     , addMealPlan
     , addMealPlans
     , extend
+    , calEntryFromMealPlans
     )
 
 import Date exposing (Date, numberToMonth, monthToNumber)
@@ -172,6 +173,7 @@ addMealPlans bps cal =
                 Ok cur_cal -> addMealPlan bp cur_cal
     in List.foldr f (Ok cal) bps
 
+
 {- | Return the start and end of the calendar. Start date is
 inclusive, end date is exclusive.
 -}
@@ -241,4 +243,22 @@ extend weeks cal =
                 new_entries = added_entries ++ cali.entries
                 added_entries = List.map emptyCalEntry <| Date.range Date.Day 1 new_start cali.start
             in (new_cal, new_start, cali.start)
+    in result
+
+{- | Make a 'CalEntry' from 'BMealPlan's. All meal plans must be for
+the given date.
+-}
+calEntryFromMealPlans : Date -> List BMealPlan -> Result String CalEntry
+calEntryFromMealPlans cal_date mps =
+    let result =
+            Result.map mkCalEntry
+            <| Result.andThen (ResultE.combineMap extractDayMeal)
+            <| ResultE.combineMap fromBMealPlan mps
+        extractDayMeal (mp_date, mp_daymeal) =
+            if mp_date == cal_date
+            then Ok mp_daymeal
+            else Err ( "Expected BMealPlan for " ++ Date.toIsoString cal_date ++ ", but got "
+                       ++ Date.toIsoString mp_date
+                     )
+        mkCalEntry dms = List.foldr setDayMeal (emptyCalEntry cal_date) dms
     in result
