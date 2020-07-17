@@ -3,52 +3,52 @@ port module Main exposing
 
 {- | The application main. -}
 
+import Bootstrap.Alert as Alert
+import Bootstrap.Button as Button
+import Bootstrap.Dropdown as Dropdown
 import Bootstrap.Grid as Grid
 import Bootstrap.Grid.Col as Col
 import Bootstrap.Grid.Row as Row
-import Bootstrap.Alert as Alert
-import Bootstrap.Button as Button
-import Bootstrap.Utilities.Display as Display
-import Bootstrap.Dropdown as Dropdown
 import Bootstrap.Spinner as Spinner
+import Bootstrap.Utilities.Display as Display
 import Browser
 import Browser exposing (Document, UrlRequest)
 import Browser.Dom as Dom
 import Browser.Navigation as Nav
+import Date exposing (Date)
+import Date
 import FeatherIcons as FIcons
-import Json.Decode exposing (Value)
 import Html exposing (Html, div, text, ul, li, h1, h2, h3)
 import Html
 import Html.Attributes exposing (href)
 import Html.Attributes as Attr
 import Html.Events as Events
+import Json.Decode exposing (Value)
 import List
 import Markdown
 import Maybe.Extra exposing (isNothing)
-import Task exposing (Task)
-import Time
-import Date exposing (Date)
-import Date
-import Url exposing (Url)
-import Url
-import Url.Builder as UrlB
 import Process
 import Result
 import String
+import Task exposing (Task)
 import Task
+import Time
 import Tuple exposing (first, second)
+import Url exposing (Url)
+import Url
+import Url.Builder as UrlB
 
 import Bridge exposing
     (BRecipeSummary, BMealPlan, BRecipeID, BRecipe(..))
 import Bridge
-import Calendar exposing (CalEntry, Calendar, DayMeal, MonthAnchor)
-import Calendar as Cal
 import CalSpy exposing
     ( CalLayout
     , todayCellID, monthAnchorCellID
     , relativeCalendarViewportY, setCalendarViewportTask, getCalLayoutTask
     )
 import CalSpy
+import Calendar exposing (CalEntry, Calendar, DayMeal, MonthAnchor)
+import Calendar as Cal
 import Coming exposing (Coming(..), isPending)
 import Coming
 import DateUtil
@@ -153,9 +153,11 @@ type Msg = NoOp
          | InitMealPlanLoader (Result String (MealPlanLoader, List BMealPlan))
          -- | Change visibility of error message box
          | ErrorMsgVisibility Alert.Visibility
+         -- | UrlRequest browser event
          | UrlRequestMsg UrlRequest
+         -- | UrlChange browser event
          | UrlChangeMsg Url
-         -- | Got result of laoding a Recipe from backend.
+         -- | Got result of loading a Recipe from backend.
          | RecipeLoaded (Result String (BRecipeID, BRecipe))
          -- | Got result of adjusting viewport.
          | ViewportAdjusted (Result String ())
@@ -171,6 +173,8 @@ type Msg = NoOp
          | CalLoadMore LoadMore
          -- | "Load more" is done.
          | CalLoadMoreDone MealPlanLoader (Result String (List BMealPlan))
+         -- | Finish loading meal plans for a day
+         | DayMealPlanLoaded (Result String (Date, List BMealPlan))
 
 {- | Type of "loadMore".
 -}
@@ -316,6 +320,7 @@ appUpdateModel msg model =
             in case ret_model of
                    Err e -> { mpl_model | errorMsg = (Alert.shown, e) }
                    Ok m -> m
+        DayMealPlanLoaded _ -> model  -- TODO: get and process the meal plan.
 
 appUrlChange : Url -> Model -> Model
 appUrlChange u model = 
@@ -335,7 +340,7 @@ appUpdateCmd : Msg -> Model -> List (Cmd Msg, Model -> Model)
 appUpdateCmd msg model =
     let result = initTimeCmd ++ initMealPlanCmd ++ urlRequestCmd
                  ++ loadRecipeCmd ++ viewportAdjustCmd ++ calLayoutObtainCmd
-                 ++ loadMoreMealPlansCmd
+                 ++ loadMoreMealPlansCmd ++ loadDayMealPlanCmd
         initTimeCmd =
             case model.clock of
                 Nothing -> [(Task.perform identity <| Task.map2 InitTime Time.now Time.here, identity)]
@@ -405,6 +410,13 @@ appUpdateCmd msg model =
                          , (\m -> { m | mealPlanLoader = Pending, calendar = Just new_cal })
                          )
                        ]
+                _ -> []
+        loadDayMealPlanCmd =
+            case model.page of
+                PageDay pm ->
+                    case pm.calEntry of
+                        NotStarted -> [] -- TODO: add loading command and set Pending state
+                        _ -> []
                 _ -> []
     in result
 

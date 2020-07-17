@@ -12,7 +12,7 @@ import Calendar as Cal
 import HttpUtil exposing (showHttpError)
 
 
-{- | Controller for loading MealPlans. -}
+{- | Controller for loading MealPlans for Calendar. -}
 type MealPlanLoader = MPL
 
 {- | Load initial meal plans for the given calendar. This also
