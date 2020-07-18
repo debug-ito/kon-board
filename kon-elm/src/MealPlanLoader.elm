@@ -2,9 +2,11 @@ module MealPlanLoader exposing
     ( MealPlanLoader
     , loadInit
     , loadMore
+    , loadOneDay
     )
 
 import Date exposing (Date)
+import Date
 
 import Bridge exposing (BMealPlan)
 import Calendar exposing (Calendar)
@@ -45,4 +47,14 @@ loadMore :  Date -- ^ start date (inclusive)
 loadMore start end MPL fmsg =
     let result = loadMealPlans start end handle
         handle mps = fmsg MPL mps
+    in result
+
+{- | Load meal plans for a day. This function doesn't require
+'MealPlanLoader', because it's not for Calendar.
+-}
+loadOneDay : Date -> (Result String (Date, List BMealPlan) -> msg) -> Cmd msg
+loadOneDay date fmsg =
+    let result = loadMealPlans date end_date handle
+        end_date = Date.add Date.Days 1 date
+        handle ret = fmsg <| Result.map (\mps -> (date, mps)) ret
     in result
