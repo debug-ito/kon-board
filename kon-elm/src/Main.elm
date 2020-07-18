@@ -60,7 +60,7 @@ import MealPhase exposing (MealPhase(..))
 import MealPhase
 import MealPlanLoader exposing (MealPlanLoader)
 import MealPlanLoader
-import Page exposing (Page(..), recipePageLink, PRecipeModel, PDayModel)
+import Page exposing (Page(..), recipePageLink, PRecipeModel, PDayModel, dayPageLink)
 import Page
 import Recipe exposing (recipeName)
 
@@ -320,7 +320,32 @@ appUpdateModel msg model =
             in case ret_model of
                    Err e -> { mpl_model | errorMsg = (Alert.shown, e) }
                    Ok m -> m
-        DayMealPlanLoaded _ -> model  -- TODO: get and process the meal plan.
+        DayMealPlanLoaded ret ->
+            let ret_pday_model =
+                    case model.page of
+                        PageDay dm -> Ok dm
+                        _ -> Err ("Got a DayMealPlanLoaded message while not in PageDay.")
+                final_ret =
+                    ret |> Result.andThen
+                    ( \(date, mps) -> ret_pday_model |> Result.andThen
+                      ( \pday_model ->
+                            ( if pday_model.day == date
+                              then Ok ()
+                              else Err ( "Got a DayMealPlanLoaded message for " ++ Date.toIsoString date
+                                         ++ ", but the page is for " ++ Date.toIsoString pday_model.day
+                                       )
+                            ) |> Result.andThen
+                            ( \() -> Cal.calEntryFromMealPlans date mps
+                            )
+                      )
+                    )
+            in case ret_pday_model of
+                   Ok dm ->
+                       case final_ret of
+                           Ok c -> { model | page = PageDay { dm | calEntry = Success c } }
+                           Err e -> { model | errorMsg = (Alert.shown, e), page = PageDay { dm | calEntry = Failure e } }
+                   Err e -> { model | errorMsg = (Alert.shown, e) }
+
 
 appUrlChange : Url -> Model -> Model
 appUrlChange u model = 
@@ -415,7 +440,10 @@ appUpdateCmd msg model =
             case model.page of
                 PageDay pm ->
                     case pm.calEntry of
-                        NotStarted -> [] -- TODO: add loading command and set Pending state
+                        NotStarted ->
+                            let cmd = MealPlanLoader.loadOneDay pm.day DayMealPlanLoaded
+                                updateM m = { m | page = PageDay { pm | calEntry = Pending } }
+                            in [(cmd, updateM)]
                         _ -> []
                 _ -> []
     in result
@@ -651,6 +679,9 @@ viewDateLabelWith is_today content =
                    else []
     in result
 
+viewDateLink : Date -> List (Html msg) -> List (Html msg)
+viewDateLink d content = [Html.a [Attr.href <| dayPageLink d] content]
+
 viewCalEntry : Locale -> Date -> CalEntry -> List (Html Msg)
 viewCalEntry locale today centry =
     let result = row_month_anchor
@@ -665,7 +696,7 @@ viewCalEntry locale today centry =
                        else "cal-day-row-odd"
         col_date_head = Grid.col
                         [Col.xs3, Col.md2, Col.attrs [Attr.class "cal-col-entry-head"]]
-                        <| viewDateLabelWith (today == centry.day) <| (.viewDateDA) (Locale.get locale) centry.day
+                        <| viewDateLabelWith (today == centry.day) <| viewDateLink centry.day <| (.viewDateDA) (Locale.get locale) centry.day
         col_date_body = Grid.col
                         [Col.xs9, Col.md10]
                         [Grid.row [] <| List.map mkColForPhase tableMealPhases]
@@ -721,7 +752,7 @@ viewCalWeek locale today entries =
         mkDateRow entry = [ Grid.row (mkDateRowAttrs entry)
                                 [ Grid.col [Col.attrs [Attr.class "col-caltable"]]
                                   ( monthAnchorElem entry
-                                    ++ (viewDateLabelWith (today == entry.day) <| mkDateText entry.day)
+                                    ++ (viewDateLabelWith (today == entry.day) <| viewDateLink entry.day <| mkDateText entry.day)
                                   )
                                 ]
                           ]
@@ -834,6 +865,17 @@ viewDayPage : Locale -> PDayModel -> List (Html Msg)
 viewDayPage locale dm =
     let result =
             [ Html.h1 [] [text <| (.showDateYMDA) (Locale.get locale) <| dm.day]
-              -- TODO: add content
+            ]
+            ++ ( case Coming.success dm.calEntry of
+                     Nothing -> []
+                     Just cale -> List.concatMap (viewDayPageDayMeal locale) cale.meals
+               )
+    in result
+
+viewDayPageDayMeal : Locale -> DayMeal -> List (Html Msg)
+viewDayPageDayMeal locale dm =
+    let result =
+            [ Html.h2 [] [text <| (.showMealPhase) (Locale.get locale) dm.phase]
+                  -- TODO: write content
             ]
     in result
