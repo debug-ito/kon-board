@@ -670,17 +670,22 @@ viewLoadMoreButton load_more cmploader =
             ]
     in result
 
-viewDateLabelWith : Bool -> List (Html msg) -> List (Html msg)
-viewDateLabelWith is_today content =
-    let result = [div attrs content]
-        attrs = [Attr.class "cal-day"]
-                ++ if is_today
-                   then [Attr.class "cal-today"]
-                   else []
+viewDateLabel : Date -> Date -> List (Html msg) -> List (Html msg)
+viewDateLabel today button_day content =
+    let result = [Button.linkButton opts content]
+        opts = [ ( if is_today
+                   then Button.primary
+                   else Button.light
+                 )
+               , Button.block
+               , Button.attrs ([Attr.class "cal-day", Attr.href <| dayPageLink button_day] ++ day_class)
+               ]
+        is_today = today == button_day
+        day_class =
+            if is_today
+            then [Attr.class "cal-today"]
+            else []
     in result
-
-viewDateLink : Date -> List (Html msg) -> List (Html msg)
-viewDateLink d content = [Html.a [Attr.href <| dayPageLink d] content]
 
 viewCalEntry : Locale -> Date -> CalEntry -> List (Html Msg)
 viewCalEntry locale today centry =
@@ -696,7 +701,7 @@ viewCalEntry locale today centry =
                        else "cal-day-row-odd"
         col_date_head = Grid.col
                         [Col.xs3, Col.md2, Col.attrs [Attr.class "cal-col-entry-head"]]
-                        <| viewDateLabelWith (today == centry.day) <| viewDateLink centry.day <| (.viewDateDA) (Locale.get locale) centry.day
+                        <| viewDateLabel today centry.day <| (.viewDateDA) (Locale.get locale) centry.day
         col_date_body = Grid.col
                         [Col.xs9, Col.md10]
                         [Grid.row [] <| List.map mkColForPhase tableMealPhases]
@@ -752,7 +757,7 @@ viewCalWeek locale today entries =
         mkDateRow entry = [ Grid.row (mkDateRowAttrs entry)
                                 [ Grid.col [Col.attrs [Attr.class "col-caltable"]]
                                   ( monthAnchorElem entry
-                                    ++ (viewDateLabelWith (today == entry.day) <| viewDateLink entry.day <| mkDateText entry.day)
+                                    ++ (viewDateLabel today entry.day <| mkDateText entry.day)
                                   )
                                 ]
                           ]
