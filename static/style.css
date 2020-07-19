@@ -121,6 +121,8 @@ body > .alert-danger {
     font-size: 1.0rem;
     font-weight: bold;
     text-align: left;
+    padding: 4px;
+    border-radius: 4px;
 }
 
 .cal-today .day-sat {
