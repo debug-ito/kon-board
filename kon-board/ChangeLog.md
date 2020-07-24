@@ -2,6 +2,8 @@
 
 ## 0.2.2.0  -- ?
 
+* Add links to dates in the calendar. The link leads to a page for the date.
+
 ## 0.2.1.0  -- 2020-07-11
 
 * Now it's possible to load meal plans in past and future, by pressing buttons.
