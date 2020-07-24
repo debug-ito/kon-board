@@ -881,6 +881,11 @@ viewDayPageDayMeal : Locale -> DayMeal -> List (Html Msg)
 viewDayPageDayMeal locale dm =
     let result =
             [ Html.h2 [] [text <| (.showMealPhase) (Locale.get locale) dm.phase]
-                  -- TODO: write content
+            , Html.ul [Attr.class "day-meal-plan-list"] <| List.map viewRecipeSummary dm.recipes
             ]
+        viewRecipeSummary rs =
+            Html.li
+                [Attr.class "cal-meal-plan-item-meal"]
+                [ Html.a [Attr.href <| recipePageLink rs.id] [Html.text rs.name]
+                ]
     in result

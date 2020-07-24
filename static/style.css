@@ -250,3 +250,9 @@ body > .alert-danger {
 .recipe-ref {
     overflow-wrap: break-word;
 }
+
+/******* day page *******/
+
+.day-meal-plan-list {
+    list-style: none;
+}
