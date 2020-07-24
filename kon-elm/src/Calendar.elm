@@ -16,6 +16,7 @@ module Calendar exposing
     , weekEntries
     , oneWeek
     , monthAnchors
+    , entryFor
         
     , addMealPlan
     , addMealPlans
@@ -33,7 +34,7 @@ import Time exposing (Weekday, Month)
 
 import Bridge exposing (BMealPlan, BRecipeSummary)
 import DateUtil exposing (parseMonth)
-import ListUtil exposing (replaceOrAdd)
+import ListUtil exposing (replaceOrAdd, listToMaybe)
 import ListUtil
 import MealPhase exposing (MealPhase(..))
 import MealPhase
@@ -206,6 +207,12 @@ oneWeek (Calendar c) =
 monthAnchors : Calendar -> List MonthAnchor
 monthAnchors cl =
     List.filterMap (\ce -> dateToMonthAnchor ce.day) <| entries cl
+
+{- | Get CalEntry for the given date.
+-}
+entryFor : Date -> Calendar -> Maybe CalEntry
+entryFor d cal =
+    listToMaybe <| List.filter (\ce -> ce.day == d) <| entries cal
 
 {- | Extend the calendar by the given number of weeks. If `weeks` is
 positive, it extends the calendar in the future. If `weeks` is

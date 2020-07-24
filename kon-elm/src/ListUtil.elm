@@ -4,6 +4,7 @@ module ListUtil exposing
     , last
     , blocks
     , changes
+    , listToMaybe
     )
 
 import List exposing (foldr)
@@ -73,3 +74,12 @@ changes input =
                     then go next_a next_rest acc
                     else go next_a next_rest (next_a :: acc)
     in result
+
+{- | If the list has at least one element, it returns the head. If the
+list is empty, it returns 'Nothing'.
+-}
+listToMaybe : List a -> Maybe a
+listToMaybe l =
+    case l of
+        [] -> Nothing
+        (a :: _) -> Just a
