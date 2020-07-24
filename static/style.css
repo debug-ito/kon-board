@@ -63,6 +63,11 @@ body > .alert-danger {
     height: 40px;
 }
 
+.navbar-spinner {
+    width: 22px;
+    height: 22px;
+}
+
 /******* clock *******/
 
 .clock-panel {

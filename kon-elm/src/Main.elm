@@ -558,7 +558,9 @@ viewNavbar locale page calview (NavbarMenuState menu_state) is_loading =
             ++ [ Html.form [Attr.class "form-inline"] [kon_main_button] ]
         kon_main_button = Html.a [href <| UrlB.absolute [] []] [if is_loading then kon_spinner else kon_icon]
         kon_spinner =
-            Spinner.spinner [Spinner.small] [Spinner.srMessage "Loading"]
+            Spinner.spinner
+                [Spinner.attrs [Attr.class "navbar-spinner"]]
+                [Spinner.srMessage "Loading"]
         kon_icon =
             Html.img
                 [ Attr.src <| iconPath "d/kon.svg"
