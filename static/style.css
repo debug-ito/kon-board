@@ -21,6 +21,16 @@
     max-width: 14.285714%;
 }
 
+/******* generic elements *******/
+
+h1 {
+    font-size: 2.0rem;
+}
+
+h2 {
+    font-size: 1.5rem;
+}
+
 /******* custom component *******/
 
 .btn-light-trans {
@@ -244,14 +254,6 @@ body > .alert-danger {
     overflow: hidden;
 }
 
-.recipe-box h1 {
-    font-size: 2.0rem;
-}
-
-.recipe-box h2 {
-    font-size: 1.5rem;
-}
-
 .recipe-ref {
     overflow-wrap: break-word;
 }
@@ -260,4 +262,5 @@ body > .alert-danger {
 
 .day-meal-plan-list {
     list-style: none;
+    padding-left: 10px;
 }
