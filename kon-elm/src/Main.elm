@@ -348,11 +348,25 @@ appUpdateModel msg model =
 
 
 appUrlChange : Url -> Model -> Model
-appUrlChange u model = 
-    case Page.parseUrl u of
-        Nothing -> let err = ("Unknown URL: " ++ Url.toString u)
-                   in { model | errorMsg = (Alert.shown, err) }
-        Just p -> { model | page = p }
+appUrlChange u model =
+    let result = 
+            case Page.parseUrl u of
+                Nothing -> let err = ("Unknown URL: " ++ Url.toString u)
+                           in { model | errorMsg = (Alert.shown, err) }
+                Just p -> { model | page = initPageWithModel model p }
+    in result
+
+initPageWithModel : Model -> Page -> Page
+initPageWithModel model page =
+    case page of
+        PageDay dm ->
+            case (dm.calEntry, model.calendar) of
+                (NotStarted, Just cal) ->
+                    case Cal.entryFor dm.day cal of
+                        Nothing -> page
+                        Just centry -> PageDay { dm | calEntry = Success centry }
+                _ -> page
+        _ -> page
 
 concatCmds : List (Cmd m, Model -> Model) -> (Cmd m, Model -> Model)
 concatCmds cs =
