@@ -21,6 +21,19 @@
     max-width: 14.285714%;
 }
 
+/******* custom component *******/
+
+.btn-light-trans {
+    color: #212529;
+    background-color: #00000008;
+    border-color: #00000008;
+}
+
+.btn-light-trans:hover {
+    background-color: #00000018;
+    border-color: #00000018;
+}
+
 /******* feather icons *******/
 
 .feather {

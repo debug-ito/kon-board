@@ -675,7 +675,7 @@ viewDateLabel today button_day content =
     let result = [Button.linkButton opts content]
         opts = [ ( if is_today
                    then Button.primary
-                   else Button.light
+                   else Button.attrs [Attr.class "btn-light-trans"]
                  )
                , Button.block
                , Button.attrs ([Attr.class "cal-day", Attr.href <| dayPageLink button_day] ++ day_class)
