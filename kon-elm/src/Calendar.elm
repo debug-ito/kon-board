@@ -104,7 +104,7 @@ type alias CalImpl =
 
 fromBMealPlan : BMealPlan -> Result String (Date, DayMeal)
 fromBMealPlan mp =
-    MealPhase.parseString mp.phase |> Result.andThen
+    MealPhase.fromString mp.phase |> Result.andThen
     ( \p -> parseMonth mp.month |> Result.andThen
     ( \m ->
           let day = Date.fromCalendarDate mp.year m mp.day

@@ -1,7 +1,7 @@
 module MealPhase exposing
     ( MealPhase(..)
     , toString
-    , parseString
+    , fromString
     )
 
 {- | MealPhase type. -}
@@ -13,18 +13,27 @@ type MealPhase = Breakfast
                | Dinner
                | MealOther String
 
+{- | Encode the MealPhase into String. Note that this is for data
+serialization (e.g. for JSON), not for humans. To convert MealPhase
+into a human-readable string, use Locale module.
+-}
 toString : MealPhase -> String
 toString mp =
     case mp of
-        Breakfast -> "朝"
-        Lunch -> "昼"
-        Dinner -> "夜"
-        MealOther s -> s
+        Breakfast -> "breakfast"
+        Lunch -> "lunch"
+        Dinner -> "dinner"
+        MealOther s -> "@" ++ s
 
-parseString : String -> Result String MealPhase
-parseString s =
+{- | Parse string into MealPhase. This is the dual of toString.
+-}
+fromString : String -> Result String MealPhase
+fromString s =
     case s of
         "breakfast" -> Ok Breakfast
         "lunch" -> Ok Lunch
         "dinner" -> Ok Dinner
-        _ -> Err ("Unknown MealPhase: " ++ s) -- TODO: parser for MealOther
+        _ ->
+            if String.startsWith "@" s
+            then Ok <| MealOther <| String.dropLeft 1 s
+            else Err ("Unknown MealPhase: " ++ s)
