@@ -13,12 +13,13 @@ module KonBoard.MealPlan.Store
     openYAMLs
   ) where
 
-import Control.Applicative ((<|>), (<$>))
-import Control.Monad (forM)
+import Control.Applicative ((<|>), (<$>), empty)
+import Control.Monad (forM, guard)
 import Control.Monad.Logger (MonadLogger, logInfoN)
 import Control.Monad.Trans (MonadIO(..))
 import Data.Aeson (FromJSON(..), ToJSON(..))
 import qualified Data.Aeson as Aeson
+import qualified Data.Foldable as F
 import Data.List (sort)
 import Data.List.NonEmpty (NonEmpty)
 import Data.Text (Text, pack)
@@ -26,7 +27,7 @@ import Data.Time (Day, fromGregorian)
 import Data.Traversable (Traversable(..))
 import GHC.Generics (Generic)
 
-import KonBoard.MealPlan (MealPlan(..), MealPhase)
+import KonBoard.MealPlan (MealPlan(..), MealPhase(..), toMealPhase, fromMealPhase)
 import KonBoard.Recipe.Store (RecipeStore, loadRecipeByName')
 import KonBoard.Recipe (Name)
 import KonBoard.Util.YAML (readYAMLDocs)
@@ -107,10 +108,23 @@ newtype YMealPhase = YMealPhase { unYMealPhase :: MealPhase }
   deriving (Show,Eq,Ord)
 
 instance FromJSON YMealPhase where
-  parseJSON = undefined -- TODO
+  parseJSON v = fmap YMealPhase $ parsedMealPhase
+    where
+      parsedMealPhase =
+        case v of
+          Aeson.String s -> either fail return $ toMealPhase s
+          Aeson.Array a -> do
+            guard (F.length a == 1)
+            case F.toList a of
+              [(Aeson.String p)] -> return $ MealOther p
+              _ -> empty
+          _ -> empty
 
 instance ToJSON YMealPhase where
-  toJSON = undefined -- TODO
+  toJSON (YMealPhase mp) =
+    case mp of
+      MealOther p -> toJSON [p]
+      _ -> Aeson.String $ fromMealPhase mp
 
 data Meals =
     MealsSingle Name

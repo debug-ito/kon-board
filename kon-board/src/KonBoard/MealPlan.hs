@@ -51,7 +51,7 @@ toMealPhase t =
     "lunch" -> Right Lunch
     "dinner" -> Right Dinner
     _ -> maybe (Left ("Unknown MealPhase string: " <> show t)) (Right . MealOther)
-         $ T.stripPrefix "other:" t
+         $ T.stripPrefix "@" t
 
 -- | Encode 'MealPhase' into 'Text'.
 --
@@ -69,7 +69,7 @@ fromMealPhase mp =
     Breakfast -> "breakfast"
     Lunch -> "lunch"
     Dinner -> "dinner"
-    MealOther t -> "other:" <> t
+    MealOther t -> "@" <> t
 
 -- | Plan of a meal.
 data MealPlan =
