@@ -5,6 +5,8 @@
 ### Frontend
 
 * Add links to dates in the calendar. The link leads to a page for the date.
+* Now it shows meal plans for all phases in addition to "lunch" and "dinner".
+
 
 ### Backend (kon-board)
 
