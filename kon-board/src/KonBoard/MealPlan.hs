@@ -71,13 +71,6 @@ fromMealPhase mp =
     Dinner -> "dinner"
     MealOther t -> "other:" <> t
 
-instance FromJSON MealPhase where
-  parseJSON (Aeson.String s) = either fail return $ toMealPhase s
-  parseJSON _ = empty
-
-instance ToJSON MealPhase where
-  toJSON mp = Aeson.String $ fromMealPhase mp
-
 -- | Plan of a meal.
 data MealPlan =
   MealPlan

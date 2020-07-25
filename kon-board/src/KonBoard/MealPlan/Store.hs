@@ -68,7 +68,7 @@ fromMonthPlan rstore mp = traverse toMP $ mp_plan mp
       rsummaries <- traverse (loadRecipeByName' rstore) $ nonEmptyMeals $ dp_m dp
       return $ MealPlan
                { mealDay = fromGregorian (mp_year mp) (mp_month mp) (dp_d dp),
-                 mealPhase = dp_p dp,
+                 mealPhase = unYMealPhase $ dp_p dp,
                  mealRecipes = rsummaries
                }
 
@@ -90,7 +90,7 @@ instance ToJSON MonthPlan where
 data DayPlan =
   DayPlan
   { dp_d :: Int,
-    dp_p :: MealPhase,
+    dp_p :: YMealPhase,
     dp_m :: Meals
   }
   deriving (Show,Eq,Ord,Generic)
@@ -101,6 +101,16 @@ instance FromJSON DayPlan where
 instance ToJSON DayPlan where
   toJSON = Aeson.genericToJSON aesonOpt
   toEncoding = Aeson.genericToEncoding aesonOpt
+
+-- | MealPhase for YAML encoding.
+newtype YMealPhase = YMealPhase { unYMealPhase :: MealPhase }
+  deriving (Show,Eq,Ord)
+
+instance FromJSON YMealPhase where
+  parseJSON = undefined -- TODO
+
+instance ToJSON YMealPhase where
+  toJSON = undefined -- TODO
 
 data Meals =
     MealsSingle Name
