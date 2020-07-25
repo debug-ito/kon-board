@@ -2,7 +2,16 @@
 
 ## 0.3.0.0  -- ?
 
+### Frontend
+
 * Add links to dates in the calendar. The link leads to a page for the date.
+
+### Backend (kon-board)
+
+* **BREAKING CHANGE**: Text format of `MealPhase` has changed (especially for `MealOther` variant).
+* **BREAKING CHANGE**: `ToJSON` and `FromJSON` instances for `MealPhase` are removed.
+  Now those are defined internally in `MealPlan.Store` module.
+
 
 ## 0.2.1.0  -- 2020-07-11
 
