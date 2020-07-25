@@ -99,7 +99,7 @@ specForStore store_name = describe store_name $ do
       let expected =
             [ (exp_date, Breakfast, ["recipe 1"]),
               (exp_date, Lunch, ["internal recipe with ingredient groups"]),
-              (exp_date, Dinner, ["external recipe with source and URL."]),
+              (exp_date, Dinner, ["Name of the meal"]),
               (exp_date, MealOther "phase with at", ["recipe 2"]),
               (exp_date, MealOther "phase with bracket", ["external recipe with URL"])
             ]
