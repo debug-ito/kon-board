@@ -1,5 +1,5 @@
 name:                   kon-board-gen-elm
-version:                0.2.2.0
+version:                0.3.0.0
 author:                 Toshio Ito <debug.ito@gmail.com>
 maintainer:             Toshio Ito <debug.ito@gmail.com>
 license:                BSD3
@@ -22,7 +22,7 @@ library
   exposed-modules:      KonBoard.Exec.GenElm
   -- other-modules:        
   build-depends:        base >=4.10 && <5,
-                        kon-board ==0.2.2.0,
+                        kon-board ==0.3.0.0,
                         elm-bridge,
                         servant-elm
 

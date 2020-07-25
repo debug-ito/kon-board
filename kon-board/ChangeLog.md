@@ -1,6 +1,6 @@
 # Revision history for kon-board
 
-## 0.2.2.0  -- ?
+## 0.3.0.0  -- ?
 
 * Add links to dates in the calendar. The link leads to a page for the date.
 
