@@ -643,8 +643,15 @@ viewMenuCalView locale calview =
     in result
 
 
-tableMealPhases : List MealPhase
-tableMealPhases = [Lunch, Dinner]
+importantMealPhases : List MealPhase
+importantMealPhases = [Lunch, Dinner]
+
+renderedMealPhases : CalEntry -> List MealPhase
+renderedMealPhases centry =
+    let result = importantMealPhases ++ others
+        others = List.filter notImportant <| List.map (\dm -> dm.phase) <| centry.meals
+        notImportant p = not <| List.member p importantMealPhases
+    in result
         
 viewCalendar : Locale -> Coming e MealPlanLoader -> Date -> CalendarView -> Calendar -> List (Html Msg)
 viewCalendar locale cmploader today calview cal =
@@ -720,7 +727,7 @@ viewCalEntry locale today centry =
                         <| viewDateLabel today centry.day <| (.viewDateDA) (Locale.get locale) centry.day
         col_date_body = Grid.col
                         [Col.xs9, Col.md10]
-                        [Grid.row [] <| List.map mkColForPhase tableMealPhases]
+                        [Grid.row [] <| List.map mkColForPhase <| renderedMealPhases centry]
         mkColForPhase p = Grid.col [Col.xs12, Col.sm6, Col.attrs [Attr.class "cal-col-meal-plan"]] <| viewDayMeal p <| Cal.mealFor p centry
         row_month_anchor =
             case Cal.dateToMonthAnchor centry.day of
@@ -761,7 +768,7 @@ viewCalWeek locale today entries =
                         , Attr.class <| monthAttr entry.day
                         ]
                       ]
-                      (mkDateRow entry ++ List.map (mkPhaseRow entry) tableMealPhases)
+                      (mkDateRow entry ++ (List.map (mkPhaseRow entry) <| renderedMealPhases entry))
         monthAttr day =
             if modBy 2 (Date.monthToNumber <| Date.month day) == 0
             then "cal-month-even"
