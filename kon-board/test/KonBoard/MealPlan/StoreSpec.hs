@@ -42,7 +42,8 @@ spec_YAMLStore = before makeStore $ specForStore "YAMLStore"
                    "plan2.yaml",
                    "plan3.yaml",
                    "plan_multi.yaml",
-                   "plan_example.yaml"
+                   "plan_example.yaml",
+                   "plan_phases.yaml"
                  ]
 
 planWithoutID :: MealPlan -> (Day, MealPhase, [Name])
@@ -93,5 +94,16 @@ specForStore store_name = describe store_name $ do
               (day 2019 4 1, Lunch, ["Name of the meal"])
             ]
       got <- searchMealPlans s (day 2019 3 1) (day 2019 5 1)
+      map planWithoutID got `shouldBe` expected
+    specify "MealPlan with MealOther phases" $ \s -> do
+      let expected =
+            [ (exp_date, Breakfast, ["recipe 1"]),
+              (exp_date, Lunch, ["internal recipe with ingredient groups"]),
+              (exp_date, Dinner, ["external recipe with source and URL."]),
+              (exp_date, MealOther "phase with at", ["recipe 2"]),
+              (exp_date, MealOther "phase with bracket", ["external recipe with URL"])
+            ]
+          exp_date = day 2020 7 10
+      got <- searchMealPlans s (day 2020 7 10) (day 2020 7 11)
       map planWithoutID got `shouldBe` expected
 

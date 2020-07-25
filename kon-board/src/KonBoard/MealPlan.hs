@@ -42,8 +42,8 @@ data MealPhase =
 -- Right Lunch
 -- >>> toMealPhase "dinner"
 -- Right Dinner
--- >>> toMealPhase "other:foo bar"
--- Right (MealOther "foo bar")
+-- >>> toMealPhase "@other meal phase"
+-- Right (MealOther "other meal phase")
 toMealPhase :: Text -> Either String MealPhase
 toMealPhase t =
   case t of
@@ -54,6 +54,15 @@ toMealPhase t =
          $ T.stripPrefix "other:" t
 
 -- | Encode 'MealPhase' into 'Text'.
+--
+-- >>> fromMealPhase Breakfast
+-- "breakfast"
+-- >>> fromMealPhase Lunch
+-- "lunch"
+-- >>> fromMealPhase Dinner
+-- "dinner"
+-- >>> fromMealPhase (MealOther "foo bar")
+-- "@foo bar"
 fromMealPhase :: MealPhase -> Text
 fromMealPhase mp =
   case mp of
