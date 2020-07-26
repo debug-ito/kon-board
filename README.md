@@ -46,7 +46,10 @@ You have to restart the server when you update the recipe or meal plan YAML file
 
 ## Add meal plans
 
-A meal plan is what you eat (or ate) on a specific date for lunch or dinner. Currently, only plan for lunch and dinner is supported. **Breakfast is not supported.**
+A meal plan is what you eat (or ate) on a specific date.
+
+Currently, kon-board is mainly designed for planning lunch and dinner.
+It also supports planning breakfast and other meals (like snacks), but they are optional.
 
 Write meal plans also in YAML format. kon-board reads all YAML files under `meal-plans` directory for meal plans.
 

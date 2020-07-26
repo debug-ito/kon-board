@@ -9,7 +9,7 @@ plan:
 
   ## One meal plan has three fields. "d:" is the day in the month.
   - d: 1
-    ### "p:" is either "lunch" or "dinner".
+    ### "p:" is either "breakfast", "lunch", "dinner" or a custom value (see below)
     p: lunch
     ### "m:" is name of the meal. The name must be listed in the recipe files.
     m: Name of the meal
@@ -20,6 +20,11 @@ plan:
     m:
       - Name of the meal
       - Name of the external recipe
+
+  - d: 1
+    ### You can set a custom value to "p" as a one-element array.
+    p: [late night snack]
+    m: Name of the meal
 
 # You can put meal plans for multiple months by separating them by
 # "---".
