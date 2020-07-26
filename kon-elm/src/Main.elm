@@ -896,8 +896,9 @@ viewDayPage locale dm =
             ]
             ++ ( case Coming.success dm.calEntry of
                      Nothing -> []
-                     Just cale -> List.concatMap (viewDayPageDayMeal locale) cale.meals
+                     Just cale -> List.concatMap (viewDayPageDayMeal locale) <| dayMeals cale
                )
+        dayMeals cale = List.filterMap (\p -> Cal.mealFor p cale) <| renderedMealPhases cale
     in result
 
 viewDayPageDayMeal : Locale -> DayMeal -> List (Html Msg)
