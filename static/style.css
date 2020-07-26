@@ -176,6 +176,14 @@ body > .alert-danger {
     background-color: #fdd7f6;
 }
 
+.cal-phase-breakfast {
+    background-color: #ccf9e1;
+}
+
+.cal-phase-other {
+    background-color: #e2e5ec;
+}
+
 .cal-icon {
     width: 24px;
     height: 24px;
