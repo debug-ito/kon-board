@@ -102,6 +102,7 @@ suite =
                     let input = { year = 2019, month = 4, day = 20
                                 , phase = "lunch"
                                 , recipes = [{id = "foo", name = "foo name"}]
+                                , notes = []
                                 }
                         start_cal = Cal.forWeeks (fromCalendarDate 2019 Time.May 20) Time.Sun 2 2
                         got = Cal.addMealPlan input start_cal
@@ -115,6 +116,7 @@ suite =
                       let bm = { year = 2019, month = 4, day = 20
                                , phase = "lunch"
                                , recipes = [{id = "foo", name = "foo name"}]
+                               , notes = ["a note"]
                                }
                           start_cal =
                               Cal.forWeeks (fromCalendarDate 2019 Time.Apr 17) Time.Sun 2 1
@@ -137,7 +139,7 @@ suite =
                                        , meals = []
                                        }
                                      , { day = fromCalendarDate 2019 Time.Apr 20
-                                       , meals = [{phase = Lunch, recipes = [{id = "foo", name = "foo name"}]}]
+                                       , meals = [{phase = Lunch, recipes = [{id = "foo", name = "foo name"}], notes = ["a note"]}]
                                        }
                                      , { day = fromCalendarDate 2019 Time.Apr 21
                                        , meals = []

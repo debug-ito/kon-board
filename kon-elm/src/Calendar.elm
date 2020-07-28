@@ -2,6 +2,7 @@ module Calendar exposing
     ( Calendar
     , CalEntry
     , DayMeal
+    , Note
     , mealFor
         
     , MonthAnchor
@@ -39,11 +40,16 @@ import ListUtil
 import MealPhase exposing (MealPhase(..))
 import MealPhase
 
+{- | Note on a DayMeal.
+-}
+type alias Note = String
+
 {- | Meal in a day.
 -}
 type alias DayMeal =
     { phase : MealPhase
     , recipes : List BRecipeSummary
+    , notes : List Note
     }
         
 {- | Calendar entry
@@ -108,7 +114,7 @@ fromBMealPlan mp =
     ( \p -> parseMonth mp.month |> Result.andThen
     ( \m ->
           let day = Date.fromCalendarDate mp.year m mp.day
-              dm = { phase = p, recipes = mp.recipes }
+              dm = { phase = p, recipes = mp.recipes, notes = mp.notes }
           in Ok (day, dm)
     ) )
 
