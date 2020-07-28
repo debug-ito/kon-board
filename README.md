@@ -51,6 +51,8 @@ A meal plan is what you eat (or ate) on a specific date.
 Currently, kon-board is mainly designed for planning lunch and dinner.
 It also supports planning breakfast and other meals (like snacks), but they are optional.
 
+You can also add notes on meal plans, such as temporary modification to the recipes and TODOs about the meal plan.
+
 Write meal plans also in YAML format. kon-board reads all YAML files under `meal-plans` directory for meal plans.
 
 For now, kon-board doesn't support editing meal plans on the Web interface.
