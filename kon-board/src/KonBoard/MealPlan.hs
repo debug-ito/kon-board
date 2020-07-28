@@ -16,7 +16,6 @@ module KonBoard.MealPlan
 import Control.Applicative (empty)
 import Data.Aeson (FromJSON(..), ToJSON(..), (.:), (.=))
 import qualified Data.Aeson as Aeson
-import Data.List.NonEmpty (NonEmpty)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time (Day)
