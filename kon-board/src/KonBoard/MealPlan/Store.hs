@@ -66,11 +66,12 @@ fromMonthPlan :: RecipeStore -> MonthPlan -> IO [MealPlan]
 fromMonthPlan rstore mp = traverse toMP $ mp_plan mp
   where
     toMP dp = do
-      rsummaries <- traverse (loadRecipeByName' rstore) $ nonEmptyMeals $ dp_m dp
+      rsummaries <- traverse (loadRecipeByName' rstore) $ F.toList $ nonEmptyMeals $ dp_m dp
       return $ MealPlan
                { mealDay = fromGregorian (mp_year mp) (mp_month mp) (dp_d dp),
                  mealPhase = unYMealPhase $ dp_p dp,
-                 mealRecipes = rsummaries
+                 mealRecipes = rsummaries,
+                 mealNotes = [] -- TODO: load notes from the Store.
                }
 
 data MonthPlan =

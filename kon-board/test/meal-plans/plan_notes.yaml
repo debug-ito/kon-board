@@ -1,0 +1,12 @@
+year: 2020
+month: 7
+plan:
+  - d: 15
+    p: lunch
+    m: recipe 1
+    n: a note.
+  - d: 15
+    p: dinner
+    n:
+      - multiple notes
+      - without recipe

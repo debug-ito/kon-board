@@ -8,6 +8,7 @@
 module KonBoard.MealPlan
   ( MealPlan(..),
     MealPhase(..),
+    Note,
     toMealPhase,
     fromMealPhase
   ) where
@@ -71,11 +72,15 @@ fromMealPhase mp =
     Dinner -> "dinner"
     MealOther t -> "@" <> t
 
+-- | A human-readable note on a meal plan.
+type Note = Text
+
 -- | Plan of a meal.
 data MealPlan =
   MealPlan
   { mealDay :: Day,
     mealPhase :: MealPhase,
-    mealRecipes :: NonEmpty RecipeSummary
+    mealRecipes :: [RecipeSummary],
+    mealNotes :: [Note]
   }
   deriving (Show,Eq,Ord)

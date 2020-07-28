@@ -12,7 +12,6 @@ module KonBoard.Bridge.MealPlan
   ) where
 
 import Data.Foldable (toList)
-import Data.List.NonEmpty (nonEmpty)
 import Data.Text (Text)
 import Data.Time (toGregorian, fromGregorian)
 import qualified Elm.Derive as Elm
@@ -49,10 +48,10 @@ toBMealPlan mp =
 fromBMealPlan :: BMealPlan -> Either String MealPlan
 fromBMealPlan bm = do
   phase <- toMealPhase $ bm_phase bm
-  brecs <- maybe (Left ("Empty recipes in BMealPlan")) Right $ nonEmpty $ bm_recipes bm
   return $ MealPlan { mealDay = fromGregorian (bm_year bm) (bm_month bm) (bm_day bm),
                       mealPhase = phase,
-                      mealRecipes = fmap fromBRecipeSummary $ brecs
+                      mealRecipes = fmap fromBRecipeSummary $ bm_recipes bm,
+                      mealNotes = [] -- TODO: Map notes to BMealPlan
                     }
     
 $(Elm.deriveBoth (dropLabelOptions 3) ''BMealPlan)
