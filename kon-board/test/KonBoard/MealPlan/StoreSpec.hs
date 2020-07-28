@@ -109,4 +109,12 @@ specForStore store_name = describe store_name $ do
           exp_date = day 2020 7 10
       got <- searchMealPlans s (day 2020 7 10) (day 2020 7 11)
       map planWithoutID got `shouldBe` expected
+    specify "MealPlan with notes and possible no recipes" $ \s -> do
+      let expected =
+            [ (exp_date, Lunch, ["recipe 1"], ["a note."]),
+              (exp_date, Dinner, [], ["multiple notes", "without recipe"])
+            ]
+          exp_date = day 2020 7 15
+      got <- searchMealPlans s (day 2020 7 15) (day 2020 7 16)
+      map planWithoutID got `shouldBe` expected
 

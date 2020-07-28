@@ -13,7 +13,7 @@ module KonBoard.MealPlan.Store
     openYAMLs
   ) where
 
-import Control.Applicative ((<|>), (<$>), empty)
+import Control.Applicative (empty)
 import Control.Monad (forM, guard)
 import Control.Monad.Logger (MonadLogger, logInfoN)
 import Control.Monad.Trans (MonadIO(..))
@@ -21,16 +21,15 @@ import Data.Aeson (FromJSON(..), ToJSON(..))
 import qualified Data.Aeson as Aeson
 import qualified Data.Foldable as F
 import Data.List (sort)
-import Data.List.NonEmpty (NonEmpty)
 import Data.Text (Text, pack)
 import Data.Time (Day, fromGregorian)
 import Data.Traversable (Traversable(..))
 import GHC.Generics (Generic)
 
-import KonBoard.MealPlan (MealPlan(..), MealPhase(..), toMealPhase, fromMealPhase)
+import KonBoard.MealPlan (MealPlan(..), MealPhase(..), toMealPhase, fromMealPhase, Note)
 import KonBoard.Recipe.Store (RecipeStore, loadRecipeByName')
 import KonBoard.Recipe (Name)
-import KonBoard.Util.YAML (readYAMLDocs)
+import KonBoard.Util.YAML (readYAMLDocs, ArrayOrSingle(..))
 
 -- | Common API of 'MealPlan' store.
 class AMealPlanStore s where
@@ -70,13 +69,16 @@ fromMonthPlan :: RecipeStore -> MonthPlan -> IO [MealPlan]
 fromMonthPlan rstore mp = traverse toMP $ mp_plan mp
   where
     toMP dp = do
-      rsummaries <- traverse (loadRecipeByName' rstore) $ maybe [] (F.toList . nonEmptyMeals) $ dp_m dp
+      rsummaries <- traverse (loadRecipeByName' rstore) $ fromAOSToList $ dp_m dp
       return $ MealPlan
                { mealDay = fromGregorian (mp_year mp) (mp_month mp) (dp_d dp),
                  mealPhase = unYMealPhase $ dp_p dp,
                  mealRecipes = rsummaries,
-                 mealNotes = [] -- TODO: load notes from the Store.
+                 mealNotes = fromAOSToList $ dp_n dp
                }
+
+fromAOSToList :: Maybe (ArrayOrSingle a) -> [a]
+fromAOSToList = maybe [] F.toList
 
 data MonthPlan =
   MonthPlan
@@ -93,11 +95,16 @@ instance ToJSON MonthPlan where
   toJSON = Aeson.genericToJSON aesonOpt
   toEncoding = Aeson.genericToEncoding aesonOpt
 
+type Meals = ArrayOrSingle Name
+
+type Notes = ArrayOrSingle Note
+
 data DayPlan =
   DayPlan
   { dp_d :: Int,
     dp_p :: YMealPhase,
-    dp_m :: Maybe Meals
+    dp_m :: Maybe Meals,
+    dp_n :: Maybe Notes
   }
   deriving (Show,Eq,Ord,Generic)
 
@@ -131,19 +138,4 @@ instance ToJSON YMealPhase where
       MealOther p -> toJSON [p]
       _ -> Aeson.String $ fromMealPhase mp
 
-data Meals =
-    MealsSingle Name
-  | MealsMulti (NonEmpty Name)
-  deriving (Show,Eq,Ord,Generic)
 
-nonEmptyMeals :: Meals -> NonEmpty Name
-nonEmptyMeals (MealsSingle n) = return n
-nonEmptyMeals (MealsMulti ns) = ns
-
-instance FromJSON Meals where
-  parseJSON v = (MealsSingle <$> parseJSON v)
-                <|> (MealsMulti <$> parseJSON v)
-
-instance ToJSON Meals where
-  toJSON (MealsSingle n) = toJSON n
-  toJSON (MealsMulti ns) = toJSON ns
