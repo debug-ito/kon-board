@@ -9,6 +9,9 @@
 * **BREAKING CHANGE** `BMealPlan` type: apply changes corresponding to the changes to `MealPlan` type.
 * (Internal) `Util.YAML` module: add `ArrayOrSingle` type.
 
+### Frontend
+
+* Show notes for meal plans on the calendar and the day page.
 
 ## 0.3.0.0  -- 2020-07-26
 
