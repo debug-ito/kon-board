@@ -58,7 +58,11 @@ openYAMLs rstore files = do
   liftIO $ fmap (YAMLStore . concat) $ traverse (fromMonthPlan rstore) $ yaml_docs
 
 aesonOpt :: Aeson.Options
-aesonOpt = Aeson.defaultOptions { Aeson.fieldLabelModifier = lmod }
+aesonOpt =
+  Aeson.defaultOptions
+  { Aeson.fieldLabelModifier = lmod,
+    Aeson.omitNothingFields = True
+  }
   where
     lmod label = drop 3 label
 
@@ -66,7 +70,7 @@ fromMonthPlan :: RecipeStore -> MonthPlan -> IO [MealPlan]
 fromMonthPlan rstore mp = traverse toMP $ mp_plan mp
   where
     toMP dp = do
-      rsummaries <- traverse (loadRecipeByName' rstore) $ F.toList $ nonEmptyMeals $ dp_m dp
+      rsummaries <- traverse (loadRecipeByName' rstore) $ maybe [] (F.toList . nonEmptyMeals) $ dp_m dp
       return $ MealPlan
                { mealDay = fromGregorian (mp_year mp) (mp_month mp) (dp_d dp),
                  mealPhase = unYMealPhase $ dp_p dp,
@@ -93,7 +97,7 @@ data DayPlan =
   DayPlan
   { dp_d :: Int,
     dp_p :: YMealPhase,
-    dp_m :: Meals
+    dp_m :: Maybe Meals
   }
   deriving (Show,Eq,Ord,Generic)
 
