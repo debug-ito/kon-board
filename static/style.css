@@ -195,20 +195,19 @@ body > .alert-danger {
     list-style: none;
 }
 
-.cal-meal-plan-item-meal {
-    background-image: url('/static/icons/foods/fork.svg');
+.cal-meal-plan-item {
     background-position: left 0px top 3px;
     background-repeat: no-repeat;
     background-size: 16px auto;
     padding-left: 20px;
 }
 
+.cal-meal-plan-item-meal {
+    background-image: url('/static/icons/foods/fork.svg');
+}
+
 .cal-meal-plan-item-note {
     background-image: url('/static/icons/feather/file-text.svg');
-    background-position: left 0px top 3px;
-    background-repeat: no-repeat;
-    background-size: 16px auto;
-    padding-left: 20px;
 }
 
 /******* calendar (table view) *******/
@@ -233,7 +232,7 @@ body > .alert-danger {
     padding: 4px;
 }
 
-.col-caltable .cal-meal-plan-item-meal {
+.col-caltable .cal-meal-plan-item {
     background-image: none;
     padding-left: 0;
     overflow: hidden;

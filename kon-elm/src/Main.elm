@@ -816,8 +816,10 @@ viewDayMeal phase mdm =
                 Just dm ->
                     List.map mkRecipe dm.recipes
                         ++ List.map mkNote dm.notes
-        mkRecipe r = li [Attr.class "cal-meal-plan-item-meal"] <| viewLinkRecipe r.id [text r.name]
-        mkNote n = li [Attr.class "cal-meal-plan-item-note"] [text n]
+        mkRecipe r = li [Attr.class "cal-meal-plan-item", Attr.class "cal-meal-plan-item-meal"]
+                     <| viewLinkRecipe r.id [text r.name]
+        mkNote n = li [Attr.class "cal-meal-plan-item", Attr.class "cal-meal-plan-item-note"]
+                   <| [text n]
     in result
 
 viewLinkRecipe : BRecipeID -> List (Html a) -> List (Html a)
@@ -915,11 +917,11 @@ viewDayPageDayMeal locale dm =
                 ++ List.map viewNote dm.notes
         viewRecipeSummary rs =
             Html.li
-                [Attr.class "cal-meal-plan-item-meal"]
+                [Attr.class "cal-meal-plan-item", Attr.class "cal-meal-plan-item-meal"]
                 [ Html.a [Attr.href <| recipePageLink rs.id] [Html.text rs.name]
                 ]
         viewNote n =
             Html.li
-                [Attr.class "cal-meal-plan-item-note"]
+                [Attr.class "cal-meal-plan-item", Attr.class "cal-meal-plan-item-note"]
                 [Html.text n]
     in result
