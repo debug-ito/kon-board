@@ -22,9 +22,22 @@ plan:
       - Name of the external recipe
 
   - d: 1
-    ### You can set a custom value to "p" as a one-element array.
+    ### You can set a custom value to "p:" as a one-element array.
     p: [late night snack]
     m: Name of the meal
+
+  - d: 2
+    p: lunch
+    ### "n:" is an optional field for a note. You can write an arbitrary note on the meal plan.
+    n: "TODO: make this meal plan ASAP"
+
+  - d: 2
+    p: dinner
+    m: Name of the meal
+    ### You can set multiple notes as an array.
+    n:
+      - Substitute sausages for bacons.
+      - "TODO: buy ingredients"
 
 # You can put meal plans for multiple months by separating them by
 # "---".

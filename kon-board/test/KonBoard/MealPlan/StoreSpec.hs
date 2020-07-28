@@ -94,6 +94,8 @@ specForStore store_name = describe store_name $ do
             [ (day 2019 3 1, Lunch, ["Name of the meal"], []),
               (day 2019 3 1, Dinner, ["Name of the meal", "Name of the external recipe"], []),
               (day 2019 3 1, MealOther "late night snack", ["Name of the meal"], []),
+              (day 2019 3 2, Lunch, [], ["TODO: make this meal plan ASAP"]),
+              (day 2019 3 2, Dinner, ["Name of the meal"], ["Substitute sausages for bacons.", "TODO: buy ingredients"]),
               (day 2019 4 1, Lunch, ["Name of the meal"], [])
             ]
       got <- searchMealPlans s (day 2019 3 1) (day 2019 5 1)
