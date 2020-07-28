@@ -2,5 +2,5 @@ stack.yaml.lock
 .stack-work
 
 ## for testing
-recipes
-meal-plans
+/recipes
+/meal-plans

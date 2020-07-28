@@ -1,0 +1,18 @@
+year: 2020
+month: 7
+plan:
+  - d: 10
+    p: "@phase with at"
+    m: recipe 2
+  - d: 10
+    p: lunch
+    m: internal recipe with ingredient groups
+  - d: 10
+    p: [phase with bracket]
+    m: external recipe with URL
+  - d: 10
+    p: breakfast
+    m: recipe 1
+  - d: 10
+    p: dinner
+    m: Name of the meal
