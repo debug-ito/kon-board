@@ -6,6 +6,8 @@
 
 * **BREAKING CHANGE** `MealPlan` type: add `mealNotes` field, change the type of `mealRecipes` from `NonEmpty` to `[]`.
   The change of the type was necessary because now a meal plan can have some notes but no recipes.
+* **BREAKING CHANGE** `BMealPlan` type: apply changes corresponding to the changes to `MealPlan` type.
+* (Internal) `Util.YAML` module: add `ArrayOrSingle` type.
 
 
 ## 0.3.0.0  -- 2020-07-26

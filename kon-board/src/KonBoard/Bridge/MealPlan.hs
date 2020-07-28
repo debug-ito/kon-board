@@ -29,7 +29,8 @@ data BMealPlan =
     bm_month :: Int,
     bm_day :: Int,
     bm_phase :: Text,
-    bm_recipes :: [BRecipeSummary]
+    bm_recipes :: [BRecipeSummary],
+    bm_notes :: [Text]
   }
   deriving (Show,Eq,Ord)
 
@@ -40,7 +41,8 @@ toBMealPlan mp =
     bm_month = month,
     bm_day = day,
     bm_phase = fromMealPhase $ mealPhase mp,
-    bm_recipes = map toBRecipeSummary $ toList $ mealRecipes mp
+    bm_recipes = map toBRecipeSummary $ mealRecipes mp,
+    bm_notes = mealNotes mp
   }
   where
     (year, month, day) = toGregorian $ mealDay mp
@@ -51,7 +53,7 @@ fromBMealPlan bm = do
   return $ MealPlan { mealDay = fromGregorian (bm_year bm) (bm_month bm) (bm_day bm),
                       mealPhase = phase,
                       mealRecipes = fmap fromBRecipeSummary $ bm_recipes bm,
-                      mealNotes = [] -- TODO: Map notes to BMealPlan
+                      mealNotes = bm_notes bm
                     }
     
 $(Elm.deriveBoth (dropLabelOptions 3) ''BMealPlan)
