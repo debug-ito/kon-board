@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, DeriveGeneric #-}
 -- |
 -- Module: KonBoard.Util.YAML
 -- Description: (Internal) Utilities related to YAML
@@ -8,15 +8,19 @@
 module KonBoard.Util.YAML
   ( decodeYAMLDocs,
     readYAMLDocs,
-    splitLineBS
+    splitLineBS,
+    ArrayOrSingle(..)
   ) where
 
+import Control.Applicative ((<|>), (<$>))
 import Control.Exception.Safe (throwIO)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BSC
+import qualified Data.Foldable as F
 import Data.Word (Word8)
-import Data.Yaml (FromJSON, ParseException, decodeEither')
+import Data.Yaml (FromJSON(..), ToJSON(..), ParseException, decodeEither')
+import GHC.Generics (Generic)
 
 -- | (Internal use)
 splitLineBS :: ByteString -- ^ delimiter line
@@ -57,3 +61,23 @@ decodeYAMLDocs doc = traverse decodeEither' $ filter (not . isEmptyDoc) $ splitL
 
 readYAMLDocs :: FromJSON a => FilePath -> IO [a]
 readYAMLDocs file = (either throwIO return . decodeYAMLDocs) =<< BS.readFile file
+
+
+-- | (internal use) A JSON/YAML encoding wrapper that is either a
+-- single element or an array.
+data ArrayOrSingle a =
+  AOSSingle a
+  | AOSArray [a]
+  deriving (Show,Eq,Ord,Generic)
+
+instance F.Foldable ArrayOrSingle where
+  foldr f acc (AOSSingle a) = f a acc
+  foldr f acc (AOSArray as) = foldr f acc as
+
+instance FromJSON a => FromJSON (ArrayOrSingle a) where
+  parseJSON v = (AOSArray <$> parseJSON v)
+                <|> (AOSSingle <$> parseJSON v)
+
+instance ToJSON a => ToJSON (ArrayOrSingle a) where
+  toJSON (AOSSingle a) = toJSON a
+  toJSON (AOSArray as) = toJSON as
