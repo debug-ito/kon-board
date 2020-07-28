@@ -813,8 +813,11 @@ viewDayMeal phase mdm =
         list_content =
             case mdm of
                 Nothing -> []
-                Just dm -> List.map mkRecipe dm.recipes
+                Just dm ->
+                    List.map mkRecipe dm.recipes
+                        ++ List.map mkNote dm.notes
         mkRecipe r = li [Attr.class "cal-meal-plan-item-meal"] <| viewLinkRecipe r.id [text r.name]
+        mkNote n = li [Attr.class "cal-meal-plan-item-note"] [text n]
     in result
 
 viewLinkRecipe : BRecipeID -> List (Html a) -> List (Html a)
@@ -905,11 +908,18 @@ viewDayPageDayMeal : Locale -> DayMeal -> List (Html Msg)
 viewDayPageDayMeal locale dm =
     let result =
             [ Html.h2 [] [text <| (.showMealPhase) (Locale.get locale) dm.phase]
-            , Html.ul [Attr.class "day-meal-plan-list"] <| List.map viewRecipeSummary dm.recipes
+            , Html.ul [Attr.class "day-meal-plan-list"] list_contents
             ]
+        list_contents =
+            List.map viewRecipeSummary dm.recipes
+                ++ List.map viewNote dm.notes
         viewRecipeSummary rs =
             Html.li
                 [Attr.class "cal-meal-plan-item-meal"]
                 [ Html.a [Attr.href <| recipePageLink rs.id] [Html.text rs.name]
                 ]
+        viewNote n =
+            Html.li
+                [Attr.class "cal-meal-plan-item-note"]
+                [Html.text n]
     in result
