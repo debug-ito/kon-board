@@ -2,6 +2,11 @@
 
 ## 0.4.0.0  -- ?
 
+### Backend (kon-board)
+
+* **BREAKING CHANGE** `MealPlan` type: add `mealNotes` field, change the type of `mealRecipes` from `NonEmpty` to `[]`.
+  The change of the type was necessary because now a meal plan can have some notes but no recipes.
+
 
 ## 0.3.0.0  -- 2020-07-26
 
