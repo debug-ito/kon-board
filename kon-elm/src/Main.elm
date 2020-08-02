@@ -159,6 +159,8 @@ type Msg = NoOp
          | UrlChangeMsg Url
          -- | Got result of loading a Recipe from backend.
          | RecipeLoaded (Result String (BRecipeID, BRecipe))
+         -- | Set viewport of calendar relative to the "today" element.
+         | ViewportSet Float
          -- | Got result of adjusting viewport.
          | ViewportAdjusted (Result String ())
          -- | Got result of getting the calendar layout.
@@ -196,6 +198,9 @@ isLoading m =
         model_loading = isNothing m.clock || isNothing m.calendar || isPending m.mealPlanLoader 
     in result
 
+initialViewport : Float
+initialViewport = -130.0
+
 appInit : () -> Url -> Nav.Key -> (Model, Cmd Msg)
 appInit _ url key =
     let model_base = { locale = LJaJP
@@ -204,7 +209,7 @@ appInit _ url key =
                      , navKey = key
                      , navbarMenuState = NavbarMenuState Dropdown.initialState
                      , calendar = Nothing
-                     , calendarViewport = -130.0
+                     , calendarViewport = initialViewport
                      , calendarViewType = CalViewList
                      , mealPlanLoader = NotStarted
                      , errorMsg = (Alert.closed, "")
@@ -291,6 +296,9 @@ appUpdateModel msg model =
                                then { model | page = PageRecipe <| { rm | recipe = Success r } }
                                else setError ("Got recipe for " ++ rid ++ ", but expects " ++ rm.recipeID)
                            _ -> setError ("Got recipe for " ++ rid ++ ", but the page is not PageRecipe.")
+        ViewportSet rel_pos ->
+            let ad_model = triggerViewportAdjust model
+            in { ad_model | calendarViewport = rel_pos }
         ViewportAdjusted adjust_ret ->
             case model.page of
                 PageTop pt ->
@@ -608,12 +616,16 @@ viewNavbarCenter : Locale -> Page -> List (Html Msg)
 viewNavbarCenter locale page =
     let result =
             case page of
-                PageTop pt ->
-                    case pt.currentAnchor of
-                        Success ma -> [Html.form [Attr.class "form-inline"] <| mkContent ma]
-                        _ -> []
+                PageTop pt -> mkForTop pt
                 _ -> []
         mkContent ma = [text <| (.showMonthAnchor) (Locale.get locale) ma]
+        mkForTop pt =
+            [ Button.button [Button.onClick <| ViewportSet initialViewport, Button.primary] [Html.text "Today"]
+            ]
+            ++ ( case pt.currentAnchor of
+                     Success ma -> [Html.form [Attr.class "form-inline"] <| mkContent ma]
+                     _ -> []
+               )
     in result
 
 
