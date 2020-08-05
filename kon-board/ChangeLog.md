@@ -12,6 +12,7 @@
 ### Frontend
 
 * Show notes for meal plans on the calendar and the day page.
+* Add "Jump to today" button to navbar.
 
 ## 0.3.0.0  -- 2020-07-26
 
