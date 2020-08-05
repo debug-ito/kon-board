@@ -618,14 +618,16 @@ viewNavbarCenter locale page =
             case page of
                 PageTop pt -> mkForTop pt
                 _ -> []
-        mkContent ma = [text <| (.showMonthAnchor) (Locale.get locale) ma]
         mkForTop pt =
+            [ Html.form [Attr.class "form-inline"] (today_button ++ mkCurrentAnchor pt)
+            ]
+        today_button =
             [ Button.button [Button.onClick <| ViewportSet initialViewport, Button.primary] [Html.text "Today"]
             ]
-            ++ ( case pt.currentAnchor of
-                     Success ma -> [Html.form [Attr.class "form-inline"] <| mkContent ma]
-                     _ -> []
-               )
+        mkCurrentAnchor pt =
+            case pt.currentAnchor of
+                Success ma -> [text (" " ++ (.showMonthAnchor) (Locale.get locale) ma)]
+                _ -> []
     in result
 
 
