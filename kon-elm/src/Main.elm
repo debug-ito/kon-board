@@ -622,11 +622,17 @@ viewNavbarCenter locale page =
             [ Html.form [Attr.class "form-inline"] (today_button ++ mkCurrentAnchor pt)
             ]
         today_button =
-            [ Button.button [Button.onClick <| ViewportSet initialViewport, Button.primary] [Html.text "Today"]
+            [ Button.button
+                  [ Button.onClick <| ViewportSet initialViewport
+                  , Button.secondary
+                  , Button.small
+                  ]
+                  [ FIcons.toHtml [] <| FIcons.withSize 16 <| FIcons.calendar
+                  ]
             ]
         mkCurrentAnchor pt =
             case pt.currentAnchor of
-                Success ma -> [text (" " ++ (.showMonthAnchor) (Locale.get locale) ma)]
+                Success ma -> [Html.span [Attr.class "pl-2"] [text <| (.showMonthAnchor) (Locale.get locale) ma]]
                 _ -> []
     in result
 
