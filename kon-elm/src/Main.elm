@@ -627,7 +627,7 @@ viewNavbarCenter locale page =
         today_button =
             [ Button.button
                   [ Button.onClick <| ViewportSet initialViewport
-                  , Button.secondary
+                  , Button.roleLink
                   , Button.small
                   ]
                   [ FIcons.toHtml [] <| FIcons.withSize 16 <| FIcons.calendar
