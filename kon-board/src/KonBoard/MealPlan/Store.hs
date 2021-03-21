@@ -10,12 +10,14 @@ module KonBoard.MealPlan.Store
     AMealPlanStore(..),
     -- * YAMLStore
     YAMLStore,
+    HasYAMLStore(..),
     openYAMLs
   ) where
 
 import Control.Applicative (empty)
 import Control.Monad (forM, guard)
 import Control.Monad.Logger (MonadLogger, logInfoN)
+import Control.Monad.Reader (MonadReader, reader)
 import Control.Monad.Trans (MonadIO(..))
 import Data.Aeson (FromJSON(..), ToJSON(..))
 import qualified Data.Aeson as Aeson
@@ -31,22 +33,32 @@ import KonBoard.Recipe.Store (RecipeStore, loadRecipeByName')
 import KonBoard.Recipe (Name)
 import KonBoard.Util.YAML (readYAMLDocs, ArrayOrSingle(..))
 
--- | Common API of 'MealPlan' store.
-class AMealPlanStore s where
-  searchMealPlans :: s -- ^ 'MealPlan' store
-                  -> Day -- ^ start date (inclusive)
+-- | Common monadic API of 'MealPlan' store.
+class Monad m => AMealPlanStore m where
+  searchMealPlans :: Day -- ^ start date (inclusive)
                   -> Day -- ^ end date (exclusive)
-                  -> IO [MealPlan]
+                  -> m [MealPlan]
 
 -- | 'MealPlan' store based on YAML files.
 newtype YAMLStore = YAMLStore [MealPlan]
 
+class HasYAMLStore env where
+  getYAMLStore :: env -> YAMLStore
+
+instance (MonadReader env m, HasYAMLStore env) => AMealPlanStore m where
+  searchMealPlans s e = do
+    store <- reader getYAMLStore
+    return $ searchMealPlansYAML store s e
+
+searchMealPlansYAML :: YAMLStore -> Day -> Day -> [MealPlan]
+searchMealPlansYAML (YAMLStore mps) start end = sort $ filter isInside mps
+  where
+    isInside mp = start <= mp_day && mp_day < end
+      where
+        mp_day = mealDay mp
+
 instance AMealPlanStore YAMLStore where
-  searchMealPlans (YAMLStore mps) start end = return $ sort $ filter isInside mps
-    where
-      isInside mp = start <= mp_day && mp_day < end
-        where
-          mp_day = mealDay mp
+  searchMealPlans (YAMLStore mps) 
 
 -- | Read YAML files to make a 'YAMLStore'.
 openYAMLs :: (MonadLogger m, MonadIO m) => RecipeStore -> [FilePath] -> m YAMLStore
