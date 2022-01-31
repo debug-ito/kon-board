@@ -1,0 +1,7 @@
+-- For doctest
+write-ghc-environment-files: ghc8.4.4+
+
+packages: kon-board,
+          kon-board-gen-elm,
+          kon-board-server
+           

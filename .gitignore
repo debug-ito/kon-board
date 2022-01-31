@@ -1,5 +1,17 @@
-stack.yaml.lock
-.stack-work
+dist
+dist-newstyle
+cabal-dev
+*.o
+*.hi
+*.chi
+*.chs.h
+.virthualenv
+.hsenv
+.cabal-sandbox/
+cabal.sandbox.config
+.stack-work/
+cabal.project.local*
+.ghc.environment*
 
 ## for testing
 /recipes

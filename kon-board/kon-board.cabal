@@ -1,5 +1,5 @@
 name:                   kon-board
-version:                0.4.0.0
+version:                0.5.0.0
 author:                 Toshio Ito <debug.ito@gmail.com>
 maintainer:             Toshio Ito <debug.ito@gmail.com>
 license:                BSD3
@@ -35,7 +35,7 @@ library
                         KonBoard.Util.YAML,
                         KonBoard.Web.API
   -- other-modules:        
-  build-depends:        base >=4.10 && <4.13,
+  build-depends:        base >=4.14.3.0 && <4.15,
                         text,
                         yaml,
                         aeson,
@@ -47,7 +47,7 @@ library
                         base16-bytestring,
                         safe-exceptions,
                         elm-bridge,
-                        servant >=0.14.1 && <0.15,
+                        servant,
                         semigroups,
                         monad-logger
 
@@ -64,6 +64,7 @@ test-suite spec
                         KonBoard.MealPlan.StoreSpec,
                         KonBoard.Util.YAMLSpec,
                         KonBoard.TestLogger
+  build-tool-depends:   hspec-discover:hspec-discover
   build-depends:        base, kon-board, yaml, bytestring, text, time, monad-logger, mtl,
                         hspec
 
@@ -74,6 +75,7 @@ test-suite doctest
   ghc-options:          -Wall -fno-warn-unused-imports "-with-rtsopts=-M512m"
   main-is:              DocTest.hs
   default-extensions:   OverloadedStrings, StrictData
+  build-tool-depends:   doctest-discover:doctest-discover
   build-depends:        base,
                         doctest >=0.13,
                         doctest-discover >=0.1.0.7
