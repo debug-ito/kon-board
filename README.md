@@ -73,7 +73,16 @@ Content of this repository is:
 
 ### Build
 
-This project uses the [Haskell stack](https://docs.haskellstack.org/) for backend and [Elm 0.19](https://elm-lang.org/) compiler for frontend. Install those tools to build this project.
+This project builds the backend with
+
+- ghc-8.8.4
+- cabal-install-3.0.0.0
+- the cabal.project.freeze file commited in the repository
+
+This is because we want to build the project with the GHC packaged for Debian GNU/Linux 11 (bullseye).
+This makes it easy to build the backend in Raspberry Pi.
+
+For frontend, we [Elm 0.19](https://elm-lang.org/) compiler.
 
 #### Backend server
 
@@ -103,7 +112,6 @@ To build the Docker image, run
 Note:
 
 - You need to build the frontend outside the Docker container. The Dockerfile will copy the pre-built main.js into the container. This is because there is no release of Elm compiler for ARM.
-- Dockerfile doesn't use Haskell stack. It uses the system GHC and cabal-install instead. This is because Haskell stack (sometimes) doesn't support ARM.
 
 ### Run
 
