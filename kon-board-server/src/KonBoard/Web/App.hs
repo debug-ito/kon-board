@@ -26,7 +26,7 @@ import qualified Data.Text.Lazy.Encoding as TL
 import Network.Wai.Middleware.Rewrite (rewritePureWithQueries)
 import Servant
   ( Application, Handler,
-    ServantErr(errBody),
+    ServerError(errBody),
     (:>), (:<|>)(..), Raw
   )
 import qualified Servant as Sv
@@ -54,7 +54,7 @@ data Server where
       sDirStatic :: FilePath
     } -> Server
 
-toHandler :: Show e => ServantErr -> Either e a -> Handler a
+toHandler :: Show e => ServerError -> Either e a -> Handler a
 toHandler base_err = either (throwError . mkError) return
   where
     mkError e = base_err { errBody = TL.encodeUtf8 $ TL.pack $ show e }
