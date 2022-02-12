@@ -22,7 +22,7 @@ library
   exposed-modules:      KonBoard.Exec.Server,
                         KonBoard.Web.App
   -- other-modules:        
-  build-depends:        base >=4.14.3.0 && <4.15,
+  build-depends:        base >=4.13.0.0 && <4.14,
                         kon-board ==0.5.0.0,
                         monad-logger,
                         mtl,

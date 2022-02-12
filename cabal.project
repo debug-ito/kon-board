@@ -5,3 +5,7 @@ packages: kon-board,
           kon-board-gen-elm,
           kon-board-server
            
+constraints: any.base ==4.13.0.0,
+             -- ^ ghc-8.8.4
+             any.base-compat <0.12
+             -- ^ To make build plan for test
