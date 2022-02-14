@@ -16,5 +16,8 @@ static/main.js: $(ELM_SRC)/Bridge.elm
 test: $(ELM_SRC)/Bridge.elm
 	cabal v2-test all && ( cd kon-elm && npx elm-test )
 
+run: static/main.js
+	cabal v2-run kon-board-server
+
 clean:
 	rm -rf $(ELM_SRC)/Bridge.elm static/main.js; cabal v2-clean

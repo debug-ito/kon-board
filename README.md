@@ -115,9 +115,9 @@ Note:
 
 ### Run
 
-In development, run the following after you build the backend and frontend.
+In development, run the following to start the kon-board server.
 
-    $ stack run kon-board-server
+    $ make run
 
 ## Recent changes
 
