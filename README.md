@@ -82,7 +82,7 @@ This project builds the backend with
 This is because we want to build the project with the GHC packaged for Debian GNU/Linux 11 (bullseye).
 This makes it easy to build the backend in Raspberry Pi.
 
-For frontend, we [Elm 0.19](https://elm-lang.org/) compiler.
+For frontend, we [Elm 0.19](https://elm-lang.org/) compiler. For testing, we use [elm-test CLI tool](https://github.com/rtfeldman/node-test-runner).
 
 #### Backend server
 
