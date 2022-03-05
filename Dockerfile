@@ -17,7 +17,7 @@ COPY cabal.project.freeze ./
 RUN cabal v2-update
 RUN cabal v2-configure -f static --disable-tests --disable-benchmarks
 RUN cabal v2-build kon-board-server
-RUN cabal v2-install --overwrite-policy=always --install-method=copy --installdir="/bin"
+RUN cabal v2-install --overwrite-policy=always --install-method=copy --installdir="/bin" kon-board-server
 
 
 FROM debian:bullseye-slim
