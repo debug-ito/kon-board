@@ -14,7 +14,7 @@ static/main.js: $(ELM_SRC)/Bridge.elm
 	cd kon-elm && elm make src/Main.elm --output=../$@
 
 test: $(ELM_SRC)/Bridge.elm
-	cabal v2-test all && ( cd kon-elm && npx elm-test )
+	cabal v2-test --job=1 all && ( cd kon-elm && npx elm-test )
 
 run: static/main.js
 	cabal v2-run kon-board-server
