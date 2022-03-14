@@ -1,38 +1,33 @@
 {-# LANGUAGE OverloadedStrings #-}
--- |
--- Module: KonBoard.MealPlan
--- Description: Meal plan associated with recipes
--- Maintainer: Toshio Ito <debug.ito@gmail.com>
---
--- 
+-- |  Meal plan associated with recipes
 module KonBoard.MealPlan
-  ( MealPlan(..),
-    MealPhase(..),
-    Note,
-    toMealPhase,
-    fromMealPhase
-  ) where
+    ( MealPlan (..)
+    , MealPhase (..)
+    , Note
+    , toMealPhase
+    , fromMealPhase
+    ) where
 
-import Control.Applicative (empty)
-import Data.Aeson (FromJSON(..), ToJSON(..), (.:), (.=))
-import qualified Data.Aeson as Aeson
-import Data.Text (Text)
-import qualified Data.Text as T
-import Data.Time (Day)
+import           Control.Applicative   (empty)
+import           Data.Aeson            (FromJSON (..), ToJSON (..), (.:), (.=))
+import qualified Data.Aeson            as Aeson
+import           Data.Text             (Text)
+import qualified Data.Text             as T
+import           Data.Time             (Day)
 
-import KonBoard.Recipe.Store (RecipeSummary)
+import           KonBoard.Recipe.Store (RecipeSummary)
 
 -- $setup
 --
 -- >>> :set -XOverloadedStrings
 
 -- | Time of a meal in a day.
-data MealPhase =
-    Breakfast
+data MealPhase
+  = Breakfast
   | Lunch
   | Dinner
   | MealOther Text
-  deriving (Show,Eq,Ord)
+  deriving (Eq, Ord, Show)
 
 -- | Parse 'Text' into 'MealPhase'.
 --
@@ -66,20 +61,20 @@ toMealPhase t =
 fromMealPhase :: MealPhase -> Text
 fromMealPhase mp =
   case mp of
-    Breakfast -> "breakfast"
-    Lunch -> "lunch"
-    Dinner -> "dinner"
+    Breakfast   -> "breakfast"
+    Lunch       -> "lunch"
+    Dinner      -> "dinner"
     MealOther t -> "@" <> t
 
 -- | A human-readable note on a meal plan.
 type Note = Text
 
 -- | Plan of a meal.
-data MealPlan =
-  MealPlan
-  { mealDay :: Day,
-    mealPhase :: MealPhase,
-    mealRecipes :: [RecipeSummary],
-    mealNotes :: [Note]
-  }
-  deriving (Show,Eq,Ord)
+data MealPlan
+  = MealPlan
+      { mealDay     :: Day
+      , mealPhase   :: MealPhase
+      , mealRecipes :: [RecipeSummary]
+      , mealNotes   :: [Note]
+      }
+  deriving (Eq, Ord, Show)
