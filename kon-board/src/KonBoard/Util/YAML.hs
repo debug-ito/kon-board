@@ -1,26 +1,24 @@
-{-# LANGUAGE OverloadedStrings, DeriveGeneric #-}
--- |
--- Module: KonBoard.Util.YAML
--- Description: (Internal) Utilities related to YAML
--- Maintainer: Toshio Ito <debug.ito@gmail.com>
+{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE OverloadedStrings #-}
+-- | (Internal) Utilities related to YAML
 --
 -- __This module is for internal use. End-users should not use this.__
 module KonBoard.Util.YAML
-  ( decodeYAMLDocs,
-    readYAMLDocs,
-    splitLineBS,
-    ArrayOrSingle(..)
-  ) where
+    ( decodeYAMLDocs
+    , readYAMLDocs
+    , splitLineBS
+    , ArrayOrSingle (..)
+    ) where
 
-import Control.Applicative ((<|>), (<$>))
-import Control.Exception.Safe (throwIO)
-import Data.ByteString (ByteString)
-import qualified Data.ByteString as BS
-import qualified Data.ByteString.Char8 as BSC
-import qualified Data.Foldable as F
-import Data.Word (Word8)
-import Data.Yaml (FromJSON(..), ToJSON(..), ParseException, decodeEither')
-import GHC.Generics (Generic)
+import           Control.Applicative    ((<$>), (<|>))
+import           Control.Exception.Safe (throwIO)
+import           Data.ByteString        (ByteString)
+import qualified Data.ByteString        as BS
+import qualified Data.ByteString.Char8  as BSC
+import qualified Data.Foldable          as F
+import           Data.Word              (Word8)
+import           Data.Yaml              (FromJSON (..), ParseException, ToJSON (..), decodeEither')
+import           GHC.Generics           (Generic)
 
 -- | (Internal use)
 splitLineBS :: ByteString -- ^ delimiter line
@@ -65,10 +63,10 @@ readYAMLDocs file = (either throwIO return . decodeYAMLDocs) =<< BS.readFile fil
 
 -- | (internal use) A JSON/YAML encoding wrapper that is either a
 -- single element or an array.
-data ArrayOrSingle a =
-  AOSSingle a
+data ArrayOrSingle a
+  = AOSSingle a
   | AOSArray [a]
-  deriving (Show,Eq,Ord,Generic)
+  deriving (Eq, Generic, Ord, Show)
 
 instance F.Foldable ArrayOrSingle where
   foldr f acc (AOSSingle a) = f a acc

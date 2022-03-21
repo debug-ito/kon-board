@@ -1,48 +1,40 @@
-{-# LANGUAGE TemplateHaskell, GeneralizedNewtypeDeriving #-}
--- |
--- Module: KonBoard.Bridge.Recipe
--- Description: Easy-to-encode Recipe data types
--- Maintainer: Toshio Ito <debug.ito@gmail.com>
---
--- 
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE TemplateHaskell            #-}
+-- | Easy-to-encode Recipe data types
 module KonBoard.Bridge.Recipe
-  ( BRecipeSummary,
-    toBRecipeSummary,
-    fromBRecipeSummary,
-    BRecipeID,
-    toBRecipeID,
-    fromBRecipeID,
-    BRecipe,
-    toBRecipe,
-    BRecipeIn,
-    BRecipeExt,
-    BRecipeURL,
-    BIngDesc,
-    toBIngDesc,
-    BIngredient,
-    toBIngredient
-  ) where
+    ( BRecipeSummary
+    , toBRecipeSummary
+    , fromBRecipeSummary
+    , BRecipeID
+    , toBRecipeID
+    , fromBRecipeID
+    , BRecipe
+    , toBRecipe
+    , BRecipeIn
+    , BRecipeExt
+    , BRecipeURL
+    , BIngDesc
+    , toBIngDesc
+    , BIngredient
+    , toBIngredient
+    ) where
 
-import Data.Text (Text)
-import qualified Elm.Derive as Elm
-import Servant.API (FromHttpApiData)
+import           Data.Text             (Text)
+import qualified Elm.Derive            as Elm
+import           Servant.API           (FromHttpApiData)
 
-import KonBoard.Bridge.Util (dropLabelOptions)
-import KonBoard.Recipe
-  ( Ingredient(..), IngDesc(..),
-    Recipe(..), RecipeBody(..), RecipeIn(..), RecipeExt(..)
-  )
-import KonBoard.Recipe.Store
-  ( RecipeSummary(..), ID
-  )
+import           KonBoard.Bridge.Util  (dropLabelOptions)
+import           KonBoard.Recipe       (IngDesc (..), Ingredient (..), Recipe (..), RecipeBody (..),
+                                        RecipeExt (..), RecipeIn (..))
+import           KonBoard.Recipe.Store (ID, RecipeSummary (..))
 
 -- | Easy-to-encode version of 'RecipeSummary'.
-data BRecipeSummary =
-  BRecipeSummary
-  { br_id :: BRecipeID,
-    br_name :: Text
-  }
-  deriving (Show,Eq,Ord)
+data BRecipeSummary
+  = BRecipeSummary
+      { br_id   :: BRecipeID
+      , br_name :: Text
+      }
+  deriving (Eq, Ord, Show)
 
 toBRecipeSummary :: RecipeSummary -> BRecipeSummary
 toBRecipeSummary (RecipeSummary i n) = BRecipeSummary (toBRecipeID i) n
@@ -50,8 +42,9 @@ toBRecipeSummary (RecipeSummary i n) = BRecipeSummary (toBRecipeID i) n
 fromBRecipeSummary :: BRecipeSummary -> RecipeSummary
 fromBRecipeSummary (BRecipeSummary i n) = RecipeSummary (fromBRecipeID i) n
 
-newtype BRecipeID = BRecipeID Text
-  deriving (Show,Eq,Ord,FromHttpApiData)
+newtype BRecipeID
+  = BRecipeID Text
+  deriving (Eq, FromHttpApiData, Ord, Show)
 
 toBRecipeID :: ID -> BRecipeID
 toBRecipeID = BRecipeID
@@ -59,10 +52,11 @@ toBRecipeID = BRecipeID
 fromBRecipeID :: BRecipeID -> ID
 fromBRecipeID (BRecipeID i) = i
 
-data BRecipe = BRIn BRecipeIn
-             | BRExt BRecipeExt
-             | BRURL BRecipeURL
-             deriving (Show,Eq,Ord)
+data BRecipe
+  = BRIn BRecipeIn
+  | BRExt BRecipeExt
+  | BRURL BRecipeURL
+  deriving (Eq, Ord, Show)
 
 toBRecipe :: Recipe -> BRecipe
 toBRecipe r =
@@ -85,49 +79,49 @@ toBRecipe r =
   where
     rname = recipeName r
 
-data BRecipeIn =
-  BRecipeIn
-  { bri_name :: Text,
-    bri_ings :: [BIngDesc],
-    bri_desc :: Text,
-    bri_ref_url :: Maybe Text
-  }
-  deriving (Show,Eq,Ord)
+data BRecipeIn
+  = BRecipeIn
+      { bri_name    :: Text
+      , bri_ings    :: [BIngDesc]
+      , bri_desc    :: Text
+      , bri_ref_url :: Maybe Text
+      }
+  deriving (Eq, Ord, Show)
 
-data BRecipeExt =
-  BRecipeExt
-  { bre_name :: Text,
-    bre_source :: Text,
-    bre_ext_url :: Maybe Text
-  }
-  deriving (Show,Eq,Ord)
+data BRecipeExt
+  = BRecipeExt
+      { bre_name    :: Text
+      , bre_source  :: Text
+      , bre_ext_url :: Maybe Text
+      }
+  deriving (Eq, Ord, Show)
 
-data BRecipeURL =
-  BRecipeURL
-  { bru_name :: Text,
-    bru_url :: Text
-  }
-  deriving (Show,Eq,Ord)
+data BRecipeURL
+  = BRecipeURL
+      { bru_name :: Text
+      , bru_url  :: Text
+      }
+  deriving (Eq, Ord, Show)
 
 
-data BIngDesc =
-  BIngDesc
-  { bid_group :: Maybe Text,
-    bid_ings :: [BIngredient]
-  }
-  deriving (Show,Eq,Ord)
+data BIngDesc
+  = BIngDesc
+      { bid_group :: Maybe Text
+      , bid_ings  :: [BIngredient]
+      }
+  deriving (Eq, Ord, Show)
 
 
 toBIngDesc :: IngDesc -> BIngDesc
 toBIngDesc (IngGroup gsym ings) = BIngDesc (Just gsym) $ map toBIngredient ings
-toBIngDesc (IngSingle ing) = BIngDesc Nothing [toBIngredient ing]
+toBIngDesc (IngSingle ing)      = BIngDesc Nothing [toBIngredient ing]
 
-data BIngredient =
-  BIngredient
-  { bi_food :: Text,
-    bi_qtty :: Text
-  }
-  deriving (Show,Eq,Ord)
+data BIngredient
+  = BIngredient
+      { bi_food :: Text
+      , bi_qtty :: Text
+      }
+  deriving (Eq, Ord, Show)
 
 
 toBIngredient :: Ingredient -> BIngredient

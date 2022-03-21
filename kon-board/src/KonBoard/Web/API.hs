@@ -1,26 +1,22 @@
-{-# LANGUAGE DataKinds, TypeOperators #-}
--- |
--- Module: KonBoard.Web.API
--- Description: Web API definitions
--- Maintainer: Toshio Ito <debug.ito@gmail.com>
---
--- 
+{-# LANGUAGE DataKinds     #-}
+{-# LANGUAGE TypeOperators #-}
+-- |  Web API definitions
 module KonBoard.Web.API
-  ( DataAPI
-  ) where
+    ( DataAPI
+    ) where
 
-import Servant.API
+import           Servant.API
 
-import Data.Text (Text)
-import KonBoard.Bridge.Recipe (BRecipe, BRecipeID)
-import KonBoard.Bridge.MealPlan (BMealPlan)
-import KonBoard.Bridge.Time (BDay)
+import           Data.Text                (Text)
+import           KonBoard.Bridge.MealPlan (BMealPlan)
+import           KonBoard.Bridge.Recipe   (BRecipe, BRecipeID)
+import           KonBoard.Bridge.Time     (BDay)
 
 type DataAPI = "api" :> "v1" :>
                ( GetMealPlans
                  :<|> GetRecipe
                )
-  
+
 type GetMealPlans =
   "meal-plans"
   :> QueryParam' [Required, Strict] "start" BDay

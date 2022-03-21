@@ -1,35 +1,32 @@
-{-# LANGUAGE DeriveGeneric, OverloadedStrings #-}
--- |
--- Module: KonBoard.MealPlan.Store
--- Description: Storage service for MealPlans.
--- Maintainer: Toshio Ito <debug.ito@gmail.com>
---
--- 
+{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE OverloadedStrings #-}
+-- | Storage service for MealPlans.
 module KonBoard.MealPlan.Store
-  ( -- * Common API
-    AMealPlanStore(..),
-    -- * YAMLStore
-    YAMLStore,
-    openYAMLs
-  ) where
+    ( -- * Common API
+      AMealPlanStore (..)
+      -- * YAMLStore
+    , YAMLStore
+    , openYAMLs
+    ) where
 
-import Control.Applicative (empty)
-import Control.Monad (forM, guard)
-import Control.Monad.Logger (MonadLogger, logInfoN)
-import Control.Monad.Trans (MonadIO(..))
-import Data.Aeson (FromJSON(..), ToJSON(..))
-import qualified Data.Aeson as Aeson
-import qualified Data.Foldable as F
-import Data.List (sort)
-import Data.Text (Text, pack)
-import Data.Time (Day, fromGregorian)
-import Data.Traversable (Traversable(..))
-import GHC.Generics (Generic)
+import           Control.Applicative   (empty)
+import           Control.Monad         (forM, guard)
+import           Control.Monad.Logger  (MonadLogger, logInfoN)
+import           Control.Monad.Trans   (MonadIO (..))
+import           Data.Aeson            (FromJSON (..), ToJSON (..))
+import qualified Data.Aeson            as Aeson
+import qualified Data.Foldable         as F
+import           Data.List             (sort)
+import           Data.Text             (Text, pack)
+import           Data.Time             (Day, fromGregorian)
+import           Data.Traversable      (Traversable (..))
+import           GHC.Generics          (Generic)
 
-import KonBoard.MealPlan (MealPlan(..), MealPhase(..), toMealPhase, fromMealPhase, Note)
-import KonBoard.Recipe.Store (RecipeStore, loadRecipeByName')
-import KonBoard.Recipe (Name)
-import KonBoard.Util.YAML (readYAMLDocs, ArrayOrSingle(..))
+import           KonBoard.MealPlan     (MealPhase (..), MealPlan (..), Note, fromMealPhase,
+                                        toMealPhase)
+import           KonBoard.Recipe       (Name)
+import           KonBoard.Recipe.Store (RecipeStore, loadRecipeByName')
+import           KonBoard.Util.YAML    (ArrayOrSingle (..), readYAMLDocs)
 
 -- | Common API of 'MealPlan' store.
 class AMealPlanStore s where
@@ -39,7 +36,8 @@ class AMealPlanStore s where
                   -> IO [MealPlan]
 
 -- | 'MealPlan' store based on YAML files.
-newtype YAMLStore = YAMLStore [MealPlan]
+newtype YAMLStore
+  = YAMLStore [MealPlan]
 
 instance AMealPlanStore YAMLStore where
   searchMealPlans (YAMLStore mps) start end = return $ sort $ filter isInside mps
@@ -80,13 +78,13 @@ fromMonthPlan rstore mp = traverse toMP $ mp_plan mp
 fromAOSToList :: Maybe (ArrayOrSingle a) -> [a]
 fromAOSToList = maybe [] F.toList
 
-data MonthPlan =
-  MonthPlan
-  { mp_year :: Integer,
-    mp_month :: Int,
-    mp_plan :: [DayPlan]
-  }
-  deriving (Show,Eq,Ord,Generic)
+data MonthPlan
+  = MonthPlan
+      { mp_year  :: Integer
+      , mp_month :: Int
+      , mp_plan  :: [DayPlan]
+      }
+  deriving (Eq, Generic, Ord, Show)
 
 instance FromJSON MonthPlan where
   parseJSON = Aeson.genericParseJSON aesonOpt
@@ -99,14 +97,14 @@ type Meals = ArrayOrSingle Name
 
 type Notes = ArrayOrSingle Note
 
-data DayPlan =
-  DayPlan
-  { dp_d :: Int,
-    dp_p :: YMealPhase,
-    dp_m :: Maybe Meals,
-    dp_n :: Maybe Notes
-  }
-  deriving (Show,Eq,Ord,Generic)
+data DayPlan
+  = DayPlan
+      { dp_d :: Int
+      , dp_p :: YMealPhase
+      , dp_m :: Maybe Meals
+      , dp_n :: Maybe Notes
+      }
+  deriving (Eq, Generic, Ord, Show)
 
 instance FromJSON DayPlan where
   parseJSON = Aeson.genericParseJSON aesonOpt
@@ -116,8 +114,9 @@ instance ToJSON DayPlan where
   toEncoding = Aeson.genericToEncoding aesonOpt
 
 -- | MealPhase for YAML encoding.
-newtype YMealPhase = YMealPhase { unYMealPhase :: MealPhase }
-  deriving (Show,Eq,Ord)
+newtype YMealPhase
+  = YMealPhase { unYMealPhase :: MealPhase }
+  deriving (Eq, Ord, Show)
 
 instance FromJSON YMealPhase where
   parseJSON v = fmap YMealPhase $ parsedMealPhase
@@ -129,13 +128,13 @@ instance FromJSON YMealPhase where
             guard (F.length a == 1)
             case F.toList a of
               [(Aeson.String p)] -> return $ MealOther p
-              _ -> empty
+              _                  -> empty
           _ -> empty
 
 instance ToJSON YMealPhase where
   toJSON (YMealPhase mp) =
     case mp of
       MealOther p -> toJSON [p]
-      _ -> Aeson.String $ fromMealPhase mp
+      _           -> Aeson.String $ fromMealPhase mp
 
 

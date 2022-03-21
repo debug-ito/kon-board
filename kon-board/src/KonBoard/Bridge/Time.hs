@@ -1,29 +1,26 @@
-{-# LANGUAGE TemplateHaskell, GeneralizedNewtypeDeriving #-}
--- |
--- Module: KonBoard.Bridge.Time
--- Description: Easy-to-encode version of time-related types
--- Maintainer: Toshio Ito <debug.ito@gmail.com>
---
--- 
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE TemplateHaskell            #-}
+-- | Easy-to-encode version of time-related types
 module KonBoard.Bridge.Time
-  ( BDay,
-    toBDay,
-    fromBDay
-  ) where
+    ( BDay
+    , toBDay
+    , fromBDay
+    ) where
 
-import Data.Aeson (defaultOptions)
-import Data.Text (Text, unpack, pack)
-import Data.Time (Day, defaultTimeLocale, parseTimeM, formatTime)
-import qualified Elm.Derive as Elm
-import Servant.API (FromHttpApiData)
+import           Data.Aeson  (defaultOptions)
+import           Data.Text   (Text, pack, unpack)
+import           Data.Time   (Day, defaultTimeLocale, formatTime, parseTimeM)
+import qualified Elm.Derive  as Elm
+import           Servant.API (FromHttpApiData)
 
 -- $setup
 --
 -- >>> import Data.Time (toGregorian, fromGregorian)
 
 -- | Text-encoded version of Day.
-newtype BDay = BDay Text
-             deriving (Show,Eq,Ord,FromHttpApiData)
+newtype BDay
+  = BDay Text
+  deriving (Eq, FromHttpApiData, Ord, Show)
 
 $(Elm.deriveBoth defaultOptions ''BDay)
 

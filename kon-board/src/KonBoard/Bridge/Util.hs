@@ -1,17 +1,10 @@
--- |
--- Module: KonBoard.Bridge.Util
--- Description: Common utility for bridges
--- Maintainer: Toshio Ito <debug.ito@gmail.com>
---
--- 
+-- | Common utility for bridges
 module KonBoard.Bridge.Util
-  ( dropLabelOptions
-  ) where
+    ( dropLabelOptions
+    ) where
 
-import Data.Aeson
-  ( Options(fieldLabelModifier, sumEncoding, omitNothingFields), defaultOptions,
-    SumEncoding(..)
-  )
+import           Data.Aeson (Options (fieldLabelModifier, omitNothingFields, sumEncoding),
+                             SumEncoding (..), defaultOptions)
 
 dropLabelOptions :: Int -> Options
 dropLabelOptions drop_num =

@@ -1,77 +1,69 @@
-{-# LANGUAGE DeriveGeneric, OverloadedStrings #-}
--- |
--- Module: KonBoard.Recipe.Store
--- Description: Storage service for Recipes
--- Maintainer: Toshio Ito <debug.ito@gmail.com>
---
--- 
+{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE OverloadedStrings #-}
+-- | Storage service for Recipes
 module KonBoard.Recipe.Store
-  ( -- * RecipeSummary
-    RecipeSummary(..),
-    ID,
-    toRecipeSummary,
-    -- * RecipeStore
-    RecipeStore,
-    openYAMLs,
-    loadRecipeByName,
-    loadRecipeByName',
-    loadRecipe,
-    loadRecipeSummary,
-    RecipeStoreException(..)
-  ) where
+    ( -- * RecipeSummary
+      RecipeSummary (..)
+    , ID
+    , toRecipeSummary
+      -- * RecipeStore
+    , RecipeStore
+    , openYAMLs
+    , loadRecipeByName
+    , loadRecipeByName'
+    , loadRecipe
+    , loadRecipeSummary
+    , RecipeStoreException (..)
+    ) where
 
-import Control.Exception.Safe (Exception, throwIO)
-import Control.Monad (when, forM_, mapM_)
-import Control.Monad.Logger (MonadLogger, logInfoN)
-import Control.Monad.Trans (MonadIO(..))
-import qualified Crypto.Hash.MD5 as MD5
-import Data.Aeson (FromJSON(..), ToJSON(..))
-import qualified Data.Aeson as Aeson
-import qualified Data.ByteString as BS
+import           Control.Exception.Safe (Exception, throwIO)
+import           Control.Monad          (forM_, mapM_, when)
+import           Control.Monad.Logger   (MonadLogger, logInfoN)
+import           Control.Monad.Trans    (MonadIO (..))
+import qualified Crypto.Hash.MD5        as MD5
+import           Data.Aeson             (FromJSON (..), ToJSON (..))
+import qualified Data.Aeson             as Aeson
+import qualified Data.ByteString        as BS
 import qualified Data.ByteString.Base16 as Base16
-import Data.Char (toLower)
-import Data.HashMap.Strict (HashMap)
-import qualified Data.HashMap.Strict as HM
-import Data.IORef (newIORef, readIORef, writeIORef)
-import Data.Monoid ((<>))
-import Data.Text (Text, pack)
-import Data.Text.Encoding (encodeUtf8, decodeUtf8)
-import Data.Traversable (Traversable(..))
-import GHC.Generics (Generic)
+import           Data.Char              (toLower)
+import           Data.HashMap.Strict    (HashMap)
+import qualified Data.HashMap.Strict    as HM
+import           Data.IORef             (newIORef, readIORef, writeIORef)
+import           Data.Monoid            ((<>))
+import           Data.Text              (Text, pack)
+import           Data.Text.Encoding     (decodeUtf8, encodeUtf8)
+import           Data.Traversable       (Traversable (..))
+import           GHC.Generics           (Generic)
 
-import KonBoard.Recipe
-  ( Recipe(recipeName),
-    Name,
-    loadYAML
-  )
+import           KonBoard.Recipe        (Name, Recipe (recipeName), loadYAML)
 
 -- | URL-fiendly ID for a recipe
 type ID = Text
 
 -- | Consise summary of a 'Recipe'.
-data RecipeSummary =
-  RecipeSummary
-  { rsID :: ID,
-    rsName :: Name
-  }
-  deriving (Show,Eq,Ord,Generic)
+data RecipeSummary
+  = RecipeSummary
+      { rsID   :: ID
+      , rsName :: Name
+      }
+  deriving (Eq, Generic, Ord, Show)
 
-data RecipeWithID =
-  RecipeWithID
-  { rwID :: ID,
-    rwRecipe :: Recipe
-  }
-  deriving (Show,Eq,Ord)
+data RecipeWithID
+  = RecipeWithID
+      { rwID     :: ID
+      , rwRecipe :: Recipe
+      }
+  deriving (Eq, Ord, Show)
 
 withIDToSummary :: RecipeWithID -> RecipeSummary
 withIDToSummary rw = RecipeSummary (rwID rw) (recipeName $ rwRecipe rw)
 
 -- | Handle for the recipe storage.
-data RecipeStore =
-  RecipeStore
-  { fromID :: HashMap ID RecipeWithID,
-    fromName :: HashMap Name RecipeWithID
-  }
+data RecipeStore
+  = RecipeStore
+      { fromID   :: HashMap ID RecipeWithID
+      , fromName :: HashMap Name RecipeWithID
+      }
 
 emptyStore :: RecipeStore
 emptyStore = RecipeStore HM.empty HM.empty
@@ -80,12 +72,16 @@ makeID :: Name -> ID
 makeID = decodeUtf8 . Base16.encode . MD5.hash . encodeUtf8
 
 -- | Exception about 'RecipeStore'.
-data RecipeStoreException =
-    ConflictingID ID -- ^ ID conflict in the store.
-  | ConflictingName Name -- ^ Name conflict in the store.
-  | IDNotFound ID -- ^ ID is not found in the store.
-  | NameNotFound Name -- ^ Recipe name is not found in the store.
-  deriving (Show,Eq,Ord)
+data RecipeStoreException
+  = ConflictingID ID
+  -- ^ ID conflict in the store.
+  | ConflictingName Name
+  -- ^ Name conflict in the store.
+  | IDNotFound ID
+  -- ^ ID is not found in the store.
+  | NameNotFound Name
+  -- ^ Recipe name is not found in the store.
+  deriving (Eq, Ord, Show)
 
 instance Exception RecipeStoreException
 
@@ -122,7 +118,7 @@ loadRecipeSummary store rid = fmap (toRecipeSummary rid) $ loadRecipe store rid
 
 toIO :: Exception e => Either e a -> IO a
 toIO (Right a) = return a
-toIO (Left e) = throwIO e
+toIO (Left e)  = throwIO e
 
 -- | Open YAML files and make a 'RecipeStore'.
 openYAMLs :: (MonadLogger m, MonadIO m) => [FilePath] -> m RecipeStore
