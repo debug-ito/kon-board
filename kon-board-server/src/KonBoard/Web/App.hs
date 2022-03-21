@@ -1,10 +1,5 @@
 {-# LANGUAGE GADTs, TypeOperators, DataKinds, OverloadedStrings #-}
--- |
--- Module: KonBoard.Web.App
--- Description: Web application of KonBoard
--- Maintainer: Toshio Ito <debug.ito@gmail.com>
---
--- 
+-- | Web application of KonBoard
 module KonBoard.Web.App
   ( -- * Application
     appWith,

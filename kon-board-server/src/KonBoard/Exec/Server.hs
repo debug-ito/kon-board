@@ -1,19 +1,14 @@
--- |
--- Module: KonBoard.Exec.Server
--- Description: Executable of kon-board backend server
--- Maintainer: Toshio Ito <debug.ito@gmail.com>
--- 
+-- | Executable of kon-board backend server
 module KonBoard.Exec.Server
-       ( main
-       ) where
+    ( main
+    ) where
 
-import Control.Monad.Logger (logInfoN)
-import Data.Monoid ((<>))
-import Data.Text (pack)
-import Network.Wai.Handler.Warp (run)
+import           Control.Monad.Logger     (logInfoN)
+import           Data.Monoid              ((<>))
+import           Data.Text                (pack)
+import           Network.Wai.Handler.Warp (run)
 
-import KonBoard.Web.App
-  (appWith, makeDefaultServer, runLogging)
+import           KonBoard.Web.App         (appWith, makeDefaultServer, runLogging)
 
 main :: IO ()
 main = do
