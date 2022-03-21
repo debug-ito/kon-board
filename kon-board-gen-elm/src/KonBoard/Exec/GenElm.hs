@@ -1,26 +1,19 @@
--- |
--- Module: KonBoard.Exec.GenElm
--- Description: Executable to generate Elm code for kon-board
--- Maintainer: Toshio Ito <debug.ito@gmail.com>
---
--- 
+-- | Executable to generate Elm code for kon-board
 module KonBoard.Exec.GenElm
-  ( main
-  ) where
+    ( main
+    ) where
 
 
-import Data.Proxy (Proxy(..))
-import qualified Servant.Elm as Elm
-import qualified Elm.TyRep as ElmT
-import System.Environment (getArgs)
+import           Data.Proxy               (Proxy (..))
+import qualified Elm.TyRep                as ElmT
+import qualified Servant.Elm              as Elm
+import           System.Environment       (getArgs)
 
-import KonBoard.Bridge.MealPlan (BMealPlan)
-import KonBoard.Bridge.Recipe
-  ( BRecipeSummary, BRecipe, BRecipeIn, BRecipeID, BRecipeExt,
-    BRecipeURL, BIngDesc, BIngredient
-  )
-import KonBoard.Bridge.Time (BDay)
-import KonBoard.Web.API (DataAPI)
+import           KonBoard.Bridge.MealPlan (BMealPlan)
+import           KonBoard.Bridge.Recipe   (BIngDesc, BIngredient, BRecipe, BRecipeExt, BRecipeID,
+                                           BRecipeIn, BRecipeSummary, BRecipeURL)
+import           KonBoard.Bridge.Time     (BDay)
+import           KonBoard.Web.API         (DataAPI)
 
 main :: IO ()
 main = do
@@ -46,6 +39,6 @@ main = do
     api_proxy = Proxy :: Proxy DataAPI
     elm_imports = Elm.defElmImports
     typeAlt = Elm.defaultTypeAlterations
-    customToString (Elm.ETyCon (ElmT.ETCon "BDay")) = "identity"
+    customToString (Elm.ETyCon (ElmT.ETCon "BDay"))      = "identity"
     customToString (Elm.ETyCon (ElmT.ETCon "BRecipeID")) = "identity"
-    customToString t = Elm.defaultElmToString t
+    customToString t                                     = Elm.defaultElmToString t
