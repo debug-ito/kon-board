@@ -1,4 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
 -- | Recipe data model
 module KonBoard.Recipe
     ( -- * Types
