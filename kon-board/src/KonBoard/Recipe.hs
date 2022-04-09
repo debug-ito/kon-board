@@ -22,9 +22,9 @@ import           Control.Applicative (empty, (<$>), (<*>))
 import           Control.Monad       (when)
 import           Data.Aeson          (FromJSON (..), (.:), (.:?))
 import qualified Data.Aeson          as Aeson
+import qualified Data.Aeson.KeyMap   as KM
 import           Data.ByteString     (ByteString)
 import qualified Data.ByteString     as BS
-import qualified Data.HashMap.Strict as HS
 import           Data.Monoid         (mconcat)
 import           Data.Text           (Text)
 import qualified Data.Text           as T
@@ -67,9 +67,9 @@ data RecipeBody
 
 instance FromJSON RecipeBody where
   parseJSON v@(Aeson.Object o) =
-    if HS.member "desc" o
+    if KM.member "desc" o
     then RecipeBodyIn <$> parseJSON v
-    else if HS.member "source" o
+    else if KM.member "source" o
          then RecipeBodyExt <$> parseJSON v
          else RecipeBodyURL <$> (o .: "url")
   parseJSON _ = empty
