@@ -35,76 +35,27 @@ import           KonBoard.Util.YAML  (decodeYAMLDocs)
 -- | Human-friendly name for a recipe.
 type Name = Text
 
--- | URL text.
-type URL = Text
+type Url = Text
 
 -- | Description of recipe.
 type Desc = Text
 
--- | A recipe.
 data Recipe
   = Recipe
-      { recipeName :: Name
-      , recipeBody :: RecipeBody
+      { name        :: Name
+      , ingredients :: [IngDesc]
+      , description :: Desc
+      , references  :: [RecipeRef]
       }
   deriving (Eq, Ord, Show)
 
-instance FromJSON Recipe where
-  parseJSON v@(Aeson.Object o) =
-    Recipe <$> (o .: "name") <*> parseJSON v
-  parseJSON _ = empty
-
--- | Main content of a recipe.
-data RecipeBody
-  -- | Internal recipe.
-  = RecipeBodyIn RecipeIn
-  -- | External recipe with some descriptions.
-  | RecipeBodyExt RecipeExt
-  -- | External recipe, just pointing to the URL.
-  | RecipeBodyURL URL
+-- | External reference of a recipe
+data RecipeRef
+  = RecipeRefSource Text
+  -- ^ Human-readable source of a recipe.
+  | RecipeRefUrl Url (Maybe Text)
+  -- ^ URL and optional anchor text.
   deriving (Eq, Ord, Show)
-
-instance FromJSON RecipeBody where
-  parseJSON v@(Aeson.Object o) =
-    if KM.member "desc" o
-    then RecipeBodyIn <$> parseJSON v
-    else if KM.member "source" o
-         then RecipeBodyExt <$> parseJSON v
-         else RecipeBodyURL <$> (o .: "url")
-  parseJSON _ = empty
-
--- | External recipe with some descriptions.
-data RecipeExt
-  = RecipeExt
-      { recipeSource :: Text
-        -- ^ Human-readable source of the external recipe.
-      , recipeExtURL :: Maybe URL
-        -- ^ Optional URL of the external recipe
-      }
-  deriving (Eq, Ord, Show)
-
-instance FromJSON RecipeExt where
-  parseJSON (Aeson.Object o) =
-    RecipeExt <$> (o .: "source") <*> (o .:? "url")
-  parseJSON _ = empty
-
--- | Body of an internal recipe.
-data RecipeIn
-  = RecipeIn
-      { recipeIngs   :: [IngDesc]
-        -- ^ Ingredients
-      , recipeDesc   :: Desc
-        -- ^ Description of how to cook the dish.
-      , recipeRefURL :: Maybe URL
-        -- ^ Reference URL of the internal recipe.
-      }
-  deriving (Eq, Ord, Show)
-
-instance FromJSON RecipeIn where
-  parseJSON (Aeson.Object o) =
-    RecipeIn <$> (o .: "ings") <*> (o .: "desc") <*> (o .:? "url")
-  parseJSON _ = empty
-
 
 -- | Human-recognizable symbol for a group of ingredients.
 type IngGroupSymbol = Text
