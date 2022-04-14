@@ -1,17 +1,23 @@
 -- | Recipe data model
 module KonBoard.Recipe
-    ( -- * Types
+    ( -- * Recipe
       Recipe (..)
     , Name
     , Url
     , Desc
+      -- * RecipeRef
     , RecipeRef (..)
+      -- * Ingredient
     , IngDesc (..)
     , IngGroupSymbol
     , Ingredient (..)
     , parseIngredient
     , FoodItem
     , Quantity
+      -- * RecipeStore
+    , RecipeStore (..)
+    , RecipeId
+    , RecipeSummary (..)
     ) where
 
 import           Control.Applicative (empty, (<$>), (<*>))
@@ -80,3 +86,21 @@ parseIngredient s = do
   let qtty = T.drop 1 comma_qtty
   return $ Ingredient (T.strip food) (T.strip qtty)
 
+-- | URL-fiendly ID for a recipe
+type RecipeId = Text
+
+-- | Consise summary of a 'Recipe'.
+data RecipeSummary
+  = RecipeSummary
+      { id   :: RecipeId
+      , name :: Name
+      }
+  deriving (Eq, Ord, Show)
+
+-- | Storage interface of recipes.
+data RecipeStore m
+  = RecipeStore
+      { putRecipe       :: Recipe -> m ()
+      , getRecipeById   :: RecipeId -> m (Maybe Recipe)
+      , getRecipeByName :: Name -> m (Maybe RecipeSummary)
+      }
