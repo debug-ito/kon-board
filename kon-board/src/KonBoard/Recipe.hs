@@ -17,7 +17,7 @@ module KonBoard.Recipe
       -- * RecipeStore
     , RecipeStore (..)
     , RecipeId
-    , RecipeSummary (..)
+    , RecipeStored (..)
     ) where
 
 import           Control.Applicative (empty, (<$>), (<*>))
@@ -89,18 +89,18 @@ parseIngredient s = do
 -- | URL-fiendly ID for a recipe
 type RecipeId = Text
 
--- | Consise summary of a 'Recipe'.
-data RecipeSummary
-  = RecipeSummary
-      { id   :: RecipeId
-      , name :: Name
+-- | A 'Recipe' stored in 'RecipeStore'.
+data RecipeStored
+  = RecipeStored
+      { id     :: RecipeId
+      , recipe :: Recipe
       }
   deriving (Eq, Ord, Show)
 
 -- | Storage interface of recipes.
 data RecipeStore m
   = RecipeStore
-      { putRecipe       :: Recipe -> m ()
-      , getRecipeById   :: RecipeId -> m (Maybe Recipe)
-      , getRecipeByName :: Name -> m (Maybe RecipeSummary)
+      { putRecipe       :: Recipe -> m RecipeId
+      , getRecipeById   :: RecipeId -> m (Maybe RecipeStored)
+      , getRecipeByName :: Name -> m (Maybe RecipeStored)
       }
