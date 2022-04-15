@@ -37,7 +37,7 @@ data Recipe
       { name        :: Name
       , ingredients :: [IngDesc]
       , description :: Desc
-      , references  :: [RecipeRef]
+      , references  :: [Ref]
       }
   deriving (Eq, Ord, Show)
 
