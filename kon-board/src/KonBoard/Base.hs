@@ -2,7 +2,10 @@ module KonBoard.Base
     ( module X
     ) where
 
-import           Data.ByteString     as X (ByteString)
-import           Data.HashMap.Strict as X (HashMap)
-import           Data.Monoid         as X (Monoid (..))
-import           Data.Semigroup      as X (Semigroup (..))
+import           Control.Exception.Safe as X (MonadThrow)
+import           Control.Monad          as X (when)
+import           Control.Monad.Logger   as X (MonadLogger)
+import           Data.ByteString        as X (ByteString)
+import           Data.HashMap.Strict    as X (HashMap)
+import           Data.Monoid            as X (Monoid (..))
+import           Data.Semigroup         as X (Semigroup (..))

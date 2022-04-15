@@ -20,14 +20,9 @@ module KonBoard.Recipe
     , RecipeStored (..)
     ) where
 
-import           Control.Applicative (empty, (<$>), (<*>))
-import           Control.Monad       (when)
-import           Data.ByteString     (ByteString)
-import qualified Data.ByteString     as BS
-import           Data.Monoid         (mconcat)
-import           Data.Text           (Text)
-import qualified Data.Text           as T
-import           Data.Traversable    (Traversable (traverse))
+import qualified Data.Text     as T
+
+import           KonBoard.Base (Monoid (..), Text, when)
 
 -- | Human-friendly name for a recipe.
 type Name = Text

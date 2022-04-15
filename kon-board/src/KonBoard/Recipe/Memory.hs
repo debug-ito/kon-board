@@ -4,7 +4,8 @@ module KonBoard.Recipe.Memory
     , readYaml
     ) where
 
-import           KonBoard.Base   (ByteString, HashMap, Monoid (..), Semigroup (..))
+import           KonBoard.Base   (ByteString, HashMap, MonadLogger, MonadThrow, Monoid (..),
+                                  Semigroup (..))
 import           KonBoard.Recipe (Id, Name, RecipeStore (..), RecipeStored (..))
 
 -- | On-memory Recipe store.
