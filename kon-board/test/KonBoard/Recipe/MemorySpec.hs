@@ -6,10 +6,12 @@ module KonBoard.Recipe.MemorySpec
 import qualified Data.ByteString        as BS
 import           Data.Monoid            ((<>))
 import qualified Data.Text              as T
+import           GHC.Records            (HasField (..))
 import           Test.Hspec
 
-import KonBoard.Recipe (Recipe(..), IngDesc(..), Ingredient(..))
-import           KonBoard.Recipe.Memory (readYaml)
+import           KonBoard.Recipe        (IngDesc (..), Ingredient (..), Recipe (..),
+                                         RecipeStored (..), Ref (..))
+import           KonBoard.Recipe.Memory (getAllRecipes, readYaml)
 
 import           KonBoard.TestLogger    (basicLogging)
 
@@ -23,7 +25,7 @@ spec = do
 loadRecipes :: String -> IO [Recipe]
 loadRecipes filename = do
   doc <- BS.readFile ("test/recipes/" ++ filename)
-  either (fail . show) return $ basicLogging $ readYaml doc
+  fmap (map (getField @"recipe") . getAllRecipes) $ basicLogging $ readYaml doc
 
 specRecipe :: Spec
 specRecipe = describe "Recipe" $ do
@@ -39,17 +41,17 @@ specRecipe = describe "Recipe" $ do
     [ Recipe
       { name = "internal recipe with ingredient groups"
       , ingredients = [ IngSingle $ Ingredient "tomato" "1"
-                      , IngSingle $ Ingredient "carrot" "1/2",
-                      , IngSingle $ Ingredient "pepper" "3",
-                      , IngSingle $ Ingredient "pork" "200g",
+                      , IngSingle $ Ingredient "carrot" "1/2"
+                      , IngSingle $ Ingredient "pepper" "3"
+                      , IngSingle $ Ingredient "pork" "200g"
                       , IngGroup "G1"
-                        [ Ingredient "soy source" "1/2 spoon",
+                        [ Ingredient "soy source" "1/2 spoon"
                         , Ingredient "miso" "1 spoon"
                         ]
                       , IngGroup "G2"
-                        [ Ingredient "sake" "2 spoon",
-                          Ingredient "mirin" "2 spoon",
-                          Ingredient "soy source" "2 spoon"
+                        [ Ingredient "sake" "2 spoon"
+                        , Ingredient "mirin" "2 spoon"
+                        , Ingredient "soy source" "2 spoon"
                         ]
                       , IngSingle $ Ingredient "oil" "1 spoon"
                       ]
@@ -122,7 +124,7 @@ specRecipe = describe "Recipe" $ do
       }
     ]
 
-specRecipeYaml :: FilePath -> [Recipe] -> IO ()
+specRecipeYaml :: FilePath -> [Recipe] -> Spec
 specRecipeYaml yamlFile expected = do
   specify yamlFile $ do
     loadRecipes yamlFile `shouldReturn` expected

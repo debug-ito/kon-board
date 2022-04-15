@@ -59,8 +59,12 @@ test-suite spec
   hs-source-dirs:       test
   ghc-options:          -Wall -fno-warn-unused-imports "-with-rtsopts=-M512m"
   main-is:              Spec.hs
-  default-extensions:   OverloadedStrings, StrictData
-  -- other-extensions:     
+  default-extensions:   OverloadedStrings, NumericUnderscores,
+                        StrictData,
+                        DeriveDataTypeable, DeriveFoldable, DeriveFunctor, DeriveTraversable, DeriveGeneric, GeneralisedNewtypeDeriving
+                        FlexibleContexts, FlexibleInstances,
+                        RankNTypes, TypeApplications, TypeOperators, DataKinds, DuplicateRecordFields
+  other-extensions:     TemplateHaskell, GADTs
   other-modules:        KonBoard.RecipeSpec,
                         KonBoard.Recipe.MemorySpec,
                         KonBoard.MealPlanSpec,
