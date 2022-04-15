@@ -29,7 +29,7 @@ library
   exposed-modules:      KonBoard.Recipe,
                         KonBoard.Recipe.Memory,
                         KonBoard.MealPlan,
-                        KonBoard.MealPlan.Store,
+                        KonBoard.MealPlan.Memory,
                         KonBoard.Bridge.MealPlan,
                         KonBoard.Bridge.Recipe,
                         KonBoard.Bridge.Util,

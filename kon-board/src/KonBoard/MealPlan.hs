@@ -1,10 +1,13 @@
 -- |  Meal plan associated with recipes
 module KonBoard.MealPlan
-    ( MealPlan (..)
+    ( -- * MealPlan
+      MealPlan (..)
     , MealPhase (..)
     , Note
     , toMealPhase
     , fromMealPhase
+      -- * MealPlanStore
+    , MealPlanStore (..)
     ) where
 
 import qualified Data.Text       as T
@@ -52,3 +55,10 @@ data MealPlan
       , notes     :: [Note]
       }
   deriving (Eq, Ord, Show)
+
+-- | Interface to storage of 'MealPlan's.
+data MealPlanStore m
+  = MealPlanStore
+      { searchMealPlans :: Day -> Day -> m [MealPlan]
+        -- ^ Get meal plans stored between the start date (inclusive) and the end date (exclusive).
+      }
