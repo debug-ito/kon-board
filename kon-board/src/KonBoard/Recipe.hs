@@ -5,8 +5,8 @@ module KonBoard.Recipe
     , Name
     , Url
     , Desc
-      -- * RecipeRef
-    , RecipeRef (..)
+      -- * Ref
+    , Ref (..)
       -- * Ingredient
     , IngDesc (..)
     , IngGroupSymbol
@@ -16,7 +16,7 @@ module KonBoard.Recipe
     , Quantity
       -- * RecipeStore
     , RecipeStore (..)
-    , RecipeId
+    , Id
     , RecipeStored (..)
     ) where
 
@@ -47,10 +47,10 @@ data Recipe
   deriving (Eq, Ord, Show)
 
 -- | External reference of a recipe
-data RecipeRef
-  = RecipeRefSource Text
+data Ref
+  = RefSource Text
   -- ^ Human-readable source of a recipe.
-  | RecipeRefUrl Url (Maybe Text)
+  | RefUrl Url (Maybe Text)
   -- ^ URL and optional anchor text.
   deriving (Eq, Ord, Show)
 
@@ -87,12 +87,12 @@ parseIngredient s = do
   return $ Ingredient (T.strip food) (T.strip qtty)
 
 -- | URL-fiendly ID for a recipe
-type RecipeId = Text
+type Id = Text
 
 -- | A 'Recipe' stored in 'RecipeStore'.
 data RecipeStored
   = RecipeStored
-      { id     :: RecipeId
+      { id     :: Id
       , recipe :: Recipe
       }
   deriving (Eq, Ord, Show)
@@ -100,7 +100,7 @@ data RecipeStored
 -- | Storage interface of recipes.
 data RecipeStore m
   = RecipeStore
-      { putRecipe       :: Recipe -> m RecipeId
-      , getRecipeById   :: RecipeId -> m (Maybe RecipeStored)
+      { putRecipe       :: Recipe -> m Id
+      , getRecipeById   :: Id -> m (Maybe RecipeStored)
       , getRecipeByName :: Name -> m (Maybe RecipeStored)
       }
