@@ -28,6 +28,7 @@ library
   other-extensions:     TemplateHaskell, GADTs
   exposed-modules:      KonBoard.Recipe,
                         KonBoard.Recipe.Store,
+                        KonBoard.Recipe.Memory,
                         KonBoard.MealPlan,
                         KonBoard.MealPlan.Store,
                         KonBoard.Bridge.MealPlan,
@@ -36,7 +37,7 @@ library
                         KonBoard.Bridge.Time,
                         KonBoard.Util.YAML,
                         KonBoard.Web.API
-  -- other-modules:        
+  other-modules:        KonBoard.Base
   build-depends:        base >=4.13.0.0 && <4.14,
                         text,
                         yaml,
