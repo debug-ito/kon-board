@@ -1,25 +1,12 @@
 module KonBoard.MealPlan.Memory
-    ( MealPlanStoreMemory
-    , mealPlanStoreMemory
-    , readYaml
+    ( mealPlanStoreMemory
     ) where
 
-import           KonBoard.Base     (ByteString, MonadLogger, MonadThrow, Monoid (..),
-                                    Semigroup (..))
+import           KonBoard.Base     (MonadIO)
 import           KonBoard.MealPlan (MealPlan, MealPlanStore)
-import           KonBoard.Recipe   (RecipeStore)
 
--- | On-memory 'MealPlanStore'.
-newtype MealPlanStoreMemory
-  = MealPlanStoreMemory [MealPlan]
-  deriving (Eq, Monoid, Semigroup, Show)
-
-mealPlanStoreMemory :: Applicative m => MealPlanStoreMemory -> MealPlanStore m
+mealPlanStoreMemory :: (MonadIO m1, MonadIO m2) => m1 (MealPlanStore m2)
 mealPlanStoreMemory = undefined -- TODO
-
-readYaml :: (MonadLogger m, MonadThrow m) => RecipeStore m -> ByteString -> m MealPlanStoreMemory
-readYaml = undefined -- TODO
-
 
 ---- -- | Common API of 'MealPlan' store.
 ---- class AMealPlanStore s where
