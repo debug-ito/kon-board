@@ -1,5 +1,3 @@
-{-# LANGUAGE DataKinds     #-}
-{-# LANGUAGE TypeOperators #-}
 -- |  Web API definitions
 module KonBoard.Web.API
     ( DataAPI
