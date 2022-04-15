@@ -3,9 +3,11 @@ module KonBoard.Bridge.TimeSpec
     , spec
     ) where
 
-import           Data.Time   (fromGregorian)
-import           Servant.API (ToHttpApiData (..))
+import           Data.Time            (fromGregorian)
+import           Servant.API          (FromHttpApiData (..), ToHttpApiData (..))
 import           Test.Hspec
+
+import           KonBoard.Bridge.Time (fromBDay, toBDay)
 
 main :: IO ()
 main = hspec spec

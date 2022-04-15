@@ -14,7 +14,7 @@ main = hspec spec
 spec :: Spec
 spec = do
   describe "MealPhase" $ do
-    describe "toMealPhase / fromMealPhase" $ do
+    specify "toMealPhase / fromMealPhase" $ do
       let testSet = [ (Breakfast, "breakfast")
                     , (Lunch, "lunch")
                     , (Dinner, "dinner")
