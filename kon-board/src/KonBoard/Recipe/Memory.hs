@@ -2,6 +2,7 @@ module KonBoard.Recipe.Memory
     ( RecipeStoreMemory (..)
     , recipeStoreMemory
     , readYaml
+    , getAllRecipes
     ) where
 
 import           KonBoard.Base   (ByteString, HashMap, MonadLogger, MonadThrow, Monoid (..),
@@ -25,6 +26,9 @@ instance Monoid RecipeStoreMemory where
 
 recipeStoreMemory :: Applicative m => RecipeStoreMemory -> RecipeStore m
 recipeStoreMemory = undefined -- TODO
+
+getAllRecipes :: RecipeStoreMemory -> [RecipeStored]
+getAllRecipes = undefined -- TODO
 
 readYaml :: (MonadLogger m, MonadThrow m) => ByteString -> m RecipeStoreMemory
 readYaml = undefined -- TODO

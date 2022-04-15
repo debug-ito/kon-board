@@ -1,16 +1,9 @@
--- |
--- Module: KonBoard.TestLogger
--- Description: 
--- Maintainer: Toshio Ito <debug.ito@gmail.com>
---
--- 
 module KonBoard.TestLogger
-  ( basicLogging
-  ) where
+    ( basicLogging
+    ) where
 
-import Control.Monad.Logger
-  (LoggingT, filterLogger, runStderrLoggingT, LogLevel(..))
-import Control.Monad.Trans (MonadIO)
+import           Control.Monad.Logger (LogLevel (..), LoggingT, filterLogger, runStderrLoggingT)
+import           Control.Monad.Trans  (MonadIO)
 
 basicLogging :: MonadIO m => LoggingT m a -> m a
 basicLogging act = runStderrLoggingT $ filterLogger f act

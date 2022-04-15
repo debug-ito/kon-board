@@ -62,7 +62,7 @@ test-suite spec
   default-extensions:   OverloadedStrings, StrictData
   -- other-extensions:     
   other-modules:        KonBoard.RecipeSpec,
-                        KonBoard.Recipe.StoreSpec,
+                        KonBoard.Recipe.MemorySpec,
                         KonBoard.MealPlanSpec,
                         KonBoard.MealPlan.StoreSpec,
                         KonBoard.Util.YAMLSpec,
