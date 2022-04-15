@@ -59,6 +59,7 @@ data MealPlan
 -- | Interface to storage of 'MealPlan's.
 data MealPlanStore m
   = MealPlanStore
-      { searchMealPlans :: Day -> Day -> m [MealPlan]
+      { putMealPlan     :: MealPlan -> m ()
+      , searchMealPlans :: Day -> Day -> m [MealPlan]
         -- ^ Get meal plans stored between the start date (inclusive) and the end date (exclusive).
       }
