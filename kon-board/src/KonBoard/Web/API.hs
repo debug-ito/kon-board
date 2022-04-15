@@ -9,7 +9,7 @@ import           Servant.API
 
 import           Data.Text                (Text)
 import           KonBoard.Bridge.MealPlan (BMealPlan)
-import           KonBoard.Bridge.Recipe   (BRecipe, BRecipeID)
+import           KonBoard.Bridge.Recipe   (BRecipeId, BRecipeStored)
 import           KonBoard.Bridge.Time     (BDay)
 
 type DataAPI = "api" :> "v1" :>
@@ -25,5 +25,5 @@ type GetMealPlans =
 
 type GetRecipe =
   "recipes"
-  :> Capture "recipe-id" BRecipeID
-  :> Get '[JSON] BRecipe
+  :> Capture "recipe-id" BRecipeId
+  :> Get '[JSON] BRecipeStored
