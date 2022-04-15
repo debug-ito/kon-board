@@ -63,6 +63,7 @@ test-suite spec
   -- other-extensions:     
   other-modules:        KonBoard.RecipeSpec,
                         KonBoard.Recipe.StoreSpec,
+                        KonBoard.MealPlanSpec,
                         KonBoard.MealPlan.StoreSpec,
                         KonBoard.Util.YAMLSpec,
                         KonBoard.TestLogger
