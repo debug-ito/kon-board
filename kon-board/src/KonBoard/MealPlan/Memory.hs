@@ -4,7 +4,8 @@ module KonBoard.MealPlan.Memory
     , readYaml
     ) where
 
-import           KonBoard.Base     (Monoid (..), Semigroup (..))
+import           KonBoard.Base     (ByteString, MonadLogger, MonadThrow, Monoid (..),
+                                    Semigroup (..))
 import           KonBoard.MealPlan (MealPlan, MealPlanStore)
 import           KonBoard.Recipe   (RecipeStore)
 
