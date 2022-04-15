@@ -1,13 +1,13 @@
 module KonBoard.Recipe.Memory
-    ( RecipeStoreMemory (..)
-    , recipeStoreMemory
-    , readYaml
-    , getAllRecipes
+    ( recipeStoreMemory
     ) where
 
-import           KonBoard.Base   (ByteString, HashMap, MonadLogger, MonadThrow, Monoid (..),
-                                  Semigroup (..))
+import           KonBoard.Base   (ByteString, HashMap, MonadIO, MonadLogger, MonadThrow,
+                                  Monoid (..), Semigroup (..))
 import           KonBoard.Recipe (Id, Name, RecipeStore (..), RecipeStored (..))
+
+recipeStoreMemory :: (MonadIO m1, MonadIO m2) => m1 (RecipeStore m2)
+recipeStoreMemory = undefined -- TODO
 
 -- | On-memory Recipe store.
 data RecipeStoreMemory
@@ -23,16 +23,6 @@ instance Semigroup RecipeStoreMemory where
 instance Monoid RecipeStoreMemory where
   mappend = (<>)
   mempty = RecipeStoreMemory mempty mempty
-
-recipeStoreMemory :: Applicative m => RecipeStoreMemory -> RecipeStore m
-recipeStoreMemory = undefined -- TODO
-
-getAllRecipes :: RecipeStoreMemory -> [RecipeStored]
-getAllRecipes = undefined -- TODO
-
-readYaml :: (MonadLogger m, MonadThrow m) => ByteString -> m RecipeStoreMemory
-readYaml = undefined -- TODO
-
 
 
 ---- -- | URL-fiendly ID for a recipe

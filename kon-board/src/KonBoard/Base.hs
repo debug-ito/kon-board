@@ -5,6 +5,7 @@ module KonBoard.Base
 import           Control.Exception.Safe as X (MonadThrow)
 import           Control.Monad          as X (when)
 import           Control.Monad.Logger   as X (MonadLogger)
+import           Control.Monad.Trans    as X (MonadIO (..))
 import           Data.ByteString        as X (ByteString)
 import           Data.HashMap.Strict    as X (HashMap)
 import           Data.Monoid            as X (Monoid (..))

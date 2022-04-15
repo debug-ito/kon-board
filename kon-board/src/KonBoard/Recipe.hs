@@ -100,3 +100,4 @@ data RecipeStore m
       , getRecipeById   :: Id -> m (Maybe RecipeStored)
       , getRecipeByName :: Name -> m (Maybe RecipeStored)
       }
+

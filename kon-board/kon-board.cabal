@@ -27,6 +27,7 @@ library
                         RankNTypes, TypeApplications, TypeOperators, DataKinds, DuplicateRecordFields
   other-extensions:     TemplateHaskell, GADTs
   exposed-modules:      KonBoard.Recipe,
+                        KonBoard.Recipe.Yaml,
                         KonBoard.Recipe.Memory,
                         KonBoard.MealPlan,
                         KonBoard.MealPlan.Memory,
@@ -67,6 +68,7 @@ test-suite spec
   other-extensions:     TemplateHaskell, GADTs
   other-modules:        KonBoard.RecipeSpec,
                         KonBoard.Recipe.MemorySpec,
+                        KonBoard.Recipe.YamlSpec,
                         KonBoard.MealPlanSpec,
                         KonBoard.MealPlan.StoreSpec,
                         KonBoard.Util.YAMLSpec,
