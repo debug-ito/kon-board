@@ -71,6 +71,7 @@ data Ingredient
   = Ingredient FoodItem Quantity
   deriving (Eq, Ord, Show)
 
+-- | Parse comman-separated food and quantity into 'Ingredent'.
 parseIngredient :: Text -> Either String Ingredient
 parseIngredient s = do
   let (food, comma_qtty) = T.break (== ',') s
