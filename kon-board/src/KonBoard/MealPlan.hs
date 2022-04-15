@@ -49,10 +49,10 @@ type Note = Text
 -- | Plan of a meal.
 data MealPlan
   = MealPlan
-      { day       :: Day
-      , mealPhase :: MealPhase
-      , recipes   :: [RecipeStored]
-      , notes     :: [Note]
+      { day     :: Day
+      , phase   :: MealPhase
+      , recipes :: [RecipeStored]
+      , notes   :: [Note]
       }
   deriving (Eq, Ord, Show)
 
