@@ -9,7 +9,7 @@ import           Data.Aeson (Options (fieldLabelModifier, omitNothingFields, sum
 dropLabelOptions :: Int -> Options
 dropLabelOptions drop_num =
   defaultOptions
-  { fieldLabelModifier = drop drop_num,
-    sumEncoding = ObjectWithSingleField,
-    omitNothingFields = True
+  { fieldLabelModifier = drop drop_num
+  , sumEncoding = UntaggedValue
+  , omitNothingFields = True
   }
