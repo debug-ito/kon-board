@@ -72,7 +72,6 @@ test-suite spec
                         KonBoard.Recipe.YamlSpec,
                         KonBoard.MealPlanSpec,
                         KonBoard.MealPlan.YamlSpec,
-                        KonBoard.MealPlan.StoreSpec,
                         KonBoard.Util.YAMLSpec,
                         KonBoard.Bridge.TimeSpec,
                         KonBoard.TestLogger
