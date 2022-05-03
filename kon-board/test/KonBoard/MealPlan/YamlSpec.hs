@@ -4,7 +4,7 @@ module KonBoard.MealPlan.YamlSpec
     ) where
 
 import           Control.Monad          (void)
-import           Control.Monad.Logger   (LoggingT, runStderrLoggingT)
+import           Control.Monad.Logger   (LoggingT)
 import           Control.Monad.Trans    (MonadIO (..))
 import qualified Data.Text              as T
 import           Data.Time              (fromGregorian)
@@ -16,11 +16,13 @@ import           KonBoard.Recipe        (Name, RecipeStore (..), RecipeStored)
 import           KonBoard.Recipe.Memory (recipeStoreMemory)
 import qualified KonBoard.Recipe.Yaml   as RY
 
+import           KonBoard.TestLogger    (basicLogging)
+
 main :: IO ()
 main = hspec spec
 
 runLog :: LoggingT IO a -> IO a
-runLog = runStderrLoggingT
+runLog = basicLogging
 
 spec :: Spec
 spec = do
