@@ -4,16 +4,19 @@ module KonBoard.MealPlanSpec
     , specForStore
     ) where
 
-import           Control.Monad        (forM_)
-import           Control.Monad.Logger (LoggingT)
-import           Data.Time            (Day, fromGregorian)
-import           GHC.Records          (HasField (..))
+import           Control.Monad          (forM_)
+import           Control.Monad.Logger   (LoggingT)
+import           Data.Time              (Day, fromGregorian)
+import           GHC.Records            (HasField (..))
 import           Test.Hspec
 
-import           KonBoard.MealPlan    (MealPhase (..), MealPlan (..), MealPlanStore (..), Note,
-                                       fromMealPhase, toMealPhase)
-import           KonBoard.Recipe      (Name, Recipe (..), RecipeStored (..))
-import           KonBoard.TestLogger  (basicLogging)
+import           KonBoard.MealPlan      (MealPhase (..), MealPlan (..), MealPlanStore (..), Note,
+                                         fromMealPhase, toMealPhase)
+import qualified KonBoard.MealPlan.Yaml as MY
+import           KonBoard.Recipe        (Name, Recipe (..), RecipeStored (..))
+import           KonBoard.Recipe.Memory (recipeStoreMemory)
+import qualified KonBoard.Recipe.Yaml   as RY
+import           KonBoard.TestLogger    (basicLogging)
 
 main :: IO ()
 main = hspec spec
@@ -41,33 +44,29 @@ planWithoutID mp = ( getField @"day" mp
                    , getField @"notes" mp
                    )
 
----- TODO:load these YAML files in the specForStore.
-
----- spec_YAMLStore :: Spec
----- spec_YAMLStore = before makeStore $ specForStore "YAMLStore"
-----   where
-----     makeStore = basicLogging $ do
-----       rs <- RStore.openYAMLs recipe_files
-----       openYAMLs rs plan_files
-----     recipe_files = map ("test/recipes/" <>)
-----                    [ "recipe_in.yaml",
-----                      "recipe_in_url.yaml",
-----                      "recipe_multi.yaml",
-----                      "recipe_url.yaml",
-----                      "recipe_example.yaml"
-----                    ]
-----     plan_files = map ("test/meal-plans/" <>)
-----                  [ "plan1.yaml",
-----                    "plan2.yaml",
-----                    "plan3.yaml",
-----                    "plan_multi.yaml",
-----                    "plan_example.yaml",
-----                    "plan_phases.yaml",
-----                    "plan_notes.yaml"
-----                  ]
-
 loadYamls :: MealPlanStore (LoggingT IO) -> IO (MealPlanStore (LoggingT IO))
-loadYamls s = undefined -- TODO: load the above YAML files.
+loadYamls ms = basicLogging $ do
+  rs <- recipeStoreMemory
+  mapM_ (RY.loadYamlFile rs) recipeFiles
+  mapM_ (MY.loadYamlFile ms rs) planFiles
+  return ms
+  where
+    recipeFiles = map ("test/recipes/" <>)
+                  [ "recipe_in.yaml"
+                  , "recipe_in_url.yaml"
+                  , "recipe_multi.yaml"
+                  , "recipe_url.yaml"
+                  , "recipe_example.yaml"
+                  ]
+    planFiles = map ("test/meal-plans/" <>)
+                [ "plan1.yaml"
+                , "plan2.yaml"
+                , "plan3.yaml"
+                , "plan_multi.yaml"
+                , "plan_example.yaml"
+                , "plan_phases.yaml"
+                , "plan_notes.yaml"
+                ]
 
 -- | Common set of tests for a 'MealPlanStore'. The user of this function should pass an empty
 -- 'MealPlanStore'.
