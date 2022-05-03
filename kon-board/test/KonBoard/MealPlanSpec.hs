@@ -1,6 +1,7 @@
 module KonBoard.MealPlanSpec
     ( main
     , spec
+    , specForStore
     ) where
 
 import           Control.Monad     (forM_)
@@ -64,7 +65,7 @@ planWithoutID mp = ( getField @"day" mp
 ----                  ]
 
 
-specForStore :: String -> SpecWith (MealPlanStore m)
+specForStore :: String -> SpecWith (MealPlanStore IO)
 specForStore storeName = describe storeName $ do
   describe "searchMealPlans" $ do
     specify "empty result" $ \s -> do
