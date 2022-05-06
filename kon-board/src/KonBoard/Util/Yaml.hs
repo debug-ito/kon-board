@@ -1,9 +1,7 @@
-{-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE OverloadedStrings #-}
 -- | (Internal) Utilities related to YAML
 --
 -- __This module is for internal use. End-users should not use this.__
-module KonBoard.Util.YAML
+module KonBoard.Util.Yaml
     ( decodeYAMLDocs
     , readYAMLDocs
     , splitLineBS

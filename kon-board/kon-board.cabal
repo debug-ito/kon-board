@@ -35,7 +35,7 @@ library
                         KonBoard.Bridge.MealPlan,
                         KonBoard.Bridge.Recipe,
                         KonBoard.Bridge.Time,
-                        KonBoard.Util.YAML,
+                        KonBoard.Util.Yaml,
                         KonBoard.Util.Aeson,
                         KonBoard.Web.API
   other-modules:        KonBoard.Base
@@ -73,7 +73,7 @@ test-suite spec
                         KonBoard.MealPlanSpec,
                         KonBoard.MealPlan.YamlSpec,
                         KonBoard.MealPlan.MemorySpec,
-                        KonBoard.Util.YAMLSpec,
+                        KonBoard.Util.YamlSpec,
                         KonBoard.Bridge.TimeSpec,
                         KonBoard.TestLogger
   build-tool-depends:   hspec-discover:hspec-discover

@@ -1,9 +1,12 @@
-module KonBoard.Util.YAMLSpec (main,spec) where
+module KonBoard.Util.YamlSpec
+    ( main
+    , spec
+    ) where
 
-import Data.Monoid ((<>), mconcat)
-import Test.Hspec
+import           Data.Monoid        (mconcat, (<>))
+import           Test.Hspec
 
-import KonBoard.Util.YAML (splitLineBS)
+import           KonBoard.Util.Yaml (splitLineBS)
 
 main :: IO ()
 main = hspec spec
