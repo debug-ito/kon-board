@@ -39,5 +39,26 @@ instance FromJSON YRecipe where
 instance ToJSON YRecipe where
   toJSON = genericToJSON $ dropLabelOptions 0
 
--- TODO
-data YIngDesc = YIngDesc deriving (Eq, Generic, Ord, Show)
+data YIngDesc
+  = YIngGroup YIngGrouped
+  | YIngSingle Text
+  deriving (Eq, Generic, Ord, Show)
+
+instance FromJSON YIngDesc where
+  parseJSON = genericParseJSON $ dropLabelOptions 0
+
+instance ToJSON YIngDesc where
+  toJSON = genericToJSON $ dropLabelOptions 0
+
+data YIngGrouped
+  = YIngGrouped
+      { g    :: Text
+      , ings :: [Text]
+      }
+  deriving (Eq, Generic, Ord, Show)
+
+instance FromJSON YIngGrouped where
+  parseJSON = genericParseJSON $ dropLabelOptions 0
+
+instance ToJSON YIngGrouped where
+  toJSON = genericToJSON $ dropLabelOptions 0
