@@ -14,13 +14,13 @@ module KonBoard.Bridge.Recipe
     , toBIngredient
     ) where
 
-import           Elm.Derive           (deriveBoth)
-import           Servant.API          (FromHttpApiData)
+import           Elm.Derive          (deriveBoth)
+import           Servant.API         (FromHttpApiData)
 
-import           KonBoard.Base        (HasField (..), Text)
-import           KonBoard.Bridge.Util (dropLabelOptions)
-import           KonBoard.Recipe      (Id, IngDesc (..), Ingredient (..), Recipe (..),
-                                       RecipeStored (..), Ref (..))
+import           KonBoard.Base       (HasField (..), Text)
+import           KonBoard.Recipe     (Id, IngDesc (..), Ingredient (..), Recipe (..),
+                                      RecipeStored (..), Ref (..))
+import           KonBoard.Util.Aeson (dropLabelOptions)
 
 data BIngredient
   = BIngredient

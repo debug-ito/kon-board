@@ -34,9 +34,9 @@ library
                         KonBoard.MealPlan.Yaml,
                         KonBoard.Bridge.MealPlan,
                         KonBoard.Bridge.Recipe,
-                        KonBoard.Bridge.Util,
                         KonBoard.Bridge.Time,
                         KonBoard.Util.YAML,
+                        KonBoard.Util.Aeson,
                         KonBoard.Web.API
   other-modules:        KonBoard.Base
   build-depends:        base >=4.13.0.0 && <4.14,

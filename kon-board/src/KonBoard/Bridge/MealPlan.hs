@@ -10,8 +10,8 @@ import           Elm.Derive             (deriveBoth)
 
 import           KonBoard.Base          (HasField (..), Text)
 import           KonBoard.Bridge.Recipe (BRecipeStored, toBRecipeStored)
-import           KonBoard.Bridge.Util   (dropLabelOptions)
 import           KonBoard.MealPlan      (MealPlan (..), fromMealPhase, toMealPhase)
+import           KonBoard.Util.Aeson    (dropLabelOptions)
 
 -- | Easy-to-encode version of 'MealPlan'.
 data BMealPlan

@@ -1,5 +1,4 @@
--- | Common utility for bridges
-module KonBoard.Bridge.Util
+module KonBoard.Util.Aeson
     ( dropLabelOptions
     ) where
 
