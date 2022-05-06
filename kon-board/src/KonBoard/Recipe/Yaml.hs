@@ -30,3 +30,6 @@ data YRecipe
       , source :: Maybe Text
       }
   deriving (Eq, Generic, Ord, Show)
+
+-- TODO
+data YIngDesc = YIngDesc deriving (Eq, Generic, Ord, Show)
