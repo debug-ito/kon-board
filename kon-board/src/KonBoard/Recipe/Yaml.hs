@@ -5,11 +5,13 @@ module KonBoard.Recipe.Yaml
     , loadYamlFile
     ) where
 
-import qualified Data.ByteString as BS
+import           Data.Aeson          (FromJSON (..), ToJSON (..), genericParseJSON, genericToJSON)
+import qualified Data.ByteString     as BS
 
-import           KonBoard.Base   (ByteString, Generic, MonadIO, MonadLogger, MonadThrow, Text,
-                                  liftIO)
-import           KonBoard.Recipe (Id, Recipe, RecipeStore (..))
+import           KonBoard.Base       (ByteString, Generic, MonadIO, MonadLogger, MonadThrow, Text,
+                                      liftIO)
+import           KonBoard.Recipe     (Id, Recipe, RecipeStore (..))
+import           KonBoard.Util.Aeson (dropLabelOptions)
 
 readYamlFile :: (MonadLogger m, MonadThrow m, MonadIO m) => FilePath -> m [Recipe]
 readYamlFile f = readYaml =<< (liftIO $ BS.readFile f)
@@ -30,6 +32,12 @@ data YRecipe
       , source :: Maybe Text
       }
   deriving (Eq, Generic, Ord, Show)
+
+instance FromJSON YRecipe where
+  parseJSON = genericParseJSON $ dropLabelOptions 0
+
+instance ToJSON YRecipe where
+  toJSON = genericToJSON $ dropLabelOptions 0
 
 -- TODO
 data YIngDesc = YIngDesc deriving (Eq, Generic, Ord, Show)
