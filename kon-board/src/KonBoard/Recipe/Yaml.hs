@@ -8,9 +8,10 @@ module KonBoard.Recipe.Yaml
 import           Data.Aeson          (FromJSON (..), ToJSON (..), genericParseJSON, genericToJSON)
 import qualified Data.ByteString     as BS
 
-import           KonBoard.Base       (ByteString, Generic, MonadIO, MonadLogger, MonadThrow, Text,
-                                      liftIO)
-import           KonBoard.Recipe     (Id, Recipe, RecipeStore (..))
+import           KonBoard.Base       (ByteString, Generic, HasField (..), MonadIO, MonadLogger,
+                                      MonadThrow, Text, liftIO, traverse)
+import           KonBoard.Recipe     (Id, IngDesc (..), Recipe (..), RecipeStore (..), Ref (..),
+                                      Url, parseIngredient)
 import           KonBoard.Util.Aeson (dropLabelOptions)
 
 readYamlFile :: (MonadLogger m, MonadThrow m, MonadIO m) => FilePath -> m [Recipe]
@@ -21,6 +22,30 @@ loadYamlFile rs f = traverse (putRecipe rs) =<< readYamlFile f
 
 readYaml :: (MonadLogger m, MonadThrow m) => ByteString -> m [Recipe]
 readYaml = undefined -- TODO
+
+toRecipe :: YRecipe -> Either String Recipe
+toRecipe yr = do
+  ings <- traverse toIngDesc $ maybe [] id $ getField @"ings" yr
+  return $ Recipe { name = getField @"name" yr
+                  , ingredients = ings
+                  , description = maybe "" id $ getField @"desc" yr
+                  , references = maybe [] return $ toRef (getField @"url" yr) (getField @"source" yr)
+                  }
+
+toRef :: Maybe Url -> Maybe Text -> Maybe Ref
+toRef mu ms =
+  case (mu, ms) of
+    (Just u, _)        -> Just $ RefUrl u ms
+    (Nothing, Just s)  -> Just $ RefSource s
+    (Nothing, Nothing) -> Nothing
+
+toIngDesc :: YIngDesc -> Either String IngDesc
+toIngDesc y =
+  case y of
+    YIngGroup yg -> do
+      ings <- traverse parseIngredient $ getField @"ings" yg
+      return $ IngGroup (getField @"g" yg) ings
+    YIngSingle i -> fmap IngSingle $ parseIngredient i
 
 -- | Recipe structure for YAML encoding.
 data YRecipe
