@@ -19,7 +19,7 @@ spec = do
   specRecipe
 
 specRecipe :: Spec
-specRecipe = describe "Recipe" $ do
+specRecipe = describe "readYamlFile" $ do
   specRecipeYaml "recipe_url.yaml"
     [ Recipe
       { name = "external recipe with URL"
@@ -104,7 +104,7 @@ specRecipe = describe "Recipe" $ do
                         ]
                       ]
       , description = "1. Cut the onion and the bacon.\n"
-                      <> "2. Put the onion, bacon and ★ into a pan and boil."
+                      <> "2. Put the onion, bacon and ★ into a pan and boil.\n"
       , references = [RefUrl "http://example.com/recipe/101" Nothing]
       }
     , Recipe
