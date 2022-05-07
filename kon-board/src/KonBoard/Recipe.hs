@@ -74,13 +74,17 @@ data Ingredient
 -- | Parse comman-separated food and quantity into 'Ingredent'.
 parseIngredient :: Text -> Either String Ingredient
 parseIngredient s = do
-  let (food, comma_qtty) = T.break (== ',') s
+  let (rawFood, commaQtty) = T.break (== ',') s
+      food = T.strip rawFood
   when (food == "") $ do
     Left (T.unpack s <> ": Empty food item name.")
-  when (comma_qtty == "") $ do
+  when (commaQtty == "") $ do
+    Left (T.unpack s <> ": No comma is found.")
+  let rawQtty = T.drop 1 commaQtty
+      qtty = T.strip rawQtty
+  when (qtty == "") $ do
     Left (T.unpack s <> ": Empty quantity.")
-  let qtty = T.drop 1 comma_qtty
-  return $ Ingredient (T.strip food) (T.strip qtty)
+  return $ Ingredient food qtty
 
 -- | URL-fiendly ID for a recipe
 type Id = Text
