@@ -118,4 +118,6 @@ specRecipe = describe "Recipe" $ do
 specRecipeYaml :: FilePath -> [Recipe] -> Spec
 specRecipeYaml yamlFile expected = do
   specify yamlFile $ do
-    (basicLogging $ readYamlFile yamlFile) `shouldReturn` expected
+    (basicLogging $ readYamlFile yamlPath) `shouldReturn` expected
+  where
+    yamlPath = "test/recipes/" <> yamlFile
