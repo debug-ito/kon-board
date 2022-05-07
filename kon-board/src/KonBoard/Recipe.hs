@@ -76,9 +76,9 @@ parseIngredient :: Text -> Either String Ingredient
 parseIngredient s = do
   let (food, comma_qtty) = T.break (== ',') s
   when (food == "") $ do
-    Left "Empty food item name."
+    Left (T.unpack s <> ": Empty food item name.")
   when (comma_qtty == "") $ do
-    Left "Empty quantity."
+    Left (T.unpack s <> ": Empty quantity.")
   let qtty = T.drop 1 comma_qtty
   return $ Ingredient (T.strip food) (T.strip qtty)
 
