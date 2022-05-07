@@ -3,11 +3,17 @@ module KonBoard.Recipe.Memory
     ) where
 
 import           KonBoard.Base   (ByteString, HashMap, MonadIO, MonadLogger, MonadThrow,
-                                  Monoid (..), Semigroup (..))
+                                  Monoid (..), Semigroup (..), newIORef)
 import           KonBoard.Recipe (Id, Name, RecipeStore (..), RecipeStored (..))
 
 recipeStoreMemory :: (MonadIO m1, MonadIO m2) => m1 (RecipeStore m2)
-recipeStoreMemory = undefined -- TODO
+recipeStoreMemory = do
+  refStore <- newIORef mempty :: IO (IORef RecipeStoreMemory)
+  return $ RecipeStore { putRecipe = undefined -- TODO
+                       , getRecipeById = undefined -- TODO
+                       , getRecipeByName = undefined -- TODO
+                       }
+
 
 -- | On-memory Recipe store.
 data RecipeStoreMemory
