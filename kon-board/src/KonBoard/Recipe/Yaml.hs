@@ -8,20 +8,20 @@ module KonBoard.Recipe.Yaml
 import           Data.Aeson          (FromJSON (..), ToJSON (..), genericParseJSON, genericToJSON)
 import qualified Data.ByteString     as BS
 
-import           KonBoard.Base       (ByteString, Generic, HasField (..), MonadIO, MonadLogger,
-                                      MonadThrow, Text, liftIO, throw, throwString, traverse)
+import           KonBoard.Base       (ByteString, Generic, HasField (..), MonadIO, MonadThrow, Text,
+                                      liftIO, throw, throwString, traverse)
 import           KonBoard.Recipe     (Id, IngDesc (..), Recipe (..), RecipeStore (..), Ref (..),
                                       Url, parseIngredient)
 import           KonBoard.Util.Aeson (dropLabelOptions)
 import           KonBoard.Util.Yaml  (decodeYAMLDocs)
 
-readYamlFile :: (MonadLogger m, MonadThrow m, MonadIO m) => FilePath -> m [Recipe]
+readYamlFile :: (MonadThrow m, MonadIO m) => FilePath -> m [Recipe]
 readYamlFile f = readYaml =<< (liftIO $ BS.readFile f)
 
-loadYamlFile :: (MonadLogger m, MonadThrow m, MonadIO m) => RecipeStore m -> FilePath -> m [Id]
+loadYamlFile :: (MonadThrow m, MonadIO m) => RecipeStore m -> FilePath -> m [Id]
 loadYamlFile rs f = traverse (putRecipe rs) =<< readYamlFile f
 
-readYaml :: (MonadLogger m, MonadThrow m) => ByteString -> m [Recipe]
+readYaml :: (MonadThrow m) => ByteString -> m [Recipe]
 readYaml b = do
   yrs <- either throw return $ decodeYAMLDocs b
   either throwString return $ traverse toRecipe yrs
