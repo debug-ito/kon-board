@@ -2,7 +2,7 @@ module KonBoard.Base
     ( module X
     ) where
 
-import           Control.Exception.Safe as X (MonadThrow)
+import           Control.Exception.Safe as X (MonadThrow, throw, throwString)
 import           Control.Monad          as X (when)
 import           Control.Monad.Logger   as X (MonadLogger)
 import           Control.Monad.Trans    as X (MonadIO (..))

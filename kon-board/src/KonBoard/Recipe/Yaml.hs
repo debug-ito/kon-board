@@ -9,10 +9,11 @@ import           Data.Aeson          (FromJSON (..), ToJSON (..), genericParseJS
 import qualified Data.ByteString     as BS
 
 import           KonBoard.Base       (ByteString, Generic, HasField (..), MonadIO, MonadLogger,
-                                      MonadThrow, Text, liftIO, traverse)
+                                      MonadThrow, Text, liftIO, throw, throwString, traverse)
 import           KonBoard.Recipe     (Id, IngDesc (..), Recipe (..), RecipeStore (..), Ref (..),
                                       Url, parseIngredient)
 import           KonBoard.Util.Aeson (dropLabelOptions)
+import           KonBoard.Util.Yaml  (decodeYAMLDocs)
 
 readYamlFile :: (MonadLogger m, MonadThrow m, MonadIO m) => FilePath -> m [Recipe]
 readYamlFile f = readYaml =<< (liftIO $ BS.readFile f)
@@ -21,13 +22,15 @@ loadYamlFile :: (MonadLogger m, MonadThrow m, MonadIO m) => RecipeStore m -> Fil
 loadYamlFile rs f = traverse (putRecipe rs) =<< readYamlFile f
 
 readYaml :: (MonadLogger m, MonadThrow m) => ByteString -> m [Recipe]
-readYaml = undefined -- TODO
+readYaml b = do
+  yrs <- either throw return $ decodeYAMLDocs b
+  either throwString return $ traverse toRecipe yrs
 
 toRecipe :: YRecipe -> Either String Recipe
 toRecipe yr = do
-  ings <- traverse toIngDesc $ maybe [] id $ getField @"ings" yr
+  igs <- traverse toIngDesc $ maybe [] id $ getField @"ings" yr
   return $ Recipe { name = getField @"name" yr
-                  , ingredients = ings
+                  , ingredients = igs
                   , description = maybe "" id $ getField @"desc" yr
                   , references = maybe [] return $ toRef (getField @"url" yr) (getField @"source" yr)
                   }
@@ -43,8 +46,8 @@ toIngDesc :: YIngDesc -> Either String IngDesc
 toIngDesc y =
   case y of
     YIngGroup yg -> do
-      ings <- traverse parseIngredient $ getField @"ings" yg
-      return $ IngGroup (getField @"g" yg) ings
+      igs <- traverse parseIngredient $ getField @"ings" yg
+      return $ IngGroup (getField @"g" yg) igs
     YIngSingle i -> fmap IngSingle $ parseIngredient i
 
 -- | Recipe structure for YAML encoding.
