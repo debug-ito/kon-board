@@ -2,14 +2,18 @@ module KonBoard.Recipe.Memory
     ( recipeStoreMemory
     ) where
 
-import           KonBoard.Base   (ByteString, HashMap, MonadIO, MonadLogger, MonadThrow,
-                                  Monoid (..), Semigroup (..), newIORef)
-import           KonBoard.Recipe (Id, Name, RecipeStore (..), RecipeStored (..))
+import qualified Data.Text          as T
+import           Data.Text.Encoding (decodeUtf8, encodeUtf8)
+
+import           KonBoard.Base      (ByteString, HasField (..), HashMap, MonadIO, MonadLogger,
+                                     MonadThrow, Monoid (..), Semigroup (..), newIORef)
+import           KonBoard.Recipe    (Id, Name, RecipeStore (..), RecipeStored (..))
 
 recipeStoreMemory :: (MonadIO m1, MonadIO m2) => m1 (RecipeStore m2)
 recipeStoreMemory = do
   refStore <- newIORef mempty :: IO (IORef RecipeStoreMemory)
-  return $ RecipeStore { putRecipe = undefined -- TODO
+  return $ RecipeStore { insertRecipe = undefined -- TODO
+                       , updateRecipe = undefined -- TODO
                        , getRecipeById = undefined -- TODO
                        , getRecipeByName = undefined -- TODO
                        }
@@ -29,6 +33,24 @@ instance Semigroup RecipeStoreMemory where
 instance Monoid RecipeStoreMemory where
   mappend = (<>)
   mempty = RecipeStoreMemory mempty mempty
+
+insertRecipePure :: MonadThrow m => Recipe -> RecipeStoreMemory -> m (RecipeStoreMemory, Id)
+insertRecipePure r rs = do
+  when (HM.member rname $ fromName rs) $ do
+    throwString ("Conflict of recipe name: " <> T.unpack rname)
+  when (HM.member rid $ fromId rs) $ do
+    throwString ("Conflict of recipe ID (" <> T.unpack rid <> ") for name: " <> T.unpack uname)
+  let updated =  rs { fromId = HM.insert rid rStored $ fromId rs
+                    , fromName = HM.insert rname rStored $ fromName rs
+                    }
+  return (updated, rid)
+  where
+    rname = gerField @"name" r
+    rid = makeID rname
+    rStored = RecipeStored rid r
+
+makeId :: Name -> Id
+makeId = decodeUtf8 . Base16.encode . MD5.hash . encodeUtf8
 
 
 ---- -- | URL-fiendly ID for a recipe
