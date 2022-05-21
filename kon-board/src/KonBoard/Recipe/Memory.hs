@@ -10,13 +10,16 @@ import           Data.Text.Encoding     (decodeUtf8, encodeUtf8)
 
 import           KonBoard.Base          (ByteString, HasField (..), HashMap, IORef, MonadIO (..),
                                          MonadLogger, MonadThrow, Monoid (..), Semigroup (..),
-                                         newIORef, throwString, when)
+                                         newIORef, readIORef, throwString, when)
 import           KonBoard.Recipe        (Id, Name, Recipe (..), RecipeStore (..), RecipeStored (..))
 
 recipeStoreMemory :: (MonadIO m1, MonadIO m2) => m1 (RecipeStore m2)
 recipeStoreMemory = do
   refStore <- liftIO $ (newIORef mempty :: IO (IORef RecipeStoreMemory))
-  return $ RecipeStore { insertRecipe = undefined -- TODO
+  let insertImpl = do
+        rs <- liftIO $ readIORef refStore
+        undefined -- TODO
+  return $ RecipeStore { insertRecipe = insertImpl
                        , updateRecipe = undefined -- TODO
                        , getRecipeById = undefined -- TODO
                        , getRecipeByName = undefined -- TODO
