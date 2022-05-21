@@ -2,18 +2,20 @@ module KonBoard.Recipe.Memory
     ( recipeStoreMemory
     ) where
 
-import qualified Data.HashMap.Strict as HM
-import qualified Data.Text           as T
-import           Data.Text.Encoding  (decodeUtf8, encodeUtf8)
+import qualified Crypto.Hash.MD5        as MD5
+import qualified Data.ByteString.Base16 as Base16
+import qualified Data.HashMap.Strict    as HM
+import qualified Data.Text              as T
+import           Data.Text.Encoding     (decodeUtf8, encodeUtf8)
 
-import           KonBoard.Base       (ByteString, HasField (..), HashMap, IORef, MonadIO,
-                                      MonadLogger, MonadThrow, Monoid (..), Semigroup (..),
-                                      newIORef)
-import           KonBoard.Recipe     (Id, Name, Recipe (..), RecipeStore (..), RecipeStored (..))
+import           KonBoard.Base          (ByteString, HasField (..), HashMap, IORef, MonadIO (..),
+                                         MonadLogger, MonadThrow, Monoid (..), Semigroup (..),
+                                         newIORef, throwString, when)
+import           KonBoard.Recipe        (Id, Name, Recipe (..), RecipeStore (..), RecipeStored (..))
 
 recipeStoreMemory :: (MonadIO m1, MonadIO m2) => m1 (RecipeStore m2)
 recipeStoreMemory = do
-  refStore <- newIORef mempty :: IO (IORef RecipeStoreMemory)
+  refStore <- liftIO $ (newIORef mempty :: IO (IORef RecipeStoreMemory))
   return $ RecipeStore { insertRecipe = undefined -- TODO
                        , updateRecipe = undefined -- TODO
                        , getRecipeById = undefined -- TODO
@@ -51,11 +53,11 @@ insertRecipePure r rs = do
   when (HM.member rname $ fromName rs) $ do
     throwString ("Conflict of recipe name: " <> T.unpack rname)
   when (HM.member rid $ fromId rs) $ do
-    throwString ("Conflict of recipe ID (" <> T.unpack rid <> ") for name: " <> T.unpack uname)
+    throwString ("Conflict of recipe ID (" <> T.unpack rid <> ") for name: " <> T.unpack rname)
   return (insertUnsafe (RecipeStored rid r) rs, rid)
   where
-    rname = gerField @"name" r
-    rid = makeID rname
+    rname = getField @"name" r
+    rid = makeId rname
 
 makeId :: Name -> Id
 makeId = decodeUtf8 . Base16.encode . MD5.hash . encodeUtf8
@@ -63,7 +65,7 @@ makeId = decodeUtf8 . Base16.encode . MD5.hash . encodeUtf8
 updateRecipePure :: MonadThrow m => RecipeStored -> RecipeStoreMemory -> m RecipeStoreMemory
 updateRecipePure updated rs = do
   when (rId /= rIdFromName) $ do
-    throwString ("Mismatch of ID. RecipeStoreMemory doesn't support changing the name. New name was: " <> rName)
+    throwString ("Mismatch of ID. RecipeStoreMemory doesn't support changing the name. New name was: " <> T.unpack rName)
   return $ insertUnsafe updated rs
   where
     rId = getField @"id" updated
