@@ -19,7 +19,7 @@ readYamlFile :: (MonadThrow m, MonadIO m) => FilePath -> m [Recipe]
 readYamlFile f = readYaml =<< (liftIO $ BS.readFile f)
 
 loadYamlFile :: (MonadThrow m, MonadIO m) => RecipeStore m -> FilePath -> m [Id]
-loadYamlFile rs f = traverse (putRecipe rs) =<< readYamlFile f
+loadYamlFile rs f = traverse (insertRecipe rs) =<< readYamlFile f
 
 readYaml :: (MonadThrow m) => ByteString -> m [Recipe]
 readYaml b = do
