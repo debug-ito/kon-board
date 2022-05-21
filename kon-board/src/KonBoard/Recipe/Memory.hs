@@ -72,6 +72,11 @@ updateRecipePure updated rs = do
     rName = getField @"name" $ getField @"recipe" updated
     rIdFromName = makeId rName
 
+getRecipeByIdPure :: Id -> RecipeStoreMemory -> Maybe RecipeStored
+getRecipeByIdPure i rs = HM.lookup i $ fromId rs
+
+getRecipeByNamePure :: Name -> RecipeStoreMemory -> Maybe RecipeStored
+getRecipeByNamePure n rs = HM.lookup n $ fromName rs
 
 
 ---- -- | URL-fiendly ID for a recipe
