@@ -2,12 +2,14 @@ module KonBoard.Recipe.Memory
     ( recipeStoreMemory
     ) where
 
-import qualified Data.Text          as T
-import           Data.Text.Encoding (decodeUtf8, encodeUtf8)
+import qualified Data.HashMap.Strict as HM
+import qualified Data.Text           as T
+import           Data.Text.Encoding  (decodeUtf8, encodeUtf8)
 
-import           KonBoard.Base      (ByteString, HasField (..), HashMap, MonadIO, MonadLogger,
-                                     MonadThrow, Monoid (..), Semigroup (..), newIORef)
-import           KonBoard.Recipe    (Id, Name, RecipeStore (..), RecipeStored (..))
+import           KonBoard.Base       (ByteString, HasField (..), HashMap, IORef, MonadIO,
+                                      MonadLogger, MonadThrow, Monoid (..), Semigroup (..),
+                                      newIORef)
+import           KonBoard.Recipe     (Id, Name, Recipe (..), RecipeStore (..), RecipeStored (..))
 
 recipeStoreMemory :: (MonadIO m1, MonadIO m2) => m1 (RecipeStore m2)
 recipeStoreMemory = do
@@ -34,23 +36,40 @@ instance Monoid RecipeStoreMemory where
   mappend = (<>)
   mempty = RecipeStoreMemory mempty mempty
 
+-- | Unsafe means that this function doesn't check the association between the ID and Name.
+insertUnsafe :: RecipeStored -> RecipeStoreMemory -> RecipeStoreMemory
+insertUnsafe r rs = updated
+  where
+    updated = rs { fromId = HM.insert rId r $ fromId rs
+                 , fromName = HM.insert rName r $ fromName rs
+                 }
+    rId = getField @"id" r
+    rName = getField @"name" $ getField @"recipe" r
+
 insertRecipePure :: MonadThrow m => Recipe -> RecipeStoreMemory -> m (RecipeStoreMemory, Id)
 insertRecipePure r rs = do
   when (HM.member rname $ fromName rs) $ do
     throwString ("Conflict of recipe name: " <> T.unpack rname)
   when (HM.member rid $ fromId rs) $ do
     throwString ("Conflict of recipe ID (" <> T.unpack rid <> ") for name: " <> T.unpack uname)
-  let updated =  rs { fromId = HM.insert rid rStored $ fromId rs
-                    , fromName = HM.insert rname rStored $ fromName rs
-                    }
-  return (updated, rid)
+  return (insertUnsafe (RecipeStored rid r) rs, rid)
   where
     rname = gerField @"name" r
     rid = makeID rname
-    rStored = RecipeStored rid r
 
 makeId :: Name -> Id
 makeId = decodeUtf8 . Base16.encode . MD5.hash . encodeUtf8
+
+updateRecipePure :: MonadThrow m => RecipeStored -> RecipeStoreMemory -> m RecipeStoreMemory
+updateRecipePure updated rs = do
+  when (rId /= rIdFromName) $ do
+    throwString ("Mismatch of ID. RecipeStoreMemory doesn't support changing the name. New name was: " <> rName)
+  return $ insertUnsafe updated rs
+  where
+    rId = getField @"id" updated
+    rName = getField @"name" $ getField @"recipe" updated
+    rIdFromName = makeId rName
+
 
 
 ---- -- | URL-fiendly ID for a recipe
