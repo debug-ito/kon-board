@@ -10,19 +10,32 @@ import           Data.Text.Encoding     (decodeUtf8, encodeUtf8)
 
 import           KonBoard.Base          (ByteString, HasField (..), HashMap, IORef, MonadIO (..),
                                          MonadLogger, MonadThrow, Monoid (..), Semigroup (..),
-                                         newIORef, readIORef, throwString, when)
+                                         newIORef, readIORef, throwString, when, writeIORef)
 import           KonBoard.Recipe        (Id, Name, Recipe (..), RecipeStore (..), RecipeStored (..))
 
-recipeStoreMemory :: (MonadIO m1, MonadIO m2) => m1 (RecipeStore m2)
+recipeStoreMemory :: (MonadIO m1, MonadIO m2, MonadThrow m2) => m1 (RecipeStore m2)
 recipeStoreMemory = do
   refStore <- liftIO $ (newIORef mempty :: IO (IORef RecipeStoreMemory))
-  let insertImpl = do
+  let insertImpl r = do
         rs <- liftIO $ readIORef refStore
-        undefined -- TODO
+        (rs', i) <- insertRecipePure r rs
+        liftIO $ writeIORef refStore rs'
+        return i
+      updateImpl r = do
+        rs <- liftIO $ readIORef refStore
+        rs' <- updateRecipePure r rs
+        liftIO $ writeIORef refStore rs'
+        return ()
+      getByIdImpl i = do
+        rs <- liftIO $ readIORef refStore
+        return $ getRecipeByIdPure i rs
+      getByNameImpl n = do
+        rs <- liftIO $ readIORef refStore
+        return $ getRecipeByNamePure n rs
   return $ RecipeStore { insertRecipe = insertImpl
-                       , updateRecipe = undefined -- TODO
-                       , getRecipeById = undefined -- TODO
-                       , getRecipeByName = undefined -- TODO
+                       , updateRecipe = updateImpl
+                       , getRecipeById = getByIdImpl
+                       , getRecipeByName = getByNameImpl
                        }
 
 
