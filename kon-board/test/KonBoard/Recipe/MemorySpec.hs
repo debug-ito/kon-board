@@ -3,6 +3,7 @@ module KonBoard.Recipe.MemorySpec
     , spec
     ) where
 
+import           Control.Monad          (void)
 import           Control.Monad.Logger   (LoggingT)
 import           Control.Monad.Trans    (MonadIO (..))
 import           Data.Foldable          (traverse_)
@@ -44,8 +45,10 @@ loadAndCheckName store inputName = do
   liftIO $ rsById `shouldBe` rs
   liftIO $ putStrLn ("Recipe: '" <> T.unpack inputName <> "' -> ID: " <> T.unpack rid)
 
+-- TODO: fix and extend the specStore
+
 specStore :: Spec
-specStore = describe "RecipeStore" $ do
+specStore = describe "recipeStoreMemory" $ do
   let commonYamlFiles = [ "recipe_in.yaml"
                         , "recipe_in_url.yaml"
                         , "recipe_multi.yaml"
@@ -67,3 +70,13 @@ specStore = describe "RecipeStore" $ do
                 ]
     got <- traverse (idForStore "recipe 2") $ input
     liftIO $ (length $ nub got) `shouldBe` 1
+  specify "updateRecipe" $ basicLogging $ do
+    store <- openStore commonYamlFiles
+    (Just old) <- getRecipeByName store "recipe 1"
+    let oldRecipe = getField @"recipe" old
+        new = old { recipe = oldRecipe { description = "hoge hoge" } }
+    void $ updateRecipe store new
+    (Just got) <- getRecipeByName store "recipe 1"
+    liftIO $ got `shouldBe` new
+    liftIO $ (getField @"description" $ getField @"recipe" got) `shouldBe` "hoge hoge"
+
