@@ -6,6 +6,8 @@ import           Control.Exception.Safe as X (MonadThrow, throw, throwString)
 import           Control.Monad          as X (when)
 import           Control.Monad.Logger   as X (MonadLogger)
 import           Control.Monad.Trans    as X (MonadIO (..))
+import           Data.Aeson             as X (FromJSON (..), ToJSON (..), genericParseJSON,
+                                              genericToJSON)
 import           Data.ByteString        as X (ByteString)
 import           Data.Foldable          as X (traverse_)
 import           Data.HashMap.Strict    as X (HashMap)

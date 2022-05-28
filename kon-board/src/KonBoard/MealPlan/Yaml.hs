@@ -5,13 +5,15 @@ module KonBoard.MealPlan.Yaml
     , loadYamlFile
     ) where
 
-import qualified Data.ByteString    as BS
+import qualified Data.ByteString     as BS
 
-import           KonBoard.Base      (ByteString, MonadIO (..), MonadLogger, MonadThrow, Text,
-                                     traverse_)
-import           KonBoard.MealPlan  (MealPlan, MealPlanStore (..))
-import           KonBoard.Recipe    (RecipeStore (..))
-import           KonBoard.Util.Yaml (ArrayOrSingle (..))
+import           KonBoard.Base       (ByteString, FromJSON (..), MonadIO (..), MonadLogger,
+                                      MonadThrow, Text, ToJSON (..), genericParseJSON,
+                                      genericToJSON, traverse_)
+import           KonBoard.MealPlan   (MealPlan, MealPlanStore (..))
+import           KonBoard.Recipe     (RecipeStore (..))
+import           KonBoard.Util.Aeson (dropLabelOptions)
+import           KonBoard.Util.Yaml  (ArrayOrSingle (..))
 
 readYamlFile :: (MonadLogger m, MonadThrow m, MonadIO m) => RecipeStore m -> FilePath -> m [MealPlan]
 readYamlFile r f = readYaml r =<< (liftIO $ BS.readFile f)
@@ -28,7 +30,13 @@ data YMealPlan
       , month :: Int
       , plan  :: [YDayPlan]
       }
-  deriving (Eq, Generic, ORd, Show)
+  deriving (Eq, Generic, Ord, Show)
+
+instance FromJSON YMealPlan where
+  parseJSON = genericParseJSON dropLabelOptions
+
+instance ToJSON YMealPlan where
+  toJSON = genericToJSON dropLabelOptions
 
 data YDayPlan
   = YDayPlan
@@ -38,3 +46,10 @@ data YDayPlan
       , n :: Maybe (ArrayOrSingle Text)
       }
   deriving (Eq, Generic, Ord, Show)
+
+instance FromJSON YDayPlan where
+  parseJSON = genericParseJSON dropLabelOptions
+
+instance ToJSON YDayPlan where
+  toJSON = genericToJSON dropLabelOptions
+
