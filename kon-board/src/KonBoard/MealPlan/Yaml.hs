@@ -6,9 +6,11 @@ module KonBoard.MealPlan.Yaml
     ) where
 
 import qualified Data.ByteString     as BS
+import           Data.Foldable       (foldr, toList)
+import qualified Data.Text           as T
 
-import           KonBoard.Base       (ByteString, FromJSON (..), MonadIO (..), MonadLogger,
-                                      MonadThrow, Text, ToJSON (..), genericParseJSON,
+import           KonBoard.Base       (ByteString, FromJSON (..), HasField (..), MonadIO (..),
+                                      MonadLogger, MonadThrow, Text, ToJSON (..), genericParseJSON,
                                       genericToJSON, traverse_)
 import           KonBoard.MealPlan   (MealPlan, MealPlanStore (..))
 import           KonBoard.Recipe     (RecipeStore (..))
@@ -23,6 +25,35 @@ loadYamlFile m r f  = traverse_ (putMealPlan m) =<< readYamlFile r f
 
 readYaml :: (MonadLogger m, MonadThrow m) => RecipeStore m -> ByteString -> m [MealPlan]
 readYaml = undefined -- TODO
+
+fromYMealPlan :: RecipeStore m -> YMealPlan -> m (Either String [MealPlan])
+fromYMealPlan rs ymp = undefined -- TODO
+
+fromYDayPlan :: RecipeStore m -> Int -> Int -> YDayPlan -> m (Either String MealPlan)
+fromYDayPlan rs y m ydp = do
+  eRecipes <- fmap accumErrors $ traverse getRecipeByName' $ flatten $ getField @"m" ydp
+  return $ mkMealPlan <$> eRecipes <*> (toMealPhase $ getField @"p" ydp)
+  where
+    getRecipeByName' name = fmap (maybe (Left ("Cannot find recipe: " <> T.unpack name)) Right) $ getRecipeByName rs name
+    flatten = join . toList . fmap toList
+    mkMealPlan rs p =
+      MealPlan
+      { day = undefined -- TODO
+      , phase = p
+      , recipes = rs
+      , notes = flatten $ getField @"n" ydp
+      }
+
+accumErrors :: [Either String a] -> Either String [a]
+accumErrors = foldr f (Right [])
+  where
+    f item acc =
+      case (item, acc) of
+        (Right i, Right is) -> Right (i : is)
+        (Right _, Left e)   -> Left e
+        (Left e, Right _)   -> Left e
+        (Left e1, Left e2)  -> Left (e1 <> "\n" <> e2)
+
 
 data YMealPlan
   = YMealPlan
