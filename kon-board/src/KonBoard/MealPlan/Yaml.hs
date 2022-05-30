@@ -8,11 +8,12 @@ module KonBoard.MealPlan.Yaml
 import qualified Data.ByteString     as BS
 import           Data.Foldable       (foldr, toList)
 import qualified Data.Text           as T
+import           Data.Time           (fromGregorian)
 
 import           KonBoard.Base       (ByteString, FromJSON (..), HasField (..), MonadIO (..),
                                       MonadLogger, MonadThrow, Text, ToJSON (..), genericParseJSON,
                                       genericToJSON, traverse_)
-import           KonBoard.MealPlan   (MealPlan, MealPlanStore (..))
+import           KonBoard.MealPlan   (MealPlan, MealPlanStore (..), toMealPhase)
 import           KonBoard.Recipe     (RecipeStore (..))
 import           KonBoard.Util.Aeson (dropLabelOptions)
 import           KonBoard.Util.Yaml  (ArrayOrSingle (..))
@@ -29,16 +30,16 @@ readYaml = undefined -- TODO
 fromYMealPlan :: RecipeStore m -> YMealPlan -> m (Either String [MealPlan])
 fromYMealPlan rs ymp = undefined -- TODO
 
-fromYDayPlan :: RecipeStore m -> Int -> Int -> YDayPlan -> m (Either String MealPlan)
+fromYDayPlan :: RecipeStore m -> Integer -> Int -> YDayPlan -> m (Either String MealPlan)
 fromYDayPlan rs y m ydp = do
   eRecipes <- fmap accumErrors $ traverse getRecipeByName' $ flatten $ getField @"m" ydp
-  return $ mkMealPlan <$> eRecipes <*> (toMealPhase $ getField @"p" ydp)
+  return $ mkMealPlan <$> eRecipes <*> (fromYMealPhase $ getField @"p" ydp)
   where
     getRecipeByName' name = fmap (maybe (Left ("Cannot find recipe: " <> T.unpack name)) Right) $ getRecipeByName rs name
     flatten = join . toList . fmap toList
     mkMealPlan rs p =
       MealPlan
-      { day = undefined -- TODO
+      { day = fromGregorian y m $ getField @"d" ydp
       , phase = p
       , recipes = rs
       , notes = flatten $ getField @"n" ydp
@@ -57,7 +58,7 @@ accumErrors = foldr f (Right [])
 
 data YMealPlan
   = YMealPlan
-      { year  :: Int
+      { year  :: Integer
       , month :: Int
       , plan  :: [YDayPlan]
       }
@@ -72,7 +73,7 @@ instance ToJSON YMealPlan where
 data YDayPlan
   = YDayPlan
       { d :: Int
-      , p :: Text
+      , p :: YMealPhase
       , m :: Maybe (ArrayOrSingle Text)
       , n :: Maybe (ArrayOrSingle Text)
       }
@@ -84,3 +85,16 @@ instance FromJSON YDayPlan where
 instance ToJSON YDayPlan where
   toJSON = genericToJSON dropLabelOptions
 
+type YMealPhase = ArrayOrSingle Text
+
+fromYMealPhase :: YMealPhase -> Either String MealPhase
+fromYMealPhase ymp =
+  case ymp of
+    AOSSingle t -> toMealPhase t
+    AOSArray ts ->
+      case ts of
+        [] -> Left "The meal phase array is empty"
+        [t] -> MealOther t
+        ts -> Left ( "The meal phase array has more than one elements: "
+                     <> (T.unpack $ T.intercalate ", " ts)
+                   )
