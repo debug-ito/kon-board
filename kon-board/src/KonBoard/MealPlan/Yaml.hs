@@ -12,11 +12,11 @@ import           Data.Time           (fromGregorian)
 
 import           KonBoard.Base       (ByteString, FromJSON (..), HasField (..), MonadIO (..),
                                       MonadLogger, MonadThrow, Text, ToJSON (..), genericParseJSON,
-                                      genericToJSON, traverse_)
+                                      genericToJSON, throw, throwString, traverse_)
 import           KonBoard.MealPlan   (MealPlan, MealPlanStore (..), toMealPhase)
 import           KonBoard.Recipe     (RecipeStore (..))
 import           KonBoard.Util.Aeson (dropLabelOptions)
-import           KonBoard.Util.Yaml  (ArrayOrSingle (..))
+import           KonBoard.Util.Yaml  (ArrayOrSingle (..), decodeYAMLDocs)
 
 readYamlFile :: (MonadLogger m, MonadThrow m, MonadIO m) => RecipeStore m -> FilePath -> m [MealPlan]
 readYamlFile r f = readYaml r =<< (liftIO $ BS.readFile f)
@@ -25,10 +25,14 @@ loadYamlFile :: (MonadLogger m, MonadThrow m, MonadIO m) =>  MealPlanStore m -> 
 loadYamlFile m r f  = traverse_ (putMealPlan m) =<< readYamlFile r f
 
 readYaml :: (MonadLogger m, MonadThrow m) => RecipeStore m -> ByteString -> m [MealPlan]
-readYaml = undefined -- TODO
+readYaml rs rawDoc = do
+  ymps <- either throw return $ decodeYAMLDoc rawDoc
+  fmap concat $ traverse (either throwString return) =<< (traverse (fromYMealPlan rs) $ ymps)
 
 fromYMealPlan :: RecipeStore m -> YMealPlan -> m (Either String [MealPlan])
-fromYMealPlan rs ymp = undefined -- TODO
+fromYMealPlan rs ymp = fmap accumErrors $ traverse fromYDayPlan' $ getField @"plan" ymp
+  where
+    fromYDayPlan' = fromYDayPlan rs (getField @"year" ymp) (getField @"month" ymp)
 
 fromYDayPlan :: RecipeStore m -> Integer -> Int -> YDayPlan -> m (Either String MealPlan)
 fromYDayPlan rs y m ydp = do
