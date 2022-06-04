@@ -24,7 +24,7 @@ readYamlFile :: (MonadLogger m, MonadThrow m, MonadIO m) => RecipeStore m -> Fil
 readYamlFile r f = readYaml r =<< (liftIO $ BS.readFile f)
 
 loadYamlFile :: (MonadLogger m, MonadThrow m, MonadIO m) =>  MealPlanStore m -> RecipeStore m -> FilePath -> m ()
-loadYamlFile m r f  = traverse_ (putMealPlan m) =<< readYamlFile r f
+loadYamlFile mps r f  = traverse_ (putMealPlan mps) =<< readYamlFile r f
 
 readYaml :: (MonadLogger m, MonadThrow m) => RecipeStore m -> ByteString -> m [MealPlan]
 readYaml rs rawDoc = do
@@ -37,17 +37,17 @@ fromYMealPlan rs ymp = fmap accumErrors $ traverse fromYDayPlan' $ getField @"pl
     fromYDayPlan' = fromYDayPlan rs (getField @"year" ymp) (getField @"month" ymp)
 
 fromYDayPlan :: Monad m => RecipeStore m -> Integer -> Int -> YDayPlan -> m (Either String MealPlan)
-fromYDayPlan rs y m ydp = do
+fromYDayPlan rs y mon ydp = do
   eRecipes <- fmap accumErrors $ traverse getRecipeByName' $ flatten $ getField @"m" ydp
   return $ mkMealPlan <$> eRecipes <*> (fromYMealPhase $ getField @"p" ydp)
   where
     getRecipeByName' name = fmap (maybe (Left ("Cannot find recipe: " <> T.unpack name)) Right) $ getRecipeByName rs name
     flatten = concat . toList . fmap toList
-    mkMealPlan rs p =
+    mkMealPlan rcps ph =
       MealPlan
-      { day = fromGregorian y m $ getField @"d" ydp
-      , phase = p
-      , recipes = rs
+      { day = fromGregorian y mon $ getField @"d" ydp
+      , phase = ph
+      , recipes = rcps
       , notes = flatten $ getField @"n" ydp
       }
 
@@ -101,6 +101,6 @@ fromYMealPhase ymp =
       case ts of
         [] -> Left "The meal phase array is empty"
         [t] -> Right $ MealOther t
-        ts -> Left ( "The meal phase array has more than one elements: "
+        _ -> Left ( "The meal phase array has more than one elements: "
                      <> (T.unpack $ T.intercalate ", " ts)
                    )
