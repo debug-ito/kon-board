@@ -10,10 +10,12 @@ import           Data.Foldable       (foldr, toList)
 import qualified Data.Text           as T
 import           Data.Time           (fromGregorian)
 
-import           KonBoard.Base       (ByteString, FromJSON (..), HasField (..), MonadIO (..),
-                                      MonadLogger, MonadThrow, Text, ToJSON (..), genericParseJSON,
-                                      genericToJSON, throw, throwString, traverse_)
-import           KonBoard.MealPlan   (MealPlan, MealPlanStore (..), toMealPhase)
+import           KonBoard.Base       (ByteString, FromJSON (..), Generic, HasField (..),
+                                      MonadIO (..), MonadLogger, MonadThrow, Text, ToJSON (..),
+                                      genericParseJSON, genericToJSON, throw, throwString,
+                                      traverse_)
+import           KonBoard.MealPlan   (MealPhase (..), MealPlan (..), MealPlanStore (..),
+                                      toMealPhase)
 import           KonBoard.Recipe     (RecipeStore (..))
 import           KonBoard.Util.Aeson (dropLabelOptions)
 import           KonBoard.Util.Yaml  (ArrayOrSingle (..), decodeYAMLDocs)
@@ -26,21 +28,21 @@ loadYamlFile m r f  = traverse_ (putMealPlan m) =<< readYamlFile r f
 
 readYaml :: (MonadLogger m, MonadThrow m) => RecipeStore m -> ByteString -> m [MealPlan]
 readYaml rs rawDoc = do
-  ymps <- either throw return $ decodeYAMLDoc rawDoc
+  ymps <- either throw return $ decodeYAMLDocs rawDoc
   fmap concat $ traverse (either throwString return) =<< (traverse (fromYMealPlan rs) $ ymps)
 
-fromYMealPlan :: RecipeStore m -> YMealPlan -> m (Either String [MealPlan])
+fromYMealPlan :: Monad m => RecipeStore m -> YMealPlan -> m (Either String [MealPlan])
 fromYMealPlan rs ymp = fmap accumErrors $ traverse fromYDayPlan' $ getField @"plan" ymp
   where
     fromYDayPlan' = fromYDayPlan rs (getField @"year" ymp) (getField @"month" ymp)
 
-fromYDayPlan :: RecipeStore m -> Integer -> Int -> YDayPlan -> m (Either String MealPlan)
+fromYDayPlan :: Monad m => RecipeStore m -> Integer -> Int -> YDayPlan -> m (Either String MealPlan)
 fromYDayPlan rs y m ydp = do
   eRecipes <- fmap accumErrors $ traverse getRecipeByName' $ flatten $ getField @"m" ydp
   return $ mkMealPlan <$> eRecipes <*> (fromYMealPhase $ getField @"p" ydp)
   where
     getRecipeByName' name = fmap (maybe (Left ("Cannot find recipe: " <> T.unpack name)) Right) $ getRecipeByName rs name
-    flatten = join . toList . fmap toList
+    flatten = concat . toList . fmap toList
     mkMealPlan rs p =
       MealPlan
       { day = fromGregorian y m $ getField @"d" ydp
@@ -69,10 +71,10 @@ data YMealPlan
   deriving (Eq, Generic, Ord, Show)
 
 instance FromJSON YMealPlan where
-  parseJSON = genericParseJSON dropLabelOptions
+  parseJSON = genericParseJSON $ dropLabelOptions 0
 
 instance ToJSON YMealPlan where
-  toJSON = genericToJSON dropLabelOptions
+  toJSON = genericToJSON $ dropLabelOptions 0
 
 data YDayPlan
   = YDayPlan
@@ -84,10 +86,10 @@ data YDayPlan
   deriving (Eq, Generic, Ord, Show)
 
 instance FromJSON YDayPlan where
-  parseJSON = genericParseJSON dropLabelOptions
+  parseJSON = genericParseJSON $ dropLabelOptions 0
 
 instance ToJSON YDayPlan where
-  toJSON = genericToJSON dropLabelOptions
+  toJSON = genericToJSON $ dropLabelOptions 0
 
 type YMealPhase = ArrayOrSingle Text
 
@@ -98,7 +100,7 @@ fromYMealPhase ymp =
     AOSArray ts ->
       case ts of
         [] -> Left "The meal phase array is empty"
-        [t] -> MealOther t
+        [t] -> Right $ MealOther t
         ts -> Left ( "The meal phase array has more than one elements: "
                      <> (T.unpack $ T.intercalate ", " ts)
                    )
