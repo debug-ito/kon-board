@@ -45,8 +45,6 @@ loadAndCheckName store inputName = do
   liftIO $ rsById `shouldBe` rs
   liftIO $ putStrLn ("Recipe: '" <> T.unpack inputName <> "' -> ID: " <> T.unpack rid)
 
--- TODO: fix and extend the specStore
-
 specStore :: Spec
 specStore = describe "recipeStoreMemory" $ do
   let commonYamlFiles = [ "recipe_in.yaml"
