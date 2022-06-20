@@ -44,6 +44,7 @@ library
                         yaml,
                         aeson >=2.0 && <2.1,
                         unordered-containers,
+                        containers,
                         bytestring,
                         mtl,
                         time,

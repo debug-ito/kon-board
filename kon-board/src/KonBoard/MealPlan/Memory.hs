@@ -2,11 +2,30 @@ module KonBoard.MealPlan.Memory
     ( mealPlanStoreMemory
     ) where
 
-import           KonBoard.Base     (MonadIO)
-import           KonBoard.MealPlan (MealPlan, MealPlanStore)
+import qualified Data.Map.Strict   as M
+import           Data.Time         (Day)
+
+import           KonBoard.Base     (HasField (..), MonadIO)
+import           KonBoard.MealPlan (MealPhase, MealPlan (..), MealPlanStore)
 
 mealPlanStoreMemory :: (MonadIO m1, MonadIO m2) => m1 (MealPlanStore m2)
 mealPlanStoreMemory = undefined -- TODO
+
+type MealPlanMap = M.Map Key MealPlan
+
+type Key = (Day, MealPhase)
+
+mkKey :: MealPlan -> Key
+mkKey mp = (getField @"day" mp, getField @"phase" mp)
+
+putMealPlanPure :: MealPlan -> MealPlanMap -> MealPlanMap
+putMealPlanPure mp = M.insert (mkKey mp) mp
+
+searchMealPlansPure :: MealPlanMap -> Day -> Day -> [MealPlan]
+searchMealPlansPure mpm start end = M.elems $ M.takeWhileAntitone endCondition $ M.dropWhileAntitone startCondition mpm
+  where
+    startCondition (d, _) = d < start
+    endCondition (d, _) = d < end
 
 ---- -- | Common API of 'MealPlan' store.
 ---- class AMealPlanStore s where
