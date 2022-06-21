@@ -17,6 +17,7 @@ import           Data.Proxy                     (Proxy (..))
 import           Data.Text                      (pack)
 import qualified Data.Text.Lazy                 as TL
 import qualified Data.Text.Lazy.Encoding        as TL
+import           GHC.Records                    (HasField (..))
 import           Network.Wai.Middleware.Rewrite (rewritePureWithQueries)
 import           Servant                        (Application, Handler, Raw, ServerError (errBody),
                                                  (:<|>) (..), (:>))
@@ -24,7 +25,8 @@ import qualified Servant                        as Sv
 import           System.FilePath.Glob           (glob)
 
 import           KonBoard.Bridge.MealPlan       (BMealPlan, toBMealPlan)
-import           KonBoard.Bridge.Recipe         (BRecipe, BRecipeID, fromBRecipeID, toBRecipe)
+import           KonBoard.Bridge.Recipe         (BRecipeID, BRecipeStored, fromBRecipeID,
+                                                 toBRecipeStored)
 import           KonBoard.Bridge.Time           (BDay, fromBDay)
 import           KonBoard.MealPlan              (MealPlanStore (..))
 import           KonBoard.Recipe                (RecipeStore (..))
@@ -54,24 +56,24 @@ handleGetMealPlans store bs be = do
   (start, end) <- serverErrorOnLeft Sv.err400 $ (,) <$> (fromBDay bs) <*> (fromBDay be)
   fmap (map toBMealPlan)$ searchMealPlans store start end
 
-handleGetRecipe :: RecipeStore
+handleGetRecipe :: MonadThrow m
+                => RecipeStore m
                 -> BRecipeID
-                -> Handler BRecipe
-handleGetRecipe rstore rid = fmap toBRecipe $ liftIO $ loadRecipe rstore $ fromBRecipeID rid
+                -> m BRecipeStored
+handleGetRecipe rstore rid = do
+  mr <- getRecipeById rstore $ fromBRecipeID rid
+  maybe (throw Sv.err404) (return . toBRecipeStored) mr
 
 -- | Make 'Application' from 'Server'.
-appWith :: Server -> Application
-appWith Server { sMealPlanStore = mp_store,
-                 sRecipeStore = r_store,
-                 sDirStatic = dir_static
-               } = application
+appWith :: KonApp m -> Application
+appWith konApp = application
   where
     application = rewriteRoot $ Sv.serve api service
     api = Proxy :: Proxy AppAPI
-    service = ( handleGetMealPlans mp_store
-                :<|> handleGetRecipe r_store
+    service = ( handleGetMealPlans (getField @"mealPlanStore" konApp)
+                :<|> handleGetRecipe (getField @"recipeStore" konApp)
               )
-              :<|> Sv.serveDirectoryWebApp dir_static
+              :<|> Sv.serveDirectoryWebApp (getField @"dirStatic" konApp)
     rewriteRoot = rewritePureWithQueries rewrite
       where
         index_page = ["static", "index.html"]
