@@ -1,70 +1,58 @@
-{-# LANGUAGE GADTs, TypeOperators, DataKinds, OverloadedStrings #-}
 -- | Web application of KonBoard
 module KonBoard.Web.App
-  ( -- * Application
-    appWith,
-    -- * Server
-    Server(..),
-    makeDefaultServer,
-    runLogging
-  ) where
+    ( -- * Application
+      appWith
+      -- * Server
+    , Server (..)
+    , makeDefaultServer
+    , runLogging
+    ) where
 
-import Control.Applicative ((<$>), (<*>))
-import Control.Monad.Except (throwError)
-import Control.Monad.Logger (LoggingT, runStderrLoggingT, logInfoN, logDebugN)
-import Control.Monad.Trans (MonadIO(liftIO))
-import Data.Monoid ((<>))
-import Data.Proxy (Proxy(..))
-import Data.Text (pack)
-import qualified Data.Text.Lazy as TL
-import qualified Data.Text.Lazy.Encoding as TL
-import Network.Wai.Middleware.Rewrite (rewritePureWithQueries)
-import Servant
-  ( Application, Handler,
-    ServerError(errBody),
-    (:>), (:<|>)(..), Raw
-  )
-import qualified Servant as Sv
-import System.FilePath.Glob (glob)
+import           Control.Applicative            ((<$>), (<*>))
+import           Control.Exception.Safe         (MonadThrow (..))
+import           Control.Monad.Logger           (LoggingT, logDebugN, logInfoN, runStderrLoggingT)
+import           Control.Monad.Trans            (MonadIO (liftIO))
+import           Data.Monoid                    ((<>))
+import           Data.Proxy                     (Proxy (..))
+import           Data.Text                      (pack)
+import qualified Data.Text.Lazy                 as TL
+import qualified Data.Text.Lazy.Encoding        as TL
+import           Network.Wai.Middleware.Rewrite (rewritePureWithQueries)
+import           Servant                        (Application, Handler, Raw, ServerError (errBody),
+                                                 (:<|>) (..), (:>))
+import qualified Servant                        as Sv
+import           System.FilePath.Glob           (glob)
 
-import KonBoard.Bridge.Time (BDay, fromBDay)
-import KonBoard.Bridge.MealPlan (BMealPlan, toBMealPlan)
-import KonBoard.Bridge.Recipe (BRecipe, toBRecipe, BRecipeID, fromBRecipeID)
-import KonBoard.MealPlan.Store (AMealPlanStore(..))
-import qualified KonBoard.MealPlan.Store as MealPlan
-import KonBoard.Recipe.Store (RecipeStore, loadRecipe)
-import qualified KonBoard.Recipe.Store as Recipe
-import KonBoard.Web.API (DataAPI)
+import           KonBoard.Bridge.MealPlan       (BMealPlan, toBMealPlan)
+import           KonBoard.Bridge.Recipe         (BRecipe, BRecipeID, fromBRecipeID, toBRecipe)
+import           KonBoard.Bridge.Time           (BDay, fromBDay)
+import           KonBoard.MealPlan              (MealPlanStore (..))
+import           KonBoard.Recipe                (RecipeStore (..))
+import qualified KonBoard.Recipe.Store          as Recipe
+import           KonBoard.Web.API               (DataAPI)
 
 type AppAPI = DataAPI
               :<|> "static" :> Raw
 
--- | Everything you need run the Web application.
-data Server where
-  Server ::
-    ( AMealPlanStore s
-    ) =>
-    { sMealPlanStore :: s,
-      sRecipeStore :: RecipeStore,
-      sDirStatic :: FilePath
-    } -> Server
+-- | KonBoard Web application
+data KonApp m
+  = KonApp
+      { mealPlanStore :: MealPlanStore m
+      , recipeStore   :: RecipeStore m
+      , dirStatic     :: FilePath
+      }
 
-toHandler :: Show e => ServerError -> Either e a -> Handler a
-toHandler base_err = either (throwError . mkError) return
-  where
-    mkError e = base_err { errBody = TL.encodeUtf8 $ TL.pack $ show e }
+serverErrorOnLeft :: MonadThrow m => ServerError -> Either e a -> m a
+serverErrorOnLeft err = either (const $ throw err) return
 
-badReqToHandler :: Show e => Either e a -> Handler a
-badReqToHandler = toHandler Sv.err400
-
-handleGetMealPlans :: AMealPlanStore s
-                   => s
+handleGetMealPlans :: MonadThrow m
+                   => MealPlanStore m
                    -> BDay -- ^ start
                    -> BDay -- ^ end
-                   -> Handler [BMealPlan]
+                   -> m [BMealPlan]
 handleGetMealPlans store bs be = do
-  (start, end) <- badReqToHandler $ (,) <$> (fromBDay bs) <*> (fromBDay be)
-  fmap (map toBMealPlan)$ liftIO $ searchMealPlans store start end
+  (start, end) <- serverErrorOnLeft Sv.err400 $ (,) <$> (fromBDay bs) <*> (fromBDay be)
+  fmap (map toBMealPlan)$ searchMealPlans store start end
 
 handleGetRecipe :: RecipeStore
                 -> BRecipeID
@@ -87,10 +75,10 @@ appWith Server { sMealPlanStore = mp_store,
     rewriteRoot = rewritePureWithQueries rewrite
       where
         index_page = ["static", "index.html"]
-        rewrite ([], q) _ = (index_page, q)
+        rewrite ([], q) _                  = (index_page, q)
         rewrite (("recipes" : _ : _), q) _ = (index_page, q)
-        rewrite (("days" : _), q) _ = (index_page, q)
-        rewrite pq _ = pq
+        rewrite (("days" : _), q) _        = (index_page, q)
+        rewrite pq _                       = pq
 
 makeDefaultServer :: IO Server
 makeDefaultServer = runStderrLoggingT makeDefaultServer'
