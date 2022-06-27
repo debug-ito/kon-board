@@ -8,7 +8,7 @@ module KonBoard.Web.App
     ) where
 
 import           Control.Applicative            ((<$>), (<*>))
-import           Control.Exception.Safe         (MonadThrow (..))
+import           Control.Exception.Safe         (MonadThrow, throw)
 import           Control.Monad.Logger           (LoggingT, logDebugN, logInfoN, runStderrLoggingT)
 import           Control.Monad.Trans            (MonadIO (liftIO))
 import           Data.Monoid                    ((<>))
@@ -28,6 +28,7 @@ import           KonBoard.Bridge.Recipe         (BRecipeId, BRecipeStored, fromB
                                                  toBRecipeStored)
 import           KonBoard.Bridge.Time           (BDay, fromBDay)
 import           KonBoard.MealPlan              (MealPlanStore (..))
+import           KonBoard.MealPlan.Memory       (mealPlanStoreMemory)
 import qualified KonBoard.MealPlan.Yaml         as MealPlanY
 import           KonBoard.Recipe                (RecipeStore (..))
 import           KonBoard.Recipe.Memory         (recipeStoreMemory)
@@ -92,17 +93,14 @@ appWith konApp = application
 makeDefaultKonApp :: LoggingT IO (KonApp AppM)
 makeDefaultKonApp =  do
   recipeS <- recipeStoreMemory
-  recipe_files <- liftIO $ glob "recipes/*.yaml"
-  logDebugN ("Load recipe files: " <> (pack $ show recipe_files))
-  -- TODO: load Recipe YAML files
-  mealplan_files <- liftIO $ glob "meal-plans/*.yaml"
-  logDebugN ("Load meal plan files: " <> (pack $ show mealplan_files))
-  -- TODO: make MealPlanStore.Memory and load YAML files.
-
-  -- TODO: rewrite below
-  rstore <- Recipe.openYAMLs recipe_files
-  mstore <- MealPlan.openYAMLs rstore mealplan_files
-  return $ Server { sMealPlanStore = mstore,
-                    sRecipeStore = rstore,
-                    sDirStatic = "static"
+  recipeFiles <- liftIO $ glob "recipes/*.yaml"
+  logDebugN ("Load recipe files: " <> (pack $ show recipeFiles))
+  liftIO $ mapM_ (RecipeY.loadYamlFile recipeS) recipeFiles
+  mealplanS <- mealPlanStoreMemory
+  mealplanFiles <- liftIO $ glob "meal-plans/*.yaml"
+  logDebugN ("Load meal plan files: " <> (pack $ show mealplanFiles))
+  liftIO $ mapM_ (MealPlanY.loadYamlFile mealplanS recipeS) mealplanFiles
+  return $ KonApp { mealPlanStore = mealplanS
+                  , recipeStore = recipeS
+                  , dirStatic = "static"
                   }
