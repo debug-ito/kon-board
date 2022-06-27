@@ -11,22 +11,21 @@ import qualified Data.Text           as T
 import           Data.Time           (fromGregorian)
 
 import           KonBoard.Base       (ByteString, FromJSON (..), Generic, HasField (..),
-                                      MonadIO (..), MonadLogger, MonadThrow, Text, ToJSON (..),
-                                      genericParseJSON, genericToJSON, throw, throwString,
-                                      traverse_)
+                                      MonadIO (..), MonadThrow, Text, ToJSON (..), genericParseJSON,
+                                      genericToJSON, throw, throwString, traverse_)
 import           KonBoard.MealPlan   (MealPhase (..), MealPlan (..), MealPlanStore (..),
                                       toMealPhase)
 import           KonBoard.Recipe     (RecipeStore (..))
 import           KonBoard.Util.Aeson (dropLabelOptions)
 import           KonBoard.Util.Yaml  (ArrayOrSingle (..), decodeYAMLDocs)
 
-readYamlFile :: (MonadLogger m, MonadThrow m, MonadIO m) => RecipeStore m -> FilePath -> m [MealPlan]
+readYamlFile :: (MonadThrow m, MonadIO m) => RecipeStore m -> FilePath -> m [MealPlan]
 readYamlFile r f = readYaml r =<< (liftIO $ BS.readFile f)
 
-loadYamlFile :: (MonadLogger m, MonadThrow m, MonadIO m) =>  MealPlanStore m -> RecipeStore m -> FilePath -> m ()
+loadYamlFile :: (MonadThrow m, MonadIO m) =>  MealPlanStore m -> RecipeStore m -> FilePath -> m ()
 loadYamlFile mps r f  = traverse_ (putMealPlan mps) =<< readYamlFile r f
 
-readYaml :: (MonadLogger m, MonadThrow m) => RecipeStore m -> ByteString -> m [MealPlan]
+readYaml :: (MonadThrow m) => RecipeStore m -> ByteString -> m [MealPlan]
 readYaml rs rawDoc = do
   ymps <- either throw return $ decodeYAMLDocs rawDoc
   fmap concat $ traverse (either throwString return) =<< (traverse (fromYMealPlan rs) $ ymps)
