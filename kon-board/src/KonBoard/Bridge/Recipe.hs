@@ -12,6 +12,7 @@ module KonBoard.Bridge.Recipe
     , toBIngDesc
     , BIngredient
     , toBIngredient
+    , BIngGrouped
     ) where
 
 import           Elm.Derive          (deriveBoth)
