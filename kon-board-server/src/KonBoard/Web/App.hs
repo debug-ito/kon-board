@@ -8,7 +8,8 @@ module KonBoard.Web.App
     ) where
 
 import           Control.Applicative            ((<$>), (<*>))
-import           Control.Exception.Safe         (MonadThrow, throw)
+import           Control.Exception.Safe         (MonadThrow, throw, try)
+import           Control.Monad.Except           (ExceptT (..))
 import           Control.Monad.Logger           (LoggingT, logDebugN, logInfoN, runStderrLoggingT)
 import           Control.Monad.Trans            (MonadIO (liftIO))
 import           Data.Monoid                    ((<>))
@@ -18,8 +19,9 @@ import qualified Data.Text.Lazy                 as TL
 import qualified Data.Text.Lazy.Encoding        as TL
 import           GHC.Records                    (HasField (..))
 import           Network.Wai.Middleware.Rewrite (rewritePureWithQueries)
-import           Servant                        (Application, Handler, Raw, ServerError (errBody),
-                                                 hoistServer, (:<|>) (..), (:>))
+import           Servant                        (Application, Handler (..), Raw,
+                                                 ServerError (errBody), hoistServer, (:<|>) (..),
+                                                 (:>))
 import qualified Servant                        as Sv
 import           System.FilePath.Glob           (glob)
 
@@ -70,7 +72,7 @@ handleGetRecipe rstore rid = do
   maybe (throw Sv.err404) (return . toBRecipeStored) mr
 
 appToHandler :: AppM a -> Handler a
-appToHandler = undefined -- TODO
+appToHandler app = Handler $ ExceptT $ try app
 
 -- | Make 'Application' from 'Server'.
 appWith :: KonApp AppM -> Application
