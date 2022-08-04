@@ -33,7 +33,7 @@ import Result.Extra as ResultE
 import Time
 import Time exposing (Weekday, Month)
 
-import Bridge exposing (BMealPlan, BRecipeSummary)
+import Bridge exposing (BMealPlan, BRecipeStored)
 import DateUtil exposing (parseMonth)
 import ListUtil exposing (replaceOrAdd, listToMaybe)
 import ListUtil
@@ -48,7 +48,7 @@ type alias Note = String
 -}
 type alias DayMeal =
     { phase : MealPhase
-    , recipes : List BRecipeSummary
+    , recipes : List BRecipeStored
     , notes : List Note
     }
         

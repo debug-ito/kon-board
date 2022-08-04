@@ -4,11 +4,7 @@ module Recipe exposing
 
 {- | Utilities about Recipes -}
 
-import Bridge exposing (BRecipe(..))
+import Bridge exposing (BRecipeStored)
 
-recipeName : BRecipe -> String
-recipeName br =
-    case br of
-        BRIn rin -> rin.name
-        BRURL ru -> ru.name
-        BRExt re -> re.name
+recipeName : BRecipeStored -> String
+recipeName r = r.name

@@ -39,7 +39,7 @@ import Url
 import Url.Builder as UrlB
 
 import Bridge exposing
-    (BRecipeSummary, BMealPlan, BRecipeID, BRecipe(..))
+    (BRecipeStored, BMealPlan, BRecipeId)
 import Bridge
 import CalSpy exposing
     ( CalLayout
@@ -158,7 +158,7 @@ type Msg = NoOp
          -- | UrlChange browser event
          | UrlChangeMsg Url
          -- | Got result of loading a Recipe from backend.
-         | RecipeLoaded (Result String (BRecipeID, BRecipe))
+         | RecipeLoaded (Result String (BRecipeId, BRecipeStored))
          -- | Set viewport of calendar relative to the "today" element.
          | ViewportSet Float
          -- | Got result of adjusting viewport.
@@ -488,7 +488,7 @@ appOnUrlRequest = UrlRequestMsg
 appOnUrlChange : Url -> Msg
 appOnUrlChange = UrlChangeMsg
 
-loadRecipeByID : BRecipeID -> Cmd Msg
+loadRecipeByID : BRecipeId -> Cmd Msg
 loadRecipeByID rid =
     let result = Bridge.getApiV1RecipesByRecipeid rid handle
         handle ret =
@@ -843,7 +843,7 @@ viewDayMeal phase mdm =
                    <| [text n]
     in result
 
-viewLinkRecipe : BRecipeID -> List (Html a) -> List (Html a)
+viewLinkRecipe : BRecipeId -> List (Html a) -> List (Html a)
 viewLinkRecipe rid content =
     let result = [Html.a attrs content]
         attrs = [href <| recipePageLink rid]
@@ -859,7 +859,7 @@ viewRecipePage locale rmodel =
                 Just r -> viewRecipe locale r
     in result
 
-viewRecipe : Locale -> BRecipe -> List (Html Msg)
+viewRecipe : Locale -> BRecipeStored -> List (Html Msg)
 viewRecipe locale br =
     let result = [div [Attr.class "recipe-box"] recipe_content]
         recipe_content = 

@@ -16,7 +16,7 @@ import Url.Parser exposing (Parser, oneOf, (</>))
 import Url.Parser as P
 import Url.Builder as B
 
-import Bridge exposing (BRecipeID, BRecipe)
+import Bridge exposing (BRecipeId, BRecipeStored)
 import Calendar exposing (MonthAnchor, CalEntry)
 import Coming exposing (Coming(..), isPending)
 
@@ -36,8 +36,8 @@ type alias PTopModel =
     }
 
 type alias PRecipeModel =
-    { recipeID : BRecipeID
-    , recipe : Coming String BRecipe
+    { recipeID : BRecipeId
+    , recipe : Coming String BRecipeStored
     }
 
 type alias PDayModel =
@@ -48,7 +48,7 @@ type alias PDayModel =
 initPage : Page
 initPage = PageTop { viewportAdjusted = NotStarted, currentAnchor = NotStarted }
 
-initRecipePage : BRecipeID -> Page
+initRecipePage : BRecipeId -> Page
 initRecipePage rid =
     PageRecipe { recipeID = rid, recipe = NotStarted }
 
@@ -76,7 +76,7 @@ parserPage =
     , P.map initDayPage (P.s "days" </> parserDate)
     ]
 
-recipePageLink : BRecipeID -> String
+recipePageLink : BRecipeId -> String
 recipePageLink rid = B.absolute ["recipes", rid] []
 
 dayPageLink : Date -> String
