@@ -17,6 +17,7 @@ import Browser.Dom as Dom
 import Browser.Navigation as Nav
 import Date exposing (Date)
 import Date
+import Debug
 import FeatherIcons as FIcons
 import Html exposing (Html, div, text, ul, li, h1, h2, h3)
 import Html
@@ -861,12 +862,8 @@ viewRecipePage locale rmodel =
 
 viewRecipe : Locale -> BRecipeStored -> List (Html Msg)
 viewRecipe locale br =
-    let result = [div [Attr.class "recipe-box"] recipe_content]
-        recipe_content = 
-            case br of
-                BRIn rin -> viewRecipeIn rin
-                BRURL ru -> viewRecipeURL ru
-                BRExt re -> viewRecipeExt re
+    let result = [div [Attr.class "recipe-box"] recipeContent]
+        recipeContent = Debug.todo "render BRecipeStored (br)"
         viewName n = [h1 [] [text n]]
         viewIngDescs ings = [ h2 [] [text <| (.showIngredients) <| Locale.get locale]
                             , ul [] <| List.concatMap viewIngDesc ings
@@ -888,14 +885,14 @@ viewRecipe locale br =
                         Nothing -> [text src]
                         Just url -> [Html.a [href url, Attr.target "_blank"] [text src]]
             in ret_refurl
-        viewRecipeIn rin = viewName rin.name ++ viewIngDescs rin.ings
-                           ++ viewDesc rin.desc
-                           ++ ( case rin.ref_url of
-                                    Nothing -> []
-                                    Just u -> viewRefURL u (Just u)
-                              )
-        viewRecipeURL ru = viewName ru.name ++ viewRefURL ru.url (Just ru.url)
-        viewRecipeExt re = viewName re.name ++ viewRefURL re.source re.ext_url
+        ---- viewRecipeIn rin = viewName rin.name ++ viewIngDescs rin.ings
+        ----                    ++ viewDesc rin.desc
+        ----                    ++ ( case rin.ref_url of
+        ----                             Nothing -> []
+        ----                             Just u -> viewRefURL u (Just u)
+        ----                       )
+        ---- viewRecipeURL ru = viewName ru.name ++ viewRefURL ru.url (Just ru.url)
+        ---- viewRecipeExt re = viewName re.name ++ viewRefURL re.source re.ext_url
     in result
 
 iconPath : String -> String
