@@ -101,7 +101,7 @@ suite =
                     \_ ->
                     let input = { year = 2019, month = 4, day = 20
                                 , phase = "lunch"
-                                , recipes = [{id = "foo", name = "foo name"}]
+                                , recipes = [{id = "foo", name = "foo name", ings = [], desc = "", ref = []}]
                                 , notes = []
                                 }
                         start_cal = Cal.forWeeks (fromCalendarDate 2019 Time.May 20) Time.Sun 2 2
@@ -115,9 +115,15 @@ suite =
                   \_ ->
                       let bm = { year = 2019, month = 4, day = 20
                                , phase = "lunch"
-                               , recipes = [{id = "foo", name = "foo name"}]
+                               , recipes = [addedRecipe]
                                , notes = ["a note"]
                                }
+                          addedRecipe = { id = "foo"
+                                        , name = "foo name"
+                                        , ings = []
+                                        , desc = "foo desc"
+                                        , ref = []
+                                        }
                           start_cal =
                               Cal.forWeeks (fromCalendarDate 2019 Time.Apr 17) Time.Sun 2 1
                           expected = [ { day = fromCalendarDate 2019 Time.Apr 14
@@ -139,7 +145,7 @@ suite =
                                        , meals = []
                                        }
                                      , { day = fromCalendarDate 2019 Time.Apr 20
-                                       , meals = [{phase = Lunch, recipes = [{id = "foo", name = "foo name"}], notes = ["a note"]}]
+                                       , meals = [{phase = Lunch, recipes = [addedRecipe], notes = ["a note"]}]
                                        }
                                      , { day = fromCalendarDate 2019 Time.Apr 21
                                        , meals = []
