@@ -1,6 +1,10 @@
 # Revision history for kon-board
 
-## 1.0.0.0  -- ?
+## 0.5.0.0  -- ?
+
+Major overhaul of the code base.
+
+
 
 
 ## 0.4.0.0  -- 2020-08-08
