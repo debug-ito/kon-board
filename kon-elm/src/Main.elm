@@ -40,7 +40,7 @@ import Url
 import Url.Builder as UrlB
 
 import Bridge exposing
-    (BRecipeStored, BMealPlan, BRecipeId)
+    (BRecipeStored, BMealPlan, BRecipeId, BIngDesc(..))
 import Bridge
 import CalSpy exposing
     ( CalLayout
@@ -863,36 +863,39 @@ viewRecipePage locale rmodel =
 viewRecipe : Locale -> BRecipeStored -> List (Html Msg)
 viewRecipe locale br =
     let result = [div [Attr.class "recipe-box"] recipeContent]
-        recipeContent = Debug.todo "render BRecipeStored (br)"
+        recipeContent = viewName br.name ++ viewIngDescs br.ings ++ viewDesc br.desc ++ viewRefs br.ref
         viewName n = [h1 [] [text n]]
-        viewIngDescs ings = [ h2 [] [text <| (.showIngredients) <| Locale.get locale]
-                            , ul [] <| List.concatMap viewIngDesc ings
-                            ]
-        viewIngDesc ing =
-            case ing.group of
-                Nothing -> List.map viewIng ing.ings
-                Just g -> [ li [] [text g]
-                          , ul [] <| List.map viewIng ing.ings
-                          ]
+        viewIngDescs ings =
+            if List.isEmpty ings
+            then []
+            else [ h2 [] [text <| (.showIngredients) <| Locale.get locale]
+                 , ul [] <| List.concatMap viewIngDesc ings
+                 ]
+        viewIngDesc ingDesc =
+            case ingDesc of
+                BIngGroup ingG -> [ li [] [text ingG.g]
+                                  , ul [] <| List.map viewIng ingG.ings
+                                  ]
+                BIngSingle ing -> [viewIng ing]
         viewIng ing = li [] <| (.viewIngredient) (Locale.get locale) ing
-        viewDesc desc = [h2 [] [text <| (.showRecipeSteps) <| Locale.get locale]] ++ Markdown.toHtml Nothing desc
-        viewRefURL src murl =
-            let ret_refurl = [ h2 [] [text <| (.showRecipeReference) <| Locale.get locale]
-                         , ul [] [li [Attr.class "recipe-ref"] ref_body]
-                         ]
-                ref_body =
-                    case murl of
-                        Nothing -> [text src]
-                        Just url -> [Html.a [href url, Attr.target "_blank"] [text src]]
-            in ret_refurl
-        ---- viewRecipeIn rin = viewName rin.name ++ viewIngDescs rin.ings
-        ----                    ++ viewDesc rin.desc
-        ----                    ++ ( case rin.ref_url of
-        ----                             Nothing -> []
-        ----                             Just u -> viewRefURL u (Just u)
-        ----                       )
-        ---- viewRecipeURL ru = viewName ru.name ++ viewRefURL ru.url (Just ru.url)
-        ---- viewRecipeExt re = viewName re.name ++ viewRefURL re.source re.ext_url
+        viewDesc desc =
+            if desc == ""
+            then []
+            else [h2 [] [text <| (.showRecipeSteps) <| Locale.get locale]] ++ Markdown.toHtml Nothing desc
+        viewRefs refs =
+            if List.isEmpty refs
+            then []
+            else [ h2 [] [text <| (.showRecipeReference) <| Locale.get locale]
+                 , ul [] <| List.concatMap viewRef refs
+                 ]
+        viewRefLi content = li [Attr.class "recipe-ref"] content
+        viewExtLink url t = [Html.a [href url, Attr.target "_blank"] [text t]]
+        viewRef ref =
+            case (ref.source, ref.url) of
+                (Nothing, Nothing) -> []
+                (Just s, Nothing)  -> [viewRefLi <| [text s]]
+                (Nothing, Just u)  -> [viewRefLi <| viewExtLink u u]
+                (Just s, Just u)   -> [viewRefLi <| viewExtLink u s]
     in result
 
 iconPath : String -> String
