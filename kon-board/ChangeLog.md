@@ -1,10 +1,18 @@
 # Revision history for kon-board
 
-## 0.5.0.0  -- ?
+## 0.5.0.0  -- 2022-08-10
 
-Major overhaul of the code base.
+Major overhaul of the code base. There are a lot of **BREAKING CHANGES**.
 
-
+- Change the CI framework from Travis CI to GitHub Workflow.
+- Stop using doctest.
+- Use stylish-haskell.
+- Update the Dockerfile. It's now based on Debian bullseye.
+- Discard Haskell stack. Use Cabal v2 commands instead.
+- Revised basically all data types.
+  - Especially `Recipe` type is greatly simplified.
+  - Introduce `MealPlanStore` and `RecipeStore` types (records of monadic functions)
+- YAML parsers are now in `Recipe.Yaml` and `MealPlan.Yaml` modules.
 
 
 ## 0.4.0.0  -- 2020-08-08
