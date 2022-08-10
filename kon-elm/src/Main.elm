@@ -62,7 +62,6 @@ import MealPlanLoader exposing (MealPlanLoader)
 import MealPlanLoader
 import Page exposing (Page(..), recipePageLink, PRecipeModel, PDayModel, dayPageLink)
 import Page
-import Recipe exposing (recipeName)
 
 ---- Ports
 
@@ -229,7 +228,7 @@ appView m =
                 PageRecipe t ->
                     case Coming.success t.recipe of
                         Nothing -> []
-                        Just r -> [recipeName r]
+                        Just r -> [r.name]
                 PageDay d -> [(.showDateYMDA) (Locale.get m.locale) d.day]
     in result
 
