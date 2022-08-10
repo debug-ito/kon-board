@@ -17,7 +17,6 @@ import Browser.Dom as Dom
 import Browser.Navigation as Nav
 import Date exposing (Date)
 import Date
-import Debug
 import FeatherIcons as FIcons
 import Html exposing (Html, div, text, ul, li, h1, h2, h3)
 import Html
