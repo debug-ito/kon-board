@@ -4,8 +4,8 @@ RUN mkdir /work
 RUN mkdir -p /bin
 WORKDIR /work
 
-RUN apt-get update
-RUN apt-get upgrade
+RUN apt-get update -y
+RUN apt-get upgrade -y
 RUN apt-get install -y ghc cabal-install zlib1g-dev
 
 COPY kon-board/ ./kon-board/
@@ -25,8 +25,8 @@ FROM debian:bullseye-slim
 RUN mkdir /server
 WORKDIR /server
 
-RUN apt-get update
-RUN apt-get upgrade
+RUN apt-get update -y
+RUN apt-get upgrade -y
 RUN apt-get install -y ghc zlib1g
 COPY --from=build /bin/kon-board-server /server/
 COPY static/ /server/static/
