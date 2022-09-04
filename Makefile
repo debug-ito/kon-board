@@ -1,4 +1,5 @@
 ELM_SRC="kon-elm/src"
+VERSION := $(shell perl -nle 'if(/^\s*version:\s*(\S+)/) { print $$1 }' < kon-board/kon-board.cabal )
 
 all: backend frontend
 
@@ -8,6 +9,7 @@ backend:
 frontend: static/main.js
 
 $(ELM_SRC)/Bridge.elm:
+	echo $(VERSION)
 	cabal v2-run kon-board-gen-elm $(ELM_SRC)
 
 static/main.js: $(ELM_SRC)/Bridge.elm
