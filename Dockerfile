@@ -18,6 +18,7 @@ RUN cabal v2-update
 RUN cabal v2-configure -f static --disable-tests --disable-benchmarks
 RUN cabal v2-build kon-board-server
 RUN cabal v2-install --overwrite-policy=always --install-method=copy --installdir="/bin" kon-board-server
+RUN make static/index.html
 
 
 FROM debian:bullseye-slim
@@ -30,6 +31,6 @@ RUN apt-get upgrade -y
 RUN apt-get install -y ghc zlib1g
 COPY --from=build /bin/kon-board-server /server/
 COPY static/ /server/static/
-RUN test -e /server/static/main.js
+RUN test -e /server/static/main*.js
 
 ENTRYPOINT ["/server/kon-board-server"]
