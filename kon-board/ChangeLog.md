@@ -1,6 +1,6 @@
 # Revision history for kon-board
 
-## 0.5.0.1  -- ???
+## 0.5.0.1  -- 2022-09-19
 
 - Now "main.js" file name has the version number inside.
   This prevents the browser from caching old "main.js" files.
