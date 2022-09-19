@@ -24,4 +24,4 @@ run: static/main-$(VERSION).js
 	cabal v2-run kon-board-server
 
 clean:
-	rm -rf $(ELM_SRC)/Bridge.elm static/main*.js statix/index.html; cabal v2-clean
+	rm -rf $(ELM_SRC)/Bridge.elm static/main*.js static/index.html; cabal v2-clean
