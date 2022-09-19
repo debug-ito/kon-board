@@ -1,5 +1,10 @@
 # Revision history for kon-board
 
+## 0.5.0.1  -- ???
+
+- Now "main.js" file name has the version number inside.
+  This prevents the browser from caching old "main.js" files.
+
 ## 0.5.0.0  -- 2022-08-10
 
 Major overhaul of the code base. There are a lot of **BREAKING CHANGES**.
