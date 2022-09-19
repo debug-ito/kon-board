@@ -6,7 +6,7 @@ WORKDIR /work
 
 RUN apt-get update -y
 RUN apt-get upgrade -y
-RUN apt-get install -y ghc cabal-install zlib1g-dev
+RUN apt-get install -y ghc cabal-install zlib1g-dev make
 
 COPY kon-board/ ./kon-board/
 COPY kon-board-server ./kon-board-server/
