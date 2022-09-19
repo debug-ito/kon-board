@@ -18,6 +18,10 @@ RUN cabal v2-update
 RUN cabal v2-configure -f static --disable-tests --disable-benchmarks
 RUN cabal v2-build kon-board-server
 RUN cabal v2-install --overwrite-policy=always --install-method=copy --installdir="/bin" kon-board-server
+
+RUN mkdir static
+COPY static/index.html.template ./static/
+COPY Makefile ./
 RUN make static/index.html
 
 
