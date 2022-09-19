@@ -20,7 +20,7 @@ static/index.html: static/index.html.template
 test: $(ELM_SRC)/Bridge.elm
 	cabal v2-test --job=1 all && ( cd kon-elm && npx elm-test )
 
-run: static/main-$(VERSION).js
+run: static/main-$(VERSION).js static/index.html
 	cabal v2-run kon-board-server
 
 clean:
