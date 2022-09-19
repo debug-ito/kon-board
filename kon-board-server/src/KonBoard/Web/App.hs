@@ -9,6 +9,7 @@ module KonBoard.Web.App
 
 import           Control.Applicative            ((<$>), (<*>))
 import           Control.Exception.Safe         (MonadThrow, throw, try)
+import           Control.Monad                  (forM_)
 import           Control.Monad.Except           (ExceptT (..))
 import           Control.Monad.Logger           (LoggingT, logDebugN, logInfoN, runStderrLoggingT)
 import           Control.Monad.Trans            (MonadIO (liftIO))
@@ -96,12 +97,14 @@ makeDefaultKonApp :: LoggingT IO (KonApp AppM)
 makeDefaultKonApp =  do
   recipeS <- recipeStoreMemory
   recipeFiles <- liftIO $ glob "recipes/*.yaml"
-  logDebugN ("Load recipe files: " <> (pack $ show recipeFiles))
-  liftIO $ mapM_ (RecipeY.loadYamlFile recipeS) recipeFiles
+  forM_ recipeFiles $ \recipeFile -> do
+    logDebugN ("Load recipe file: " <> pack recipeFile)
+    liftIO $ RecipeY.loadYamlFile recipeS recipeFile
   mealplanS <- mealPlanStoreMemory
   mealplanFiles <- liftIO $ glob "meal-plans/*.yaml"
-  logDebugN ("Load meal plan files: " <> (pack $ show mealplanFiles))
-  liftIO $ mapM_ (MealPlanY.loadYamlFile mealplanS recipeS) mealplanFiles
+  forM_ mealplanFiles $ \mealplanFile -> do
+    logDebugN ("Load meal plan file: " <> pack mealplanFile)
+    liftIO $ MealPlanY.loadYamlFile mealplanS recipeS mealplanFile
   return $ KonApp { mealPlanStore = mealplanS
                   , recipeStore = recipeS
                   , dirStatic = "static"
