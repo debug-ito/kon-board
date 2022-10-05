@@ -19,8 +19,7 @@ RUN cabal v2-configure -f static --disable-tests --disable-benchmarks
 RUN cabal v2-build kon-board-server
 RUN cabal v2-install --overwrite-policy=always --install-method=copy --installdir="/bin" kon-board-server
 
-RUN mkdir static
-COPY static/index.html.template ./static/
+COPY static/ ./static/
 COPY Makefile ./
 RUN make static/index.html
 
@@ -34,7 +33,8 @@ RUN apt-get update -y
 RUN apt-get upgrade -y
 RUN apt-get install -y ghc zlib1g
 COPY --from=build /bin/kon-board-server /server/
-COPY static/ /server/static/
+COPY --from=build /work/static/ /server/static/
+RUN test -e /server/static/index.html
 RUN test -e /server/static/main*.js
 
 ENTRYPOINT ["/server/kon-board-server"]
