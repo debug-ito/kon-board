@@ -57,7 +57,7 @@ decodeYAMLDocs doc = traverse decodeEither' $ splitYAMLDocs doc
 -- | Split the given into multiple blocks delimited by the line delimiter (@"---"@). Empty blocks
 -- are just dropped from the result.
 splitYAMLDocs :: ByteString -> [ByteString]
-splitYAMLDocs = filter (not . isEmptyDoc) $ splitLineBS "---" doc
+splitYAMLDocs doc = filter (not . isEmptyDoc) $ splitLineBS "---" doc
   where
     isEmptyDoc bs = BS.null $ BS.dropWhile isSpaceW8 bs
 
