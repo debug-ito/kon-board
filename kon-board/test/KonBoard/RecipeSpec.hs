@@ -23,15 +23,15 @@ spec = do
 specIngredient :: Spec
 specIngredient = do
   describe "parseIngredient" $ do
-  let theSpec input expected = do
-        specify (T.unpack input) $ do
-          (either (const $ Left ()) Right $ parseIngredient input) `shouldBe` expected
-  theSpec "foo, bar" (Right $ Ingredient "foo" "bar")
-  theSpec "foo  ,  quux  " (Right $ Ingredient "foo" "quux")
-  theSpec ",foo" (Left ())
-  theSpec "hoge," (Left ())
-  theSpec "foo" (Left ())
-  theSpec "" (Left ())
+    let theSpec input expected = do
+          specify (T.unpack input) $ do
+            (either (const $ Left ()) Right $ parseIngredient input) `shouldBe` expected
+    theSpec "foo, bar" (Right $ Ingredient "foo" "bar")
+    theSpec "foo  ,  quux  " (Right $ Ingredient "foo" "quux")
+    theSpec ",foo" (Left ())
+    theSpec "hoge," (Left ())
+    theSpec "foo" (Left ())
+    theSpec "" (Left ())
 
 specRecipe :: Spec
 specRecipe = describe "readYamlFile" $ do
