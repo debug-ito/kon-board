@@ -4,6 +4,7 @@
 module KonBoard.Util.Yaml
     ( decodeYAMLDocs
     , readYAMLDocs
+    , splitYAMLDocs
     , splitLineBS
     , ArrayOrSingle (..)
     ) where
@@ -51,7 +52,12 @@ isAllSpace s = BS.takeWhile isSpaceW8 s == s
 -- | Load data from YAML document, possibly encoded in \"multiple
 -- document\" encoding.
 decodeYAMLDocs :: FromJSON a => ByteString -> Either ParseException [a]
-decodeYAMLDocs doc = traverse decodeEither' $ filter (not . isEmptyDoc) $ splitLineBS "---" doc
+decodeYAMLDocs doc = traverse decodeEither' $ splitYAMLDocs doc
+
+-- | Split the given into multiple blocks delimited by the line delimiter (@"---"@). Empty blocks
+-- are just dropped from the result.
+splitYAMLDocs :: ByteString -> [ByteString]
+splitYAMLDocs = filter (not . isEmptyDoc) $ splitLineBS "---" doc
   where
     isEmptyDoc bs = BS.null $ BS.dropWhile isSpaceW8 bs
 
