@@ -28,11 +28,12 @@ module KonBoard.Recipe
 import           Data.Aeson          (FromJSON (..), ToJSON (..), genericParseJSON, genericToJSON)
 import qualified Data.ByteString     as BS
 import qualified Data.Text           as T
+import qualified Data.Yaml           as Yaml
 
 import           KonBoard.Base       (ByteString, Generic, HasField (..), MonadIO, MonadThrow, Text,
                                       liftIO, throw, throwString, traverse)
 import           KonBoard.Util.Aeson (dropLabelOptions)
-import           KonBoard.Util.Yaml  (decodeYAMLDocs)
+import           KonBoard.Util.Yaml  (splitYAMLDocs)
 
 
 
@@ -74,7 +75,12 @@ instance HasField "rawYaml" Recipe ByteString where
 
 -- | Parse a raw YAML document into a 'Recipe'.
 parseRecipe :: ByteString -> Either String Recipe
-parseRecipe = undefined
+parseRecipe b = toRecipe b =<< (errToString $ Yaml.decodeEither' b)
+  where
+    errToString e =
+      case e of
+        Left er -> Left $ Yaml.prettyPrintParseException er
+        Right r -> Right r
 
 -- | External reference of a recipe
 data Ref
@@ -186,14 +192,14 @@ instance FromJSON YIngGrouped where
 instance ToJSON YIngGrouped where
   toJSON = genericToJSON $ dropLabelOptions 0
 
-toRecipe :: YRecipe -> Either String Recipe
-toRecipe yr = do
+toRecipe :: ByteString -> YRecipe -> Either String Recipe
+toRecipe raw yr = do
   igs <- traverse toIngDesc $ maybe [] Prelude.id $ getField @"ings" yr
   return $ Recipe { _name = getField @"name" yr
                   , _ingredients = igs
                   , _description = maybe "" Prelude.id $ getField @"desc" yr
                   , _references = maybe [] return $ toRef (getField @"url" yr) (getField @"source" yr)
-                  , _rawYaml = "" -- TODO
+                  , _rawYaml = raw
                   }
 
 toRef :: Maybe Url -> Maybe Text -> Maybe Ref
@@ -219,8 +225,5 @@ loadYamlFile rs f = traverse (insertRecipe rs) =<< readYamlFile f
 
 -- | Read a YAML document for multiple 'Recipe's.
 readYaml :: (MonadThrow m) => ByteString -> m [Recipe]
-readYaml b = do
-  yrs <- either throw return $ decodeYAMLDocs b
-  either throwString return $ traverse toRecipe yrs
-
+readYaml b = either throwString return $ traverse parseRecipe $ splitYAMLDocs b
 
