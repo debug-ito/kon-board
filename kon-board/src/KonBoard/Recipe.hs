@@ -188,11 +188,12 @@ instance ToJSON YIngGrouped where
 
 toRecipe :: YRecipe -> Either String Recipe
 toRecipe yr = do
-  igs <- traverse toIngDesc $ maybe [] id $ getField @"ings" yr
-  return $ Recipe { name = getField @"name" yr
-                  , ingredients = igs
-                  , description = maybe "" id $ getField @"desc" yr
-                  , references = maybe [] return $ toRef (getField @"url" yr) (getField @"source" yr)
+  igs <- traverse toIngDesc $ maybe [] Prelude.id $ getField @"ings" yr
+  return $ Recipe { _name = getField @"name" yr
+                  , _ingredients = igs
+                  , _description = maybe "" Prelude.id $ getField @"desc" yr
+                  , _references = maybe [] return $ toRef (getField @"url" yr) (getField @"source" yr)
+                  , _rawYaml = "" -- TODO
                   }
 
 toRef :: Maybe Url -> Maybe Text -> Maybe Ref
