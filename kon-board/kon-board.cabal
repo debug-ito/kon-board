@@ -42,7 +42,6 @@ library
   other-modules:        KonBoard.Base
   build-depends:        base >=4.13.0.0 && <4.14,
                         text,
-                        yaml,
                         aeson >=2.0 && <2.1,
                         unordered-containers,
                         containers,
@@ -55,7 +54,8 @@ library
                         elm-bridge,
                         servant,
                         semigroups,
-                        monad-logger
+                        monad-logger,
+                        HsYAML-aeson
 
 test-suite spec
   type:                 exitcode-stdio-1.0
@@ -80,7 +80,7 @@ test-suite spec
                         KonBoard.Bridge.TimeSpec,
                         KonBoard.TestLogger
   build-tool-depends:   hspec-discover:hspec-discover
-  build-depends:        base, kon-board, yaml, bytestring, text, time, monad-logger, mtl, servant,
+  build-depends:        base, kon-board, bytestring, text, time, monad-logger, mtl, servant,
                         hspec,
                         string-interpolate
 

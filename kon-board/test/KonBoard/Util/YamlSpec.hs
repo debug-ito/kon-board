@@ -57,7 +57,7 @@ spec = describe "splitLineBS" $ do
                      ""
                    ]
     splitLineBS "---" input `shouldBe` expected
-  specify "delete comment at the head" $ do
+  specify "preserve comments" $ do
     let input = mconcat
                 [ "\n",
                   "# foo bar\n",
@@ -74,15 +74,15 @@ spec = describe "splitLineBS" $ do
         expected =
           [ mconcat
             [ "\n",
-              "\n",
+              "# foo bar\n",
               "foo\n",
-              "  \n",
+              "  ### foo bar\n",
               "    foo\n"
             ],
             mconcat
-            [ " \n",
+            [ " # foo\n",
               "bar\n",
-              "\n",
+              "## foo\n",
               "    \"foo ## bar\"\n",
               "bar\n"
             ]
