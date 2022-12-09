@@ -2,6 +2,12 @@
 
 ## 0.6.0.0  -- ?
 
+- **BREAKING CHANGES**: `Recipe` type
+  - Add `rawYaml` field to `Recipe`.
+  - Now `Recipe` is opaque. This is to protect integrity of `rawYaml` field and other fields.
+  - Add `parseRecipe` function to `Recipe` and `Recipe.Yaml` modules.
+    This is the only constructor of `Recipe`s.
+
 
 
 ## 0.5.0.1  -- 2022-09-19
