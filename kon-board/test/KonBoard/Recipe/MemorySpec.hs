@@ -72,11 +72,11 @@ specStore = describe "recipeStoreMemory" $ do
     store <- openStore commonYamlFiles
     (Just old) <- getRecipeByName store "recipe 1"
     let oldId = getField @"id" old
-        newRecipeYaml = "name: recipe 1 modified\ndesc: hoge hoge\n"
+        newRecipeYaml = "name: recipe 1\ndesc: hoge hoge\n"
         (Right newRecipe) = parseRecipe newRecipeYaml
         newStored = RecipeStored { id = oldId, recipe = newRecipe }
     void $ updateRecipe store newStored
     gotByName <- getRecipeByName store "recipe 1"
-    liftIO $ gotByName `shouldBe` Nothing
+    liftIO $ gotByName `shouldBe` Just newStored
     gotById <- getRecipeById store oldId
     liftIO $ gotById `shouldBe` Just newStored
