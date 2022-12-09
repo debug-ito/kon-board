@@ -19,8 +19,8 @@ import           Elm.Derive          (deriveBoth)
 import           Servant.API         (FromHttpApiData)
 
 import           KonBoard.Base       (HasField (..), Text)
-import           KonBoard.Recipe     (Id, IngDesc (..), Ingredient (..), Recipe (..),
-                                      RecipeStored (..), Ref (..))
+import           KonBoard.Recipe     (Id, IngDesc (..), Ingredient (..), Recipe, RecipeStored (..),
+                                      Ref (..))
 import           KonBoard.Util.Aeson (dropLabelOptions)
 
 data BIngredient

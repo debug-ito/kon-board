@@ -13,9 +13,9 @@ import qualified Data.Text              as T
 import           GHC.Records            (HasField (..))
 import           Test.Hspec
 
-import           KonBoard.Recipe        (Id, Name, Recipe (..), RecipeStore (..), RecipeStored (..))
+import           KonBoard.Recipe        (Id, Name, RecipeStore (..), RecipeStored (..),
+                                         loadYamlFile, parseRecipe)
 import           KonBoard.Recipe.Memory (recipeStoreMemory)
-import           KonBoard.Recipe.Yaml   (loadYamlFile)
 
 import           KonBoard.TestLogger    (basicLogging)
 
@@ -71,10 +71,12 @@ specStore = describe "recipeStoreMemory" $ do
   specify "updateRecipe" $ basicLogging $ do
     store <- openStore commonYamlFiles
     (Just old) <- getRecipeByName store "recipe 1"
-    let oldRecipe = getField @"recipe" old
-        new = old { recipe = oldRecipe { description = "hoge hoge" } }
-    void $ updateRecipe store new
-    (Just got) <- getRecipeByName store "recipe 1"
-    liftIO $ got `shouldBe` new
-    liftIO $ (getField @"description" $ getField @"recipe" got) `shouldBe` "hoge hoge"
-
+    let oldId = getField @"id" old
+        newRecipeYaml = "name: recipe 1 modified\ndesc: hoge hoge\n"
+        (Right newRecipe) = parseRecipe newRecipeYaml
+        newStored = RecipeStored { id = oldId, recipe = newRecipe }
+    void $ updateRecipe store newStored
+    gotByName <- getRecipeByName store "recipe 1"
+    liftIO $ gotByName `shouldBe` Nothing
+    gotById <- getRecipeById store oldId
+    liftIO $ gotById `shouldBe` Just newStored

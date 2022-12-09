@@ -11,7 +11,7 @@ import           Data.Text.Encoding     (decodeUtf8, encodeUtf8)
 import           KonBoard.Base          (ByteString, HasField (..), HashMap, IORef, MonadIO (..),
                                          MonadLogger, MonadThrow, Monoid (..), Semigroup (..),
                                          newIORef, readIORef, throwString, when, writeIORef)
-import           KonBoard.Recipe        (Id, Name, Recipe (..), RecipeStore (..), RecipeStored (..))
+import           KonBoard.Recipe        (Id, Name, Recipe, RecipeStore (..), RecipeStored (..))
 
 recipeStoreMemory :: (MonadIO m1, MonadIO m2, MonadThrow m2) => m1 (RecipeStore m2)
 recipeStoreMemory = do
