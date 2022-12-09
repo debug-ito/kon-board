@@ -67,7 +67,8 @@ test-suite spec
                         StrictData,
                         DeriveDataTypeable, DeriveFoldable, DeriveFunctor, DeriveTraversable, DeriveGeneric, GeneralisedNewtypeDeriving
                         FlexibleContexts, FlexibleInstances,
-                        RankNTypes, TypeApplications, TypeOperators, DataKinds, DuplicateRecordFields
+                        RankNTypes, TypeApplications, TypeOperators, DataKinds, DuplicateRecordFields,
+                        QuasiQuotes
   other-extensions:     TemplateHaskell, GADTs
   other-modules:        KonBoard.RecipeSpec,
                         KonBoard.Recipe.MemorySpec,
@@ -80,7 +81,8 @@ test-suite spec
                         KonBoard.TestLogger
   build-tool-depends:   hspec-discover:hspec-discover
   build-depends:        base, kon-board, yaml, bytestring, text, time, monad-logger, mtl, servant,
-                        hspec
+                        hspec,
+                        string-interpolate
 
 source-repository head
   type:                 git
