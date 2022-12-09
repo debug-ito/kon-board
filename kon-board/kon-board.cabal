@@ -28,6 +28,7 @@ library
   other-extensions:     TemplateHaskell, GADTs
   exposed-modules:      KonBoard.Recipe,
                         KonBoard.Recipe.Memory,
+                        KonBoard.Recipe.Yaml
                         KonBoard.Recipe.Internal.Type,
                         KonBoard.MealPlan,
                         KonBoard.MealPlan.Memory,
@@ -38,8 +39,7 @@ library
                         KonBoard.Util.Yaml,
                         KonBoard.Util.Aeson,
                         KonBoard.Web.API
-  other-modules:        KonBoard.Base,
-                        KonBoard.Recipe.Internal.Yaml
+  other-modules:        KonBoard.Base
   build-depends:        base >=4.13.0.0 && <4.14,
                         text,
                         yaml,
@@ -71,6 +71,7 @@ test-suite spec
   other-extensions:     TemplateHaskell, GADTs
   other-modules:        KonBoard.RecipeSpec,
                         KonBoard.Recipe.MemorySpec,
+                        KonBoard.Recipe.YamlSpec,
                         KonBoard.MealPlanSpec,
                         KonBoard.MealPlan.YamlSpec,
                         KonBoard.MealPlan.MemorySpec,

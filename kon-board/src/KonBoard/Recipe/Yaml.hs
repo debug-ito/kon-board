@@ -1,5 +1,4 @@
--- | __Internal or testing use only.__
-module KonBoard.Recipe.Internal.Yaml
+module KonBoard.Recipe.Yaml
     ( parseRecipe
     , readYaml
     , readYamlFile

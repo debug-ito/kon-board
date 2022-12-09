@@ -13,9 +13,9 @@ import qualified Data.Text              as T
 import           GHC.Records            (HasField (..))
 import           Test.Hspec
 
-import           KonBoard.Recipe        (Id, Name, RecipeStore (..), RecipeStored (..),
-                                         loadYamlFile, parseRecipe)
+import           KonBoard.Recipe        (Id, Name, RecipeStore (..), RecipeStored (..))
 import           KonBoard.Recipe.Memory (recipeStoreMemory)
+import           KonBoard.Recipe.Yaml   (loadYamlFile, parseRecipe)
 
 import           KonBoard.TestLogger    (basicLogging)
 

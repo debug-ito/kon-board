@@ -14,8 +14,8 @@ import           KonBoard.MealPlan      (MealPhase (..), MealPlan (..), MealPlan
                                          fromMealPhase, toMealPhase)
 import qualified KonBoard.MealPlan.Yaml as MY
 import           KonBoard.Recipe        (Name, Recipe, RecipeStored (..))
-import qualified KonBoard.Recipe        as Recipe
 import           KonBoard.Recipe.Memory (recipeStoreMemory)
+import qualified KonBoard.Recipe.Yaml   as RY
 import           KonBoard.TestLogger    (basicLogging)
 
 main :: IO ()
@@ -47,7 +47,7 @@ planWithoutID mp = ( getField @"day" mp
 loadYamls :: MealPlanStore (LoggingT IO) -> IO (MealPlanStore (LoggingT IO))
 loadYamls ms = basicLogging $ do
   rs <- recipeStoreMemory
-  mapM_ (Recipe.loadYamlFile rs) recipeFiles
+  mapM_ (RY.loadYamlFile rs) recipeFiles
   mapM_ (MY.loadYamlFile ms rs) planFiles
   return ms
   where

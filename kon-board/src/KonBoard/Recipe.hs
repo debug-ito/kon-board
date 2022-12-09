@@ -6,10 +6,6 @@ module KonBoard.Recipe
     , Url
     , Desc
     , parseRecipe
-      -- ** YAML readers
-    , readYaml
-    , readYamlFile
-    , loadYamlFile
       -- * Ref
     , Ref (..)
       -- * Ingredient
@@ -26,4 +22,4 @@ module KonBoard.Recipe
     ) where
 
 import           KonBoard.Recipe.Internal.Type
-import           KonBoard.Recipe.Internal.Yaml
+import           KonBoard.Recipe.Yaml
