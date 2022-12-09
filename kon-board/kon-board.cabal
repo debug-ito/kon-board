@@ -55,6 +55,7 @@ library
                         servant,
                         semigroups,
                         monad-logger,
+                        HsYAML,
                         HsYAML-aeson
 
 test-suite spec
