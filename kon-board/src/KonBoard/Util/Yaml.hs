@@ -44,7 +44,7 @@ decodeYaml b = handleError $ decode1 lb
     handleError e =
       case e of
         Right r         -> Right r
-        Left (pos, err) -> Left $ prettyPosWithSource pos lb (" error" ++ err)
+        Left (pos, err) -> Left $ prettyPosWithSource pos lb ("error: " ++ err)
 
 -- | Split the given into multiple blocks delimited by the line delimiter (@"---"@). Empty blocks
 -- are just dropped from the result.
