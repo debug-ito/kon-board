@@ -17,7 +17,7 @@ import           KonBoard.MealPlan   (MealPhase (..), MealPlan (..), MealPlanSto
                                       toMealPhase)
 import           KonBoard.Recipe     (RecipeStore (..))
 import           KonBoard.Util.Aeson (dropLabelOptions)
-import           KonBoard.Util.Yaml  (ArrayOrSingle (..), decodeYAMLDocs)
+import           KonBoard.Util.Yaml  (ArrayOrSingle (..), decodeYaml, splitYamlDocs)
 
 readYamlFile :: (MonadThrow m, MonadIO m) => RecipeStore m -> FilePath -> m [MealPlan]
 readYamlFile r f = readYaml r =<< (liftIO $ BS.readFile f)
@@ -27,7 +27,7 @@ loadYamlFile mps r f  = traverse_ (putMealPlan mps) =<< readYamlFile r f
 
 readYaml :: (MonadThrow m) => RecipeStore m -> ByteString -> m [MealPlan]
 readYaml rs rawDoc = do
-  ymps <- either throw return $ decodeYAMLDocs rawDoc
+  ymps <- either throwString return $ traverse decodeYaml $ splitYamlDocs rawDoc
   fmap concat $ traverse (either throwString return) =<< (traverse (fromYMealPlan rs) $ ymps)
 
 fromYMealPlan :: Monad m => RecipeStore m -> YMealPlan -> m (Either String [MealPlan])

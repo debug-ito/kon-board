@@ -2,8 +2,8 @@
 --
 -- __This module is for internal use. End-users should not use this.__
 module KonBoard.Util.Yaml
-    ( decodeYAMLDocs
-    , readYAMLDocs
+    ( decodeYaml
+    , splitYamlDocs
     , splitLineBS
     , ArrayOrSingle (..)
     ) where
@@ -37,27 +37,21 @@ splitLineBS delim_line orig = map BSC.unlines $ splitByLine $ BSC.lines orig
 isSpaceW8 :: Word8 -> Bool
 isSpaceW8 w = w == 0x09 || w == 0x0a || w == 0x0d || w == 0x20
 
--- | Load data from YAML document, possibly encoded in \"multiple document\" encoding. The 'snd' of
--- the result is the raw YAML document.
-decodeYAMLDocs :: FromJSON a => ByteString -> Either String [(a, ByteString)]
-decodeYAMLDocs doc = traverse decodeWithRaw $ map BSL.fromStrict $ splitYAMLDocs doc
+decodeYaml :: FromJSON a => ByteString -> Either String a
+decodeYaml b = handleError $ decode1 lb
   where
-    decodeWithRaw b = handleError b $ (,) <$> decode1 b <*> (pure $ BSL.toStrict b)
-    handleError input e =
+    lb = BSL.fromStrict b
+    handleError e =
       case e of
         Right r         -> Right r
-        Left (pos, err) -> Left $ prettyPosWithSource pos input (" error" ++ err)
+        Left (pos, err) -> Left $ prettyPosWithSource pos lb (" error" ++ err)
 
 -- | Split the given into multiple blocks delimited by the line delimiter (@"---"@). Empty blocks
 -- are just dropped from the result.
-splitYAMLDocs :: ByteString -> [ByteString]
-splitYAMLDocs doc = filter (not . isEmptyDoc) $ splitLineBS "---" doc
+splitYamlDocs :: ByteString -> [ByteString]
+splitYamlDocs doc = filter (not . isEmptyDoc) $ splitLineBS "---" doc
   where
     isEmptyDoc bs = BS.null $ BS.dropWhile isSpaceW8 bs
-
-readYAMLDocs :: FromJSON a => FilePath -> IO [(a, ByteString)]
-readYAMLDocs file = (either throwString return . decodeYAMLDocs) =<< BS.readFile file
-
 
 -- | (internal use) A JSON/YAML encoding wrapper that is either a
 -- single element or an array.

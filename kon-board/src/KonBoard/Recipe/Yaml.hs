@@ -8,23 +8,17 @@ module KonBoard.Recipe.Yaml
 import           Data.Aeson                    (FromJSON (..), ToJSON (..), genericParseJSON,
                                                 genericToJSON)
 import qualified Data.ByteString               as BS
-import qualified Data.Yaml                     as Yaml
 import           KonBoard.Base                 (ByteString, Generic, HasField (..), MonadIO,
                                                 MonadThrow, Text, liftIO, throw, throwString,
                                                 traverse)
 import           KonBoard.Recipe.Internal.Type (Id, IngDesc (..), Recipe (..), RecipeStore (..),
                                                 Ref (..), Url, parseIngredient)
 import           KonBoard.Util.Aeson           (dropLabelOptions)
-import           KonBoard.Util.Yaml            (splitYAMLDocs)
+import           KonBoard.Util.Yaml            (decodeYaml, splitYamlDocs)
 
 -- | Parse a raw YAML document into a 'Recipe'.
 parseRecipe :: ByteString -> Either String Recipe
-parseRecipe b = toRecipe b =<< (errToString $ Yaml.decodeEither' b)
-  where
-    errToString e =
-      case e of
-        Left er -> Left $ Yaml.prettyPrintParseException er
-        Right r -> Right r
+parseRecipe b = toRecipe b =<< decodeYaml b
 
 readYamlFile :: (MonadThrow m, MonadIO m) => FilePath -> m [Recipe]
 readYamlFile f = readYaml =<< (liftIO $ BS.readFile f)
@@ -34,7 +28,7 @@ loadYamlFile rs f = traverse (insertRecipe rs) =<< readYamlFile f
 
 -- | Read a YAML document for multiple 'Recipe's.
 readYaml :: (MonadThrow m) => ByteString -> m [Recipe]
-readYaml b = either throwString return $ traverse parseRecipe $ splitYAMLDocs b
+readYaml b = either throwString return $ traverse parseRecipe $ splitYamlDocs b
 
 -- | Recipe structure for YAML encoding.
 data YRecipe
