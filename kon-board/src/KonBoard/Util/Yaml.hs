@@ -20,18 +20,18 @@ import           Data.YAML              (prettyPosWithSource)
 import           Data.YAML.Aeson        (decode1)
 import           GHC.Generics           (Generic)
 
--- | (Internal use)
-splitLineBS :: ByteString -- ^ delimiter line
-             -> ByteString -- ^ data to be split
-             -> [ByteString] -- ^ data delimited by the delimiter.
-splitLineBS delim_line orig = map BSC.unlines $ splitByLine $ BSC.lines orig
+-- | Given a stream of @a@, separate the @a@s into blocks, delimited by a specific @a@ as the
+-- delimiter. The delimiter is excluded from the result.
+blockConcat :: (Foldable t)
+            => (a -> Bool) -- ^ Returns 'True' if the input is the block delimiter
+            -> t a
+            -> [[a]]
+blockConcat isDelim input = finalize $ foldr f ([], []) input
   where
-    splitByLine ls = finalize $ foldr f ([], []) ls
-      where
-        f line (cur_group, ret) = if line == delim_line
-                                  then ([], cur_group : ret)
-                                  else (line : cur_group, ret)
-        finalize (group, ret) = group : ret
+    f e (curGroup, ret) = if isDelim e
+                          then ([]          , curGroup : ret)
+                          else (e : curGroup, ret)
+    finalize (group, ret) = group : ret
 
 isSpaceW8 :: Word8 -> Bool
 isSpaceW8 w = w == 0x09 || w == 0x0a || w == 0x0d || w == 0x20
@@ -49,7 +49,7 @@ decodeYaml b = handleError $ decode1 lb
 -- (@"---"@). Empty blocks are just dropped from the result. A block that only contains YAML
 -- comments is considered "empty", so it's removed from the result.
 splitYamlDocs :: ByteString -> [ByteString]
-splitYamlDocs doc = filter (not . isEmptyDoc) $ splitLineBS "---" doc
+splitYamlDocs doc = filter (not . isEmptyDoc) $ map BSC.unlines $ blockConcat (== "---") $ BSC.lines doc
   where
     isEmptyDoc bs = BS.null $ BS.dropWhile isSpaceW8 bs
 
