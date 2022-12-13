@@ -20,6 +20,25 @@ import           Data.YAML              (prettyPosWithSource)
 import           Data.YAML.Aeson        (decode1)
 import           GHC.Generics           (Generic)
 
+decodeYaml :: FromJSON a => ByteString -> Either String a
+decodeYaml b = handleError $ decode1 lb
+  where
+    lb = BSL.fromStrict b
+    handleError e =
+      case e of
+        Right r         -> Right r
+        Left (pos, err) -> Left $ prettyPosWithSource pos lb ("error: " ++ err)
+
+-- | Split the given document data into multiple blocks delimited by the line delimiter
+-- (@"---"@). Empty blocks are just dropped from the result. A block that only contains YAML
+-- comments is considered "empty", so it's removed from the result.
+splitYamlDocs :: ByteString -> [ByteString]
+splitYamlDocs doc = map BSC.unlines $ filter (not . isEmptyDoc) $ blockConcat (== "---") $ BSC.lines doc
+  where
+    isEmptyDoc block = BS.null $ BS.dropWhile isSpaceW8 $ BSC.unlines $ map removeComment $ block
+    removeComment :: ByteString -> ByteString
+    removeComment line = undefined -- TODO: remove comment from the line.
+
 -- | Given a stream of @a@, separate the @a@s into blocks, delimited by a specific @a@ as the
 -- delimiter. The delimiter is excluded from the result.
 blockConcat :: (Foldable t)
@@ -35,23 +54,6 @@ blockConcat isDelim input = finalize $ foldr f ([], []) input
 
 isSpaceW8 :: Word8 -> Bool
 isSpaceW8 w = w == 0x09 || w == 0x0a || w == 0x0d || w == 0x20
-
-decodeYaml :: FromJSON a => ByteString -> Either String a
-decodeYaml b = handleError $ decode1 lb
-  where
-    lb = BSL.fromStrict b
-    handleError e =
-      case e of
-        Right r         -> Right r
-        Left (pos, err) -> Left $ prettyPosWithSource pos lb ("error: " ++ err)
-
--- | Split the given document data into multiple blocks delimited by the line delimiter
--- (@"---"@). Empty blocks are just dropped from the result. A block that only contains YAML
--- comments is considered "empty", so it's removed from the result.
-splitYamlDocs :: ByteString -> [ByteString]
-splitYamlDocs doc = filter (not . isEmptyDoc) $ map BSC.unlines $ blockConcat (== "---") $ BSC.lines doc
-  where
-    isEmptyDoc bs = BS.null $ BS.dropWhile isSpaceW8 bs
 
 -- | (internal use) A JSON/YAML encoding wrapper that is either a
 -- single element or an array.
