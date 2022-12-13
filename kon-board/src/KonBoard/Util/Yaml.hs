@@ -4,7 +4,6 @@
 module KonBoard.Util.Yaml
     ( decodeYaml
     , splitYamlDocs
-    , splitLineBS
     , ArrayOrSingle (..)
     ) where
 
@@ -46,8 +45,9 @@ decodeYaml b = handleError $ decode1 lb
         Right r         -> Right r
         Left (pos, err) -> Left $ prettyPosWithSource pos lb ("error: " ++ err)
 
--- | Split the given into multiple blocks delimited by the line delimiter (@"---"@). Empty blocks
--- are just dropped from the result.
+-- | Split the given document data into multiple blocks delimited by the line delimiter
+-- (@"---"@). Empty blocks are just dropped from the result. A block that only contains YAML
+-- comments is considered "empty", so it's removed from the result.
 splitYamlDocs :: ByteString -> [ByteString]
 splitYamlDocs doc = filter (not . isEmptyDoc) $ splitLineBS "---" doc
   where
