@@ -33,7 +33,7 @@ decodeYaml b = handleError $ decode1 lb
 -- (@"---"@). Empty blocks are just dropped from the result. A block that only contains YAML
 -- comments is considered "empty", so it's removed from the result.
 splitYamlDocs :: ByteString -> [ByteString]
-splitYamlDocs doc = map BSC.unlines $ filter (not . isEmptyDoc) $ blockConcat (== "---") $ BSC.lines doc
+splitYamlDocs doc = map BSC.unlines $ filter (not . isEmptyDoc) $ groupBySep (== "---") $ BSC.lines doc
   where
     isEmptyDoc block = BS.null $ BS.dropWhile isSpaceW8 $ BSC.unlines $ map removeComment $ block
     removeComment :: ByteString -> ByteString
@@ -41,11 +41,11 @@ splitYamlDocs doc = map BSC.unlines $ filter (not . isEmptyDoc) $ blockConcat (=
 
 -- | Given a stream of @a@, separate the @a@s into blocks, delimited by a specific @a@ as the
 -- delimiter. The delimiter is excluded from the result.
-blockConcat :: (Foldable t)
-            => (a -> Bool) -- ^ Returns 'True' if the input is the block delimiter
-            -> t a
-            -> [[a]]
-blockConcat isDelim input = finalize $ foldr f ([], []) input
+groupBySep :: (Foldable t)
+           => (a -> Bool) -- ^ Returns 'True' if the input is the block delimiter
+           -> t a
+           -> [[a]]
+groupBySep isDelim input = finalize $ foldr f ([], []) input
   where
     f e (curGroup, ret) = if isDelim e
                           then ([]          , curGroup : ret)
