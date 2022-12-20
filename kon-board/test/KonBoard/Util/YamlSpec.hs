@@ -15,14 +15,14 @@ spec :: Spec
 spec = describe "splitYamlDocs" $ do
   specify "empty" $ do
     splitYamlDocs "" `shouldBe` []
-  specify "non-empty string" $ do
-    splitYamlDocs "foo" `shouldBe` ["foo"]
+  specify "non-empty string (add trailing newline)" $ do
+    splitYamlDocs "foo" `shouldBe` ["foo\n"]
   specify "only comment" $ do
     splitYamlDocs "#bar" `shouldBe` []
   specify "only comment (space prefix)" $ do
     splitYamlDocs "  ## foo" `shouldBe` []
-  specify "multi line without trailing newline" $ do
-    splitYamlDocs "foo\nbar\nquux" `shouldBe` ["foo\nbar\nquux"]
+  specify "multi line without trailing newline (add trainling newline)" $ do
+    splitYamlDocs "foo\nbar\nquux" `shouldBe` ["foo\nbar\nquux\n"]
   specify "comment and non-space characters" $ do
     let input = mconcat
                 [ "foo\n"
