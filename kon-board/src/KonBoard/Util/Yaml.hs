@@ -37,7 +37,23 @@ splitYamlDocs doc = map BSC.unlines $ filter (not . isEmptyDoc) $ groupBySep (==
   where
     isEmptyDoc block = BS.null $ BS.dropWhile isSpaceW8 $ BSC.unlines $ map removeComment $ block
     removeComment :: ByteString -> ByteString
-    removeComment line = undefined -- TODO: remove comment from the line.
+    removeComment l =
+      if sharpMatched && isHeadSpace
+      then beforeSharp
+      else l
+      where
+        (beforeSharp, afterSharp) = BS.span (not . isSharpW8) l
+        sharpMatched = not $ BS.null afterSharp
+        isHeadSpace = isAllSpace beforeSharp
+
+isAllSpace :: ByteString -> Bool
+isAllSpace s = BS.takeWhile isSpaceW8 s == s
+
+isSharpW8 :: Word8 -> Bool
+isSharpW8 w = w == 0x23
+
+isSpaceW8 :: Word8 -> Bool
+isSpaceW8 w = w == 0x09 || w == 0x0a || w == 0x0d || w == 0x20
 
 -- | Given a stream of @a@, separate the @a@s into blocks, delimited by a specific @a@ as the
 -- delimiter. The delimiter is excluded from the result.
@@ -51,9 +67,6 @@ groupBySep isDelim input = finalize $ foldr f ([], []) input
                           then ([]          , curGroup : ret)
                           else (e : curGroup, ret)
     finalize (group, ret) = group : ret
-
-isSpaceW8 :: Word8 -> Bool
-isSpaceW8 w = w == 0x09 || w == 0x0a || w == 0x0d || w == 0x20
 
 -- | (internal use) A JSON/YAML encoding wrapper that is either a
 -- single element or an array.

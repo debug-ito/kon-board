@@ -21,6 +21,8 @@ spec = describe "splitYamlDocs" $ do
     splitYamlDocs "#bar" `shouldBe` []
   specify "only comment (space prefix)" $ do
     splitYamlDocs "  ## foo" `shouldBe` []
+  specify "multi line without trailing newline" $ do
+    splitYamlDocs "foo\nbar\nquux" `shouldBe` ["foo\nbar\nquux"]
   specify "comment and non-space characters" $ do
     let input = mconcat
                 [ "foo\n"
