@@ -108,9 +108,7 @@ suite =
                         got = Cal.addMealPlan input start_cal
                     in case got of
                            Ok _ -> Exp.fail "the result should fail."
-                           Err e -> Exp.true
-                                    ("Unexpected error message: " ++ e)
-                                    (String.contains "Cannot find CalEntry for 2019-04-20" e)
+                           Err e -> Exp.onFail ("Unexpected error message: " ++ e) <| Exp.equal True (String.contains "Cannot find CalEntry for 2019-04-20" e)
               , test "add single match" <|
                   \_ ->
                       let bm = { year = 2019, month = 4, day = 20
