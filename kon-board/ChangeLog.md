@@ -1,13 +1,13 @@
 # Revision history for kon-board
 
-## 0.6.0.0  -- ?
+## 0.6.0.0  -- 2023-12-23
 
 - **BREAKING CHANGES**: `Recipe` type
   - Add `rawYaml` field to `Recipe`.
   - Now `Recipe` is opaque. This is to protect integrity of `rawYaml` field and other fields.
   - Add `parseRecipe` function to `Recipe` and `Recipe.Yaml` modules.
     This is the only constructor of `Recipe`s.
-
+- Re-organize functions in `Util.Yaml` internal module.
 
 
 ## 0.5.0.1  -- 2022-09-19
