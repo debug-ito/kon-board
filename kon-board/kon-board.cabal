@@ -22,13 +22,13 @@ library
   ghc-options:          -Wall -fno-warn-unused-imports
   default-extensions:   OverloadedStrings, NumericUnderscores,
                         StrictData,
-                        DeriveDataTypeable, DeriveFoldable, DeriveFunctor, DeriveTraversable, DeriveGeneric, GeneralisedNewtypeDeriving
+                        DeriveDataTypeable, DeriveFoldable, DeriveFunctor, DeriveTraversable, DeriveGeneric, GeneralizedNewtypeDeriving,
                         FlexibleContexts, FlexibleInstances,
-                        RankNTypes, TypeApplications, TypeOperators, DataKinds, DuplicateRecordFields
+                        RankNTypes, TypeApplications, TypeOperators, DataKinds, DuplicateRecordFields,
+                        TypeFamilies, DeriveAnyClass
   other-extensions:     TemplateHaskell, GADTs
   exposed-modules:      KonBoard.Recipe,
                         KonBoard.Recipe.Memory,
-                        KonBoard.Recipe.SQLite,
                         KonBoard.Recipe.Yaml
                         KonBoard.Recipe.Internal.Type,
                         KonBoard.MealPlan,
@@ -39,7 +39,8 @@ library
                         KonBoard.Bridge.Time,
                         KonBoard.Util.Yaml,
                         KonBoard.Util.Aeson,
-                        KonBoard.Web.API
+                        KonBoard.Web.API,
+                        KonBoard.Db
   other-modules:        KonBoard.Base
   build-depends:        base >=4.13.0.0 && <4.14,
                         text,
