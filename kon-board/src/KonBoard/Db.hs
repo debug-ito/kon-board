@@ -21,13 +21,17 @@ type Recipe = RecipeT Identity
 instance Beamable RecipeT
 
 instance Table RecipeT where
-  data PrimaryKey RecipeT f = RecipeId (C f Integer) deriving (Generic, Beamable)
+  data PrimaryKey RecipeT f = RecipeId (C f Integer) deriving (Generic)
   primaryKey = RecipeId . getField @"id"
+
+instance Beamable (PrimaryKey RecipeT)
 
 data Db f
   = Db
       { recipes :: f (TableEntity RecipeT)
       }
-  deriving (Database be, Generic)
+  deriving (Generic)
 
--- TODO: define the database entity.
+instance Database be Db
+
+-- TODO: write Db operation functions.

@@ -25,7 +25,7 @@ library
                         DeriveDataTypeable, DeriveFoldable, DeriveFunctor, DeriveTraversable, DeriveGeneric, GeneralizedNewtypeDeriving,
                         FlexibleContexts, FlexibleInstances,
                         RankNTypes, TypeApplications, TypeOperators, DataKinds, DuplicateRecordFields,
-                        TypeFamilies, DeriveAnyClass
+                        TypeFamilies, MultiParamTypeClasses
   other-extensions:     TemplateHaskell, GADTs
   exposed-modules:      KonBoard.Recipe,
                         KonBoard.Recipe.Memory,
