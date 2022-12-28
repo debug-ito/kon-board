@@ -59,7 +59,8 @@ library
                         monad-logger,
                         HsYAML,
                         HsYAML-aeson,
-                        beam-core
+                        beam-core,
+                        sqlite-simple
 
 test-suite spec
   type:                 exitcode-stdio-1.0
