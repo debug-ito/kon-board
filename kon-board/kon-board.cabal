@@ -60,7 +60,8 @@ library
                         HsYAML,
                         HsYAML-aeson,
                         beam-core,
-                        sqlite-simple
+                        sqlite-simple,
+                        string-interpolate
 
 test-suite spec
   type:                 exitcode-stdio-1.0

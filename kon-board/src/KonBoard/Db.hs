@@ -10,8 +10,17 @@ import qualified Database.SQLite.Simple as SQLite
 
 import           KonBoard.Base          (Generic, HasField (..), MonadIO (..), Text)
 
-data RecipeT f
-  = Recipe
+sqlCreateDbRecipeT :: SQLite.Query
+sqlCreateDbRecipeT = [i|
+CREATE TABLE IF NOT EXISTS recipes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL UNIQUE,
+  search_text TEXT NOT NULL,
+  rawYaml TEXT NOT NULL
+)|]
+
+data DbRecipeT f
+  = DbRecipe
       { id         :: C f Integer
       , name       :: C f Text
       , searchText :: C f Text
@@ -19,19 +28,19 @@ data RecipeT f
       }
   deriving (Generic)
 
-type Recipe = RecipeT Identity
+type DbRecipe = DbRecipeT Identity
 
-instance Beamable RecipeT
+instance Beamable DbRecipeT
 
-instance Table RecipeT where
-  data PrimaryKey RecipeT f = RecipeId (C f Integer) deriving (Generic)
-  primaryKey = RecipeId . getField @"id"
+instance Table DbRecipeT where
+  data PrimaryKey DbRecipeT f = DbRecipeId (C f Integer) deriving (Generic)
+  primaryKey = DbRecipeId . getField @"id"
 
-instance Beamable (PrimaryKey RecipeT)
+instance Beamable (PrimaryKey DbRecipeT)
 
 data Db f
   = Db
-      { recipes :: f (TableEntity RecipeT)
+      { recipes :: f (TableEntity DbRecipeT)
       }
   deriving (Generic)
 
@@ -41,9 +50,22 @@ data Conn
   = Conn SQLite.Connection
 
 openSqlite :: MonadIO m => FilePath -> m Conn
-openSqlite f = liftIO $ fmap Conn $ SQLite.open f
+openSqlite f = liftIO $ do
+  conn <- fmap Conn $ SQLite.open f
+  initDb conn
+  return conn
 
 close :: MonadIO m => Conn -> m ()
 close (Conn c) = liftIO $ SQLite.close c
+
+initDb :: Conn -> IO ()
+initDb (Conn c) = do
+  SQLite.execute_ sqlCreateDbRecipeT
+
+-- TODO: maybe we should enable some pragmas such as auto_vacuum and foreign_keys
+
+insertDbRecipe :: Conn -> DbRecipe f -> IO Integer
+insertDbRecipe = undefined -- TODO: what type should we use for @f@ ?? The id is autoincremented, and we must retrieve that value.
+
 
 -- TODO: write Db operation functions.
