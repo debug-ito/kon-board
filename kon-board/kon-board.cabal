@@ -26,7 +26,7 @@ library
                         FlexibleContexts, FlexibleInstances,
                         RankNTypes, TypeApplications, TypeOperators, DataKinds, DuplicateRecordFields,
                         TypeFamilies, MultiParamTypeClasses
-  other-extensions:     TemplateHaskell, GADTs
+  other-extensions:     TemplateHaskell, GADTs, QuasiQuotes
   exposed-modules:      KonBoard.Recipe,
                         KonBoard.Recipe.Memory,
                         KonBoard.Recipe.Yaml
@@ -60,6 +60,7 @@ library
                         HsYAML,
                         HsYAML-aeson,
                         beam-core,
+                        beam-sqlite,
                         sqlite-simple,
                         string-interpolate
 

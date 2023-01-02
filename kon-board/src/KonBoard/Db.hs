@@ -1,14 +1,23 @@
+{-# LANGUAGE QuasiQuotes #-}
 module KonBoard.Db
     ( Conn
     , openSqlite
     , close
     ) where
 
-import           Database.Beam          (Beamable, C, Database, Identity, PrimaryKey, Table (..),
-                                         TableEntity)
-import qualified Database.SQLite.Simple as SQLite
+import           Data.String.Interpolate                  (i)
+import           Database.Beam                            (Beamable, C, Database, DatabaseSettings,
+                                                           HasQBuilder, Identity, MonadBeam,
+                                                           PrimaryKey, QExpr, Table (..),
+                                                           TableEntity, (==.))
+import qualified Database.Beam                            as Beam
+import           Database.Beam.Backend                    (BeamSqlBackend)
+import           Database.Beam.Backend.SQL.BeamExtensions (MonadBeamInsertReturning (..))
+import           Database.Beam.Sqlite                     (Sqlite)
+import qualified Database.SQLite.Simple                   as SQLite
 
-import           KonBoard.Base          (Generic, HasField (..), MonadIO (..), Text)
+import           KonBoard.Base                            (Generic, HasField (..), MonadIO (..),
+                                                           MonadThrow, Text, throwString)
 
 sqlCreateDbRecipeT :: SQLite.Query
 sqlCreateDbRecipeT = [i|
@@ -60,12 +69,33 @@ close (Conn c) = liftIO $ SQLite.close c
 
 initDb :: Conn -> IO ()
 initDb (Conn c) = do
-  SQLite.execute_ sqlCreateDbRecipeT
+  SQLite.execute_ c sqlCreateDbRecipeT
 
 -- TODO: maybe we should enable some pragmas such as auto_vacuum and foreign_keys
 
-insertDbRecipe :: Conn -> DbRecipe f -> IO Integer
-insertDbRecipe = undefined -- TODO: what type should we use for @f@ ?? The id is autoincremented, and we must retrieve that value.
+insertDbRecipe :: (MonadBeamInsertReturning Sqlite m, MonadThrow m) => DatabaseSettings Sqlite Db -> DbRecipeT (QExpr Sqlite s) -> m Integer
+insertDbRecipe db r = fmap (getField @"id") $ takeFirst =<< (runInsertReturningList $ Beam.insertOnly table cols vals)
+  where
+    table = recipes db
+    -- SQLite doesn't support "DEFAULT" for column expression, so we need to specify inserted columns explicitly.
+    cols t = (name t, searchText t, rawYaml t)
+    vals = Beam.insertData [(name r, searchText r, rawYaml r)]
+    takeFirst []    = throwString "get no insert result"
+    takeFirst (x:_) = return x
+
+updateDbRecipe :: (MonadBeam Sqlite m) => DatabaseSettings Sqlite Db -> DbRecipe -> m ()
+updateDbRecipe db r = Beam.runUpdate $ Beam.save (recipes db) r
+
+getDbRecipeById :: (MonadBeam Sqlite m) => DatabaseSettings Sqlite Db -> Integer -> m (Maybe DbRecipe)
+getDbRecipeById db recipeId = Beam.runSelectReturningOne $ Beam.lookup_ (recipes db) (DbRecipeId recipeId)
+
+getDbRecipeByName :: (MonadBeam Sqlite m) => DatabaseSettings Sqlite Db -> Text -> m (Maybe DbRecipe)
+getDbRecipeByName db recipeName = Beam.runSelectReturningOne $ Beam.select query
+  where
+    query = do
+      r <- Beam.all_ $ recipes db
+      Beam.guard_ $ getField @"name" r ==. Beam.val_ recipeName
+      return r
 
 
 -- TODO: write Db operation functions.
