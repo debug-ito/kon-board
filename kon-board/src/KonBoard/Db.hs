@@ -74,27 +74,30 @@ initDb (Conn c) = do
 
 -- TODO: maybe we should enable some pragmas such as auto_vacuum and foreign_keys
 
-insertDbRecipe :: (MonadBeamInsertReturning Sqlite m, MonadThrow m) => DatabaseSettings Sqlite Db -> DbRecipeT (QExpr Sqlite s) -> m Int32
-insertDbRecipe db r = fmap (getField @"id") $ takeFirst =<< (runInsertReturningList $ Beam.insertOnly table cols vals)
+dbSettings :: DatabaseSettings be Db
+dbSettings = Beam.defaultDbSettings
+
+insertDbRecipe :: (MonadBeamInsertReturning Sqlite m, MonadThrow m) => DbRecipeT (QExpr Sqlite s) -> m Int32
+insertDbRecipe r = fmap (getField @"id") $ takeFirst =<< (runInsertReturningList $ Beam.insertOnly table cols vals)
   where
-    table = recipes db
+    table = recipes dbSettings
     -- SQLite doesn't support "DEFAULT" for column expression, so we need to specify inserted columns explicitly.
     cols t = (name t, searchText t, rawYaml t)
     vals = Beam.insertData [(name r, searchText r, rawYaml r)]
     takeFirst []    = throwString "get no insert result"
     takeFirst (x:_) = return x
 
-updateDbRecipe :: (MonadBeam Sqlite m) => DatabaseSettings Sqlite Db -> DbRecipe -> m ()
-updateDbRecipe db r = Beam.runUpdate $ Beam.save (recipes db) r
+updateDbRecipe :: (MonadBeam Sqlite m) => DbRecipe -> m ()
+updateDbRecipe r = Beam.runUpdate $ Beam.save (recipes dbSettings) r
 
-getDbRecipeById :: (MonadBeam Sqlite m) => DatabaseSettings Sqlite Db -> Int32 -> m (Maybe DbRecipe)
-getDbRecipeById db recipeId = Beam.runSelectReturningOne $ Beam.lookup_ (recipes db) (DbRecipeId recipeId)
+getDbRecipeById :: (MonadBeam Sqlite m) => Int32 -> m (Maybe DbRecipe)
+getDbRecipeById recipeId = Beam.runSelectReturningOne $ Beam.lookup_ (recipes dbSettings) (DbRecipeId recipeId)
 
-getDbRecipeByName :: (MonadBeam Sqlite m) => DatabaseSettings Sqlite Db -> Text -> m (Maybe DbRecipe)
-getDbRecipeByName db recipeName = Beam.runSelectReturningOne $ Beam.select query
+getDbRecipeByName :: (MonadBeam Sqlite m) => Text -> m (Maybe DbRecipe)
+getDbRecipeByName recipeName = Beam.runSelectReturningOne $ Beam.select query
   where
     query = do
-      r <- Beam.all_ $ recipes db
+      r <- Beam.all_ $ recipes dbSettings
       Beam.guard_ $ getField @"name" r ==. Beam.val_ recipeName
       return r
 
