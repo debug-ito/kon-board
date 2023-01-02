@@ -11,6 +11,7 @@ import           Data.Aeson             as X (FromJSON (..), ToJSON (..), generi
 import           Data.ByteString        as X (ByteString)
 import           Data.Foldable          as X (Foldable (..), traverse_)
 import           Data.HashMap.Strict    as X (HashMap)
+import           Data.Int               as X (Int32)
 import           Data.IORef             as X (IORef, modifyIORef, newIORef, readIORef, writeIORef)
 import           Data.Monoid            as X (Monoid (..))
 import           Data.Semigroup         as X (Semigroup (..))

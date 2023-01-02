@@ -16,8 +16,9 @@ import           Database.Beam.Backend.SQL.BeamExtensions (MonadBeamInsertReturn
 import           Database.Beam.Sqlite                     (Sqlite)
 import qualified Database.SQLite.Simple                   as SQLite
 
-import           KonBoard.Base                            (Generic, HasField (..), MonadIO (..),
-                                                           MonadThrow, Text, throwString)
+import           KonBoard.Base                            (Generic, HasField (..), Int32,
+                                                           MonadIO (..), MonadThrow, Text,
+                                                           throwString)
 
 sqlCreateDbRecipeT :: SQLite.Query
 sqlCreateDbRecipeT = [i|
@@ -30,7 +31,7 @@ CREATE TABLE IF NOT EXISTS recipes (
 
 data DbRecipeT f
   = DbRecipe
-      { id         :: C f Integer
+      { id         :: C f Int32
       , name       :: C f Text
       , searchText :: C f Text
       , rawYaml    :: C f Text
@@ -42,7 +43,7 @@ type DbRecipe = DbRecipeT Identity
 instance Beamable DbRecipeT
 
 instance Table DbRecipeT where
-  data PrimaryKey DbRecipeT f = DbRecipeId (C f Integer) deriving (Generic)
+  data PrimaryKey DbRecipeT f = DbRecipeId (C f Int32) deriving (Generic)
   primaryKey = DbRecipeId . getField @"id"
 
 instance Beamable (PrimaryKey DbRecipeT)
@@ -73,7 +74,7 @@ initDb (Conn c) = do
 
 -- TODO: maybe we should enable some pragmas such as auto_vacuum and foreign_keys
 
-insertDbRecipe :: (MonadBeamInsertReturning Sqlite m, MonadThrow m) => DatabaseSettings Sqlite Db -> DbRecipeT (QExpr Sqlite s) -> m Integer
+insertDbRecipe :: (MonadBeamInsertReturning Sqlite m, MonadThrow m) => DatabaseSettings Sqlite Db -> DbRecipeT (QExpr Sqlite s) -> m Int32
 insertDbRecipe db r = fmap (getField @"id") $ takeFirst =<< (runInsertReturningList $ Beam.insertOnly table cols vals)
   where
     table = recipes db
@@ -86,7 +87,7 @@ insertDbRecipe db r = fmap (getField @"id") $ takeFirst =<< (runInsertReturningL
 updateDbRecipe :: (MonadBeam Sqlite m) => DatabaseSettings Sqlite Db -> DbRecipe -> m ()
 updateDbRecipe db r = Beam.runUpdate $ Beam.save (recipes db) r
 
-getDbRecipeById :: (MonadBeam Sqlite m) => DatabaseSettings Sqlite Db -> Integer -> m (Maybe DbRecipe)
+getDbRecipeById :: (MonadBeam Sqlite m) => DatabaseSettings Sqlite Db -> Int32 -> m (Maybe DbRecipe)
 getDbRecipeById db recipeId = Beam.runSelectReturningOne $ Beam.lookup_ (recipes db) (DbRecipeId recipeId)
 
 getDbRecipeByName :: (MonadBeam Sqlite m) => DatabaseSettings Sqlite Db -> Text -> m (Maybe DbRecipe)
