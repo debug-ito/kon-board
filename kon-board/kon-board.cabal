@@ -81,6 +81,7 @@ test-suite spec
   other-modules:        KonBoard.RecipeSpec,
                         KonBoard.Recipe.MemorySpec,
                         KonBoard.Recipe.YamlSpec,
+                        KonBoard.Recipe.TestStore,
                         KonBoard.MealPlanSpec,
                         KonBoard.MealPlan.YamlSpec,
                         KonBoard.MealPlan.MemorySpec,
