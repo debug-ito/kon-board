@@ -25,7 +25,7 @@ library
                         DeriveDataTypeable, DeriveFoldable, DeriveFunctor, DeriveTraversable, DeriveGeneric, GeneralizedNewtypeDeriving,
                         FlexibleContexts, FlexibleInstances,
                         RankNTypes, TypeApplications, TypeOperators, DataKinds, DuplicateRecordFields,
-                        TypeFamilies, MultiParamTypeClasses
+                        TypeFamilies, MultiParamTypeClasses, StandaloneDeriving
   other-extensions:     TemplateHaskell, GADTs, QuasiQuotes
   exposed-modules:      KonBoard.Recipe,
                         KonBoard.Recipe.Memory,
@@ -41,7 +41,8 @@ library
                         KonBoard.Util.Aeson,
                         KonBoard.Web.API,
                         KonBoard.Db
-  other-modules:        KonBoard.Base
+  other-modules:        KonBoard.Base,
+                        KonBoard.Db.Orphans
   build-depends:        base >=4.13.0.0 && <4.14,
                         text,
                         aeson >=2.0 && <2.1,

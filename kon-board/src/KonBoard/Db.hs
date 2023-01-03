@@ -14,14 +14,16 @@ import           Database.Beam                            (Beamable, C, Database
 import qualified Database.Beam                            as Beam
 import           Database.Beam.Backend                    (BeamSqlBackend)
 import           Database.Beam.Backend.SQL.BeamExtensions (MonadBeamInsertReturning (..))
-import           Database.Beam.Sqlite                     (Sqlite, runBeamSqlite)
+import           Database.Beam.Sqlite                     (Sqlite, SqliteM, runBeamSqlite)
 import qualified Database.SQLite.Simple                   as SQLite
 
 import           KonBoard.Base                            (Generic, HasField (..), Int32,
                                                            MonadIO (..), MonadThrow, Text,
                                                            throwString)
+import           KonBoard.Db.Orphans                      ()
 import           KonBoard.Recipe                          (Id, Recipe, RecipeStore (..),
                                                            RecipeStored (..), parseRecipe)
+
 
 sqlCreateDbRecipeT :: SQLite.Query
 sqlCreateDbRecipeT = [i|
@@ -76,9 +78,9 @@ recipeStoreDb (Conn c) =
   RecipeStore
   { insertRecipe = \r -> liftIO $ runBeamSqlite c $ fmap toRecipeId $ insertDbRecipe $ toDbRecipe r
   , updateRecipe = \r -> liftIO $ runBeamSqlite c $ updateDbRecipe $ toDbRecipeStored r
-  , getRecipeById = \i -> do
-      iDb <- fromRecipeId i
-      traverse fromDbRecipe =<< (liftIO $ runBeamSqlite c $ getDbRecipeById iDb)
+  , getRecipeById = \rId -> do
+      dbrId <- fromRecipeId rId
+      traverse fromDbRecipe =<< (liftIO $ runBeamSqlite c $ getDbRecipeById dbrId)
   , getRecipeByName = \n -> traverse fromDbRecipe =<< (liftIO $ runBeamSqlite c $ getDbRecipeByName n)
   }
 
