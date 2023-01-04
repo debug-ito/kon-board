@@ -2,18 +2,20 @@ module KonBoard.Recipe.TestStore
     ( makeRecipeStoreSpec
     ) where
 
-import           Control.Monad        (void)
-import           Control.Monad.Logger (LoggingT)
-import           Control.Monad.Trans  (MonadIO (..))
-import           Data.Foldable        (traverse_)
-import qualified Data.Text            as T
-import           GHC.Records          (HasField (..))
+import           Control.Monad                  (void)
+import           Control.Monad.Logger           (LoggingT)
+import           Control.Monad.Trans            (MonadIO (..))
+import           Data.Foldable                  (traverse_)
+import qualified Data.Text                      as T
+import           GHC.Records                    (HasField (..))
 import           Test.Hspec
 
-import           KonBoard.Recipe      (Id, Name, RecipeStore (..), RecipeStored (..))
-import           KonBoard.Recipe.Yaml (loadYamlFile, parseRecipe)
+import           KonBoard.Recipe                (Id, Name, RecipeStore (..), RecipeStored (..),
+                                                 Ref (..))
+import           KonBoard.Recipe.Internal.Typer (Recipe (..))
+import           KonBoard.Recipe.Yaml           (loadYamlFile, parseRecipe)
 
-import           KonBoard.TestLogger  (basicLogging)
+import           KonBoard.TestLogger            (basicLogging)
 
 loadAndCheckName :: (MonadIO m, MonadFail m) => RecipeStore m -> Name -> m ()
 loadAndCheckName store inputName = do
@@ -22,7 +24,7 @@ loadAndCheckName store inputName = do
   let rid = getField @"id" rs
   (Just rsById) <- getRecipeById store rid
   liftIO $ rsById `shouldBe` rs
-  liftIO $ putStrLn ("Recipe: '" <> T.unpack inputName <> "' -> ID: " <> T.unpack rid)
+  -- liftIO $ putStrLn ("Recipe: '" <> T.unpack inputName <> "' -> ID: " <> T.unpack rid)
 
 makeRecipeStoreSpec :: String -> LoggingT IO (RecipeStore (LoggingT IO)) -> Spec
 makeRecipeStoreSpec storeName makeStore = describe storeName $ do
@@ -35,11 +37,27 @@ makeRecipeStoreSpec storeName makeStore = describe storeName $ do
         rs <- makeStore
         traverse_ (loadYamlFile rs) $ map ("test/recipes/" <>) commonYamlFiles
         return rs
-  specify "getRecipeByName, getRecipeById" $ basicLogging $ do
-    store <- initStore
-    loadAndCheckName store "internal recipe with ingredient groups"
-    loadAndCheckName store "external recipe with URL"
-    loadAndCheckName store "recipe 2"
+  describe "getRecipeByName" $ do
+    specify "it should return the correct recipe content" $ basicLogging $ do
+      store <- initStore
+      (Just got) <- getRecipeByName store "recipe 1"
+      got `shouldBe` RecipeStored { id = getField @"id" got
+                                  , recipe = Recipe { _name = "recipe 1"
+                                                    , _ingredients = []
+                                                    , _description = ""
+                                                    , _references = [RefUrl "http://example.com/2" Nothing]
+                                                    , _rawYaml = "" -- TODO
+                                                    }
+                                  }
+    describe "it should match the recipe returned by getRecipeById" $ do
+      let recipeNames = [ "internal recipe with ingredient groups"
+                        , "external recipe with URL"
+                        , "recipe 2"
+                        ]
+      forM_ recipeNames $ \recipeName -> do
+        specify (T.unpack recipeName) $ basicLogging $ do
+          store <- initStore
+          loadAndCheckName store recipeName
   specify "loadRecipeByName, not found" $ basicLogging $ do
     store <- initStore
     got <- getRecipeByName store "this should not exist"
