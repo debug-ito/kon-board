@@ -26,6 +26,9 @@ loadAndCheckName store inputName = do
   liftIO $ rsById `shouldBe` rs
   -- liftIO $ putStrLn ("Recipe: '" <> T.unpack inputName <> "' -> ID: " <> T.unpack rid)
 
+
+-- TODO: change this to SpecWith (RecipeStore ...)
+
 makeRecipeStoreSpec :: String -> LoggingT IO (RecipeStore (LoggingT IO)) -> Spec
 makeRecipeStoreSpec storeName makeStore = describe storeName $ do
   let commonYamlFiles = [ "recipe_in.yaml"

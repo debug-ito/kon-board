@@ -87,7 +87,8 @@ test-suite spec
                         KonBoard.MealPlan.MemorySpec,
                         KonBoard.Util.YamlSpec,
                         KonBoard.Bridge.TimeSpec,
-                        KonBoard.TestLogger
+                        KonBoard.TestLogger,
+                        KonBoard.DbSpec
   build-tool-depends:   hspec-discover:hspec-discover
   build-depends:        base, kon-board, bytestring, text, time, monad-logger, mtl, servant,
                         hspec,
