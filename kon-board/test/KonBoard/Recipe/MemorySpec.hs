@@ -21,7 +21,7 @@ main = hspec spec
 
 spec :: Spec
 spec = do
-  before recipeStoreMemory $ makeRecipeStoreSpec "recipeStoreMemory" recipeStoreMemory
+  before recipeStoreMemory $ makeRecipeStoreSpec "recipeStoreMemory"
   describe "recipeStoreMemory" $ do
     specify "recipeID has to be stable regardless of store" $ do
       let input = [ ["recipe_multi.yaml"],

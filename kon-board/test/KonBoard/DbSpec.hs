@@ -19,4 +19,4 @@ spec = do
 specRecipeStore :: Spec
 specRecipeStore = do
   describe "recipeStoreDb" $ do
-    specify "TODO" $ undefined -- TODO
+    specify "TODO" $ True `shouldBe` False -- TODO

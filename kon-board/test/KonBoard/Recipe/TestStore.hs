@@ -15,14 +15,14 @@ import           KonBoard.Recipe.Internal.Type (Recipe (..))
 import           KonBoard.Recipe.Yaml          (loadYamlFile, parseRecipe)
 
 
-loadAndCheckName :: (MonadIO m, MonadFail m) => RecipeStore m -> Name -> m ()
+loadAndCheckName :: RecipeStore IO -> Name -> IO ()
 loadAndCheckName store inputName = do
   (Just rs) <- getRecipeByName store inputName
-  liftIO $ (getField @"name" $ getField @"recipe" rs) `shouldBe` inputName
+  (getField @"name" $ getField @"recipe" rs) `shouldBe` inputName
   let rid = getField @"id" rs
   (Just rsById) <- getRecipeById store rid
-  liftIO $ rsById `shouldBe` rs
-  -- liftIO $ putStrLn ("Recipe: '" <> T.unpack inputName <> "' -> ID: " <> T.unpack rid)
+  rsById `shouldBe` rs
+  -- putStrLn ("Recipe: '" <> T.unpack inputName <> "' -> ID: " <> T.unpack rid)
 
 makeRecipeStoreSpec :: String -> SpecWith (RecipeStore IO)
 makeRecipeStoreSpec storeName = beforeWith initStore $ specWithStore
