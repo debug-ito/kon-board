@@ -122,5 +122,6 @@ data RecipeStore m
       , updateRecipe    :: RecipeStored -> m ()
       , getRecipeById   :: Id -> m (Maybe RecipeStored)
       , getRecipeByName :: Name -> m (Maybe RecipeStored)
+        -- TODO: add deleteRecipe
       }
 
