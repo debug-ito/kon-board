@@ -6,7 +6,7 @@ module KonBoard.Db
     , recipeStoreDb
     ) where
 
-import           Data.String.Interpolate                  (i)
+import qualified Data.String.Interpolate                  as I
 import qualified Data.Text                                as T
 import qualified Data.Text.Read                           as TRead
 import           Database.Beam                            (Beamable, C, Database, DatabaseSettings,
@@ -29,20 +29,20 @@ import           KonBoard.Recipe                          (Id, IngDesc (..), Ing
 
 
 sqlCreateDbRecipeT :: SQLite.Query
-sqlCreateDbRecipeT = [i|
+sqlCreateDbRecipeT = [I.i|
 CREATE TABLE IF NOT EXISTS recipes (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL UNIQUE,
   search_text TEXT NOT NULL,
-  rawYaml BLOB NOT NULL
+  raw_yaml BLOB NOT NULL
 )|]
 
 data DbRecipeT f
   = DbRecipe
-      { id         :: C f Int32
-      , name       :: C f Text
-      , searchText :: C f Text
-      , rawYaml    :: C f ByteString
+      { rId         :: C f Int32
+      , rName       :: C f Text
+      , rSearchText :: C f Text
+      , rRawYaml    :: C f ByteString
       }
   deriving (Generic)
 
@@ -52,7 +52,7 @@ instance Beamable DbRecipeT
 
 instance Table DbRecipeT where
   data PrimaryKey DbRecipeT f = DbRecipeId (C f Int32) deriving (Generic)
-  primaryKey = DbRecipeId . getField @"id"
+  primaryKey = DbRecipeId . getField @"rId"
 
 instance Beamable (PrimaryKey DbRecipeT)
 
@@ -83,8 +83,8 @@ recipeStoreDb (Conn c) =
   , updateRecipe = \r -> do
       dbR <- liftIO $ toDbRecipeStored r
       liftIO $ runBeamSqlite c $ updateDbRecipe dbR
-  , getRecipeById = \rId -> do
-      dbrId <- fromRecipeId rId
+  , getRecipeById = \i -> do
+      dbrId <- fromRecipeId i
       traverse fromDbRecipe =<< (liftIO $ runBeamSqlite c $ getDbRecipeById dbrId)
   , getRecipeByName = \n -> traverse fromDbRecipe =<< (liftIO $ runBeamSqlite c $ getDbRecipeByName n)
   }
@@ -112,41 +112,41 @@ makeSearchText r = T.intercalate "\n" elements
 
 toDbRecipe :: Recipe -> DbRecipeT (QExpr Sqlite s)
 toDbRecipe r =
-  DbRecipe { id = Beam.default_
-           , name = Beam.val_ $ getField @"name" r
-           , searchText = Beam.val_ $ makeSearchText r
-           , rawYaml = Beam.val_ $ getField @"rawYaml" r
+  DbRecipe { rId = Beam.default_
+           , rName = Beam.val_ $ getField @"name" r
+           , rSearchText = Beam.val_ $ makeSearchText r
+           , rRawYaml = Beam.val_ $ getField @"rawYaml" r
            }
 
 toDbRecipeStored :: (MonadThrow m) => RecipeStored -> m DbRecipe
 toDbRecipeStored rs = do
-  rId <- fromRecipeId $ getField @"id" rs
-  return $ DbRecipe { id = rId
-                    , name = getField @"name" r
-                    , searchText = makeSearchText r
-                    , rawYaml = getField @"rawYaml" r
+  ri <- fromRecipeId $ getField @"id" rs
+  return $ DbRecipe { rId = ri
+                    , rName = getField @"name" r
+                    , rSearchText = makeSearchText r
+                    , rRawYaml = getField @"rawYaml" r
                     }
   where
     r = getField @"recipe" rs
 
 fromDbRecipe :: (MonadThrow m) => DbRecipe -> m RecipeStored
 fromDbRecipe dbR = do
-  r <- either throwString return $ parseRecipe $ getField @"rawYaml" dbR
-  return $ RecipeStored { id = toRecipeId $ getField @"id" dbR, recipe = r }
+  r <- either throwString return $ parseRecipe $ getField @"rRawYaml" dbR
+  return $ RecipeStored { id = toRecipeId $ getField @"rId" dbR, recipe = r }
 
 toRecipeId :: Int32 -> Id
 toRecipeId = T.pack . show
 
 fromRecipeId :: (MonadThrow m) => Id -> m Int32
-fromRecipeId rId = either throwString return $ fmap fst $ TRead.decimal rId
+fromRecipeId ri = either throwString return $ fmap fst $ TRead.decimal ri
 
 insertDbRecipe :: (MonadBeamInsertReturning Sqlite m, MonadThrow m) => DbRecipeT (QExpr Sqlite s) -> m Int32
-insertDbRecipe r = fmap (getField @"id") $ takeFirst =<< (runInsertReturningList $ Beam.insertOnly table cols vals)
+insertDbRecipe r = fmap (getField @"rId") $ takeFirst =<< (runInsertReturningList $ Beam.insertOnly table cols vals)
   where
     table = recipes dbSettings
     -- SQLite doesn't support "DEFAULT" for column expression, so we need to specify inserted columns explicitly.
-    cols t = (name t, searchText t, rawYaml t)
-    vals = Beam.insertData [(name r, searchText r, rawYaml r)]
+    cols t = (rName t, rSearchText t, rRawYaml t)
+    vals = Beam.insertData [(rName r, rSearchText r, rRawYaml r)]
     takeFirst []    = throwString "get no insert result"
     takeFirst (x:_) = return x
 
@@ -161,5 +161,5 @@ getDbRecipeByName recipeName = Beam.runSelectReturningOne $ Beam.select query
   where
     query = do
       r <- Beam.all_ $ recipes dbSettings
-      Beam.guard_ $ getField @"name" r ==. Beam.val_ recipeName
+      Beam.guard_ $ getField @"rName" r ==. Beam.val_ recipeName
       return r
