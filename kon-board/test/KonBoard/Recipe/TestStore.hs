@@ -1,5 +1,5 @@
 module KonBoard.Recipe.TestStore
-    ( makeRecipeStoreSpec
+    ( recipeStoreSpec
     ) where
 
 import           Control.Monad                 (forM_, void)
@@ -24,8 +24,8 @@ loadAndCheckName store inputName = do
   rsById `shouldBe` rs
   -- putStrLn ("Recipe: '" <> T.unpack inputName <> "' -> ID: " <> T.unpack rid)
 
-makeRecipeStoreSpec :: String -> SpecWith (RecipeStore IO)
-makeRecipeStoreSpec storeName = beforeWith initStore $ specWithStore
+recipeStoreSpec :: SpecWith (RecipeStore IO)
+recipeStoreSpec = beforeWith initStore $ specWithStore
   where
     commonYamlFiles = [ "recipe_in.yaml"
                       , "recipe_in_url.yaml"
@@ -35,7 +35,7 @@ makeRecipeStoreSpec storeName = beforeWith initStore $ specWithStore
     initStore rs = do
       traverse_ (loadYamlFile rs) $ map ("test/recipes/" <>) commonYamlFiles
       return rs
-    specWithStore = describe storeName $ do
+    specWithStore = do
       describe "getRecipeByName" $ do
         specify "it should return the correct recipe content" $ \store -> do
           (Just got) <- getRecipeByName store "recipe 1"

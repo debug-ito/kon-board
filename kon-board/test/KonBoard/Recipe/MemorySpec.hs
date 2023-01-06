@@ -14,22 +14,21 @@ import           KonBoard.Recipe           (Id, Name, RecipeStore (..), RecipeSt
 import           KonBoard.Recipe.Memory    (recipeStoreMemory)
 import           KonBoard.Recipe.Yaml      (loadYamlFile)
 
-import           KonBoard.Recipe.TestStore (makeRecipeStoreSpec)
+import           KonBoard.Recipe.TestStore (recipeStoreSpec)
 
 main :: IO ()
 main = hspec spec
 
 spec :: Spec
-spec = do
-  before recipeStoreMemory $ makeRecipeStoreSpec "recipeStoreMemory"
-  describe "recipeStoreMemory" $ do
-    specify "recipeID has to be stable regardless of store" $ do
-      let input = [ ["recipe_multi.yaml"],
-                    ["recipe_in.yaml", "recipe_url.yaml", "recipe_in_url.yaml", "recipe_multi.yaml"],
-                    ["recipe_url.yaml", "recipe_in.yaml", "recipe_multi.yaml", "recipe_in_url.yaml"]
-                  ]
-      got <- traverse (idForStore "recipe 2") $ input
-      (length $ nub got) `shouldBe` 1
+spec = describe "recipeStoreMemory" $ do
+  before recipeStoreMemory $ recipeStoreSpec
+  specify "recipeID has to be stable regardless of store" $ do
+    let input = [ ["recipe_multi.yaml"],
+                  ["recipe_in.yaml", "recipe_url.yaml", "recipe_in_url.yaml", "recipe_multi.yaml"],
+                  ["recipe_url.yaml", "recipe_in.yaml", "recipe_multi.yaml", "recipe_in_url.yaml"]
+                ]
+    got <- traverse (idForStore "recipe 2") $ input
+    (length $ nub got) `shouldBe` 1
 
 openStore :: [FilePath] -> IO (RecipeStore IO)
 openStore files = do
