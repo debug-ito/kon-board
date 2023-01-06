@@ -7,6 +7,8 @@ module KonBoard.Db
     ) where
 
 import           Data.String.Interpolate                  (i)
+import qualified Data.Text                                as T
+import qualified Data.Text.Read                           as TRead
 import           Database.Beam                            (Beamable, C, Database, DatabaseSettings,
                                                            HasQBuilder, Identity, MonadBeam,
                                                            PrimaryKey, QExpr, Table (..),
@@ -17,12 +19,13 @@ import           Database.Beam.Backend.SQL.BeamExtensions (MonadBeamInsertReturn
 import           Database.Beam.Sqlite                     (Sqlite, SqliteM, runBeamSqlite)
 import qualified Database.SQLite.Simple                   as SQLite
 
-import           KonBoard.Base                            (Generic, HasField (..), Int32,
-                                                           MonadIO (..), MonadThrow, Text,
+import           KonBoard.Base                            (ByteString, Generic, HasField (..),
+                                                           Int32, MonadIO (..), MonadThrow, Text,
                                                            throwString)
 import           KonBoard.Db.Orphans                      ()
-import           KonBoard.Recipe                          (Id, Recipe, RecipeStore (..),
-                                                           RecipeStored (..), parseRecipe)
+import           KonBoard.Recipe                          (Id, IngDesc (..), Ingredient (..),
+                                                           Recipe, RecipeStore (..),
+                                                           RecipeStored (..), Ref (..), parseRecipe)
 
 
 sqlCreateDbRecipeT :: SQLite.Query
@@ -31,7 +34,7 @@ CREATE TABLE IF NOT EXISTS recipes (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL UNIQUE,
   search_text TEXT NOT NULL,
-  rawYaml TEXT NOT NULL
+  rawYaml BLOB NOT NULL
 )|]
 
 data DbRecipeT f
@@ -39,7 +42,7 @@ data DbRecipeT f
       { id         :: C f Int32
       , name       :: C f Text
       , searchText :: C f Text
-      , rawYaml    :: C f Text
+      , rawYaml    :: C f ByteString
       }
   deriving (Generic)
 
@@ -77,7 +80,9 @@ recipeStoreDb :: (MonadIO m, MonadThrow m) => Conn -> RecipeStore m
 recipeStoreDb (Conn c) =
   RecipeStore
   { insertRecipe = \r -> liftIO $ runBeamSqlite c $ fmap toRecipeId $ insertDbRecipe $ toDbRecipe r
-  , updateRecipe = \r -> liftIO $ runBeamSqlite c $ updateDbRecipe $ toDbRecipeStored r
+  , updateRecipe = \r -> do
+      dbR <- liftIO $ toDbRecipeStored r
+      liftIO $ runBeamSqlite c $ updateDbRecipe dbR
   , getRecipeById = \rId -> do
       dbrId <- fromRecipeId rId
       traverse fromDbRecipe =<< (liftIO $ runBeamSqlite c $ getDbRecipeById dbrId)
@@ -93,20 +98,47 @@ initDb (Conn c) = do
 dbSettings :: DatabaseSettings be Db
 dbSettings = Beam.defaultDbSettings
 
-toDbRecipe :: Recipe -> DbRecipeT (QExpr Sqlite s)
-toDbRecipe = undefined -- TODO
+makeSearchText :: Recipe -> Text
+makeSearchText r = T.intercalate "\n" elements
+  where
+    elements = [getField @"name" r, getField @"description" r] ++ foodItems ++ refs
+    foodItems = selectFoodItem =<< getField @"ingredients" r
+    selectFoodItem (IngSingle (Ingredient f _)) = [f]
+    selectFoodItem (IngGroup _ ings)            = map (\(Ingredient f _) -> f) ings
+    refs = selectRefSource =<< getField @"references" r
+    selectRefSource (RefSource t) = [t]
+    selectRefSource _             = []
 
-toDbRecipeStored :: RecipeStored -> DbRecipe
-toDbRecipeStored = undefined -- TODO
+
+toDbRecipe :: Recipe -> DbRecipeT (QExpr Sqlite s)
+toDbRecipe r =
+  DbRecipe { id = Beam.default_
+           , name = Beam.val_ $ getField @"name" r
+           , searchText = Beam.val_ $ makeSearchText r
+           , rawYaml = Beam.val_ $ getField @"rawYaml" r
+           }
+
+toDbRecipeStored :: (MonadThrow m) => RecipeStored -> m DbRecipe
+toDbRecipeStored rs = do
+  rId <- fromRecipeId $ getField @"id" rs
+  return $ DbRecipe { id = rId
+                    , name = getField @"name" r
+                    , searchText = makeSearchText r
+                    , rawYaml = getField @"rawYaml" r
+                    }
+  where
+    r = getField @"recipe" rs
 
 fromDbRecipe :: (MonadThrow m) => DbRecipe -> m RecipeStored
-fromDbRecipe = undefined -- TODO
+fromDbRecipe dbR = do
+  r <- either throwString return $ parseRecipe $ getField @"rawYaml" dbR
+  return $ RecipeStored { id = toRecipeId $ getField @"id" dbR, recipe = r }
 
 toRecipeId :: Int32 -> Id
-toRecipeId = undefined -- TODO
+toRecipeId = T.pack . show
 
 fromRecipeId :: (MonadThrow m) => Id -> m Int32
-fromRecipeId = undefined -- TODO
+fromRecipeId rId = either throwString return $ fmap fst $ TRead.decimal rId
 
 insertDbRecipe :: (MonadBeamInsertReturning Sqlite m, MonadThrow m) => DbRecipeT (QExpr Sqlite s) -> m Int32
 insertDbRecipe r = fmap (getField @"id") $ takeFirst =<< (runInsertReturningList $ Beam.insertOnly table cols vals)
@@ -131,7 +163,3 @@ getDbRecipeByName recipeName = Beam.runSelectReturningOne $ Beam.select query
       r <- Beam.all_ $ recipes dbSettings
       Beam.guard_ $ getField @"name" r ==. Beam.val_ recipeName
       return r
-
-
--- TODO: write the record of funcs.
-
