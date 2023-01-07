@@ -37,6 +37,8 @@ CREATE TABLE IF NOT EXISTS recipes (
   raw_yaml BLOB NOT NULL
 )|]
 
+-- TODO: should we add created_at and updated_at columns??
+
 data DbRecipeT f
   = DbRecipe
       { rId         :: C f Int32
@@ -163,3 +165,16 @@ getDbRecipeByName recipeName = Beam.runSelectReturningOne $ Beam.select query
       r <- Beam.all_ $ recipes dbSettings
       Beam.guard_ $ getField @"rName" r ==. Beam.val_ recipeName
       return r
+
+----------------------------------------------------------------
+
+sqlCreateDbMealPlanT :: SQLite.Query
+sqlCreateDbMealPlanT = [I.i|
+CREATE TABLE IF NOT EXISTS meal_plans (
+  year INTEGER NOT NULL,
+  month INTEGER NOT NULL,
+  day INTEGER NOT NULL,
+  phase TEXT NOT NULL
+)
+|]
+
