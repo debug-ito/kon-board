@@ -1,6 +1,10 @@
 # Revision history for kon-board
 
-## 0.6.0.0  -- 2023-12-23
+## 0.6.1.0  -- 2023-01-07
+
+- Add `KonBoard.Db` module and `recipeStoreDb` function.
+
+## 0.6.0.0  -- 2022-12-23
 
 - **BREAKING CHANGES**: `Recipe` type
   - Add `rawYaml` field to `Recipe`.
