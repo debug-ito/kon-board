@@ -92,8 +92,14 @@ recipeStoreDb (Conn c) =
   }
 
 initDb :: Conn -> IO ()
-initDb (Conn c) = do
-  SQLite.execute_ c sqlCreateDbRecipeT
+initDb (Conn c) =
+  mapM_ (SQLite.execute_ c)
+  [ sqlCreateDbRecipeT
+  , sqlCreateDbMealPlanHeaderT
+  , sqlCreateDbMealPlanRecipeT
+  , sqlCreateDbMealPlanNoteT
+  ]
+
 
 -- TODO: maybe we should enable some pragmas such as auto_vacuum and foreign_keys
 
@@ -168,13 +174,85 @@ getDbRecipeByName recipeName = Beam.runSelectReturningOne $ Beam.select query
 
 ----------------------------------------------------------------
 
-sqlCreateDbMealPlanT :: SQLite.Query
-sqlCreateDbMealPlanT = [I.i|
-CREATE TABLE IF NOT EXISTS meal_plans (
+sqlCreateDbMealPlanHeaderT :: SQLite.Query
+sqlCreateDbMealPlanHeaderT = [I.i|
+CREATE TABLE IF NOT EXISTS meal_plan_headers (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
   year INTEGER NOT NULL,
   month INTEGER NOT NULL,
   day INTEGER NOT NULL,
-  phase TEXT NOT NULL
+  phase TEXT NOT NULL,
+  UNIQUE (year, month, day, phase)
 )
 |]
 
+data DbMealPlanHeaderT f
+  = DbMealPlanHeader
+      { mId    :: C f Int32
+      , mYear  :: C f Int32
+      , mMonth :: C f Int32
+      , mDay   :: C f Int32
+      , mPhase :: C f Text
+      }
+  deriving (Generic)
+
+instance Beamable DbMealPlanHeaderT
+
+instance Table DbMealPlanHeaderT where
+  data PrimaryKey DbMealPlanHeaderT f = DbMealPlanHeaderId (C f Int32) deriving (Generic)
+  primaryKey = DbMealPlanHeaderId . getField @"mId"
+
+instance Beamable (PrimaryKey DbMealPlanHeaderT)
+
+
+sqlCreateDbMealPlanRecipeT :: SQLite.Query
+sqlCreateDbMealPlanRecipeT = [I.i|
+CREATE TABLE IF NOT EXISTS meal_plan_recipes (
+  meal_plan_id INTEGER NOT NULL REFERENCES meal_plan_headers (id) ON DELETE CASCADE ON UPDATE CASCADE,
+  index INTEGER NOT NULL,
+  recipe_id INTEGER NOT NULL REFERENCES recipes (id) ON DELETE CASCADE ON UPDATE CASCADE,
+  PRIMARY KEY (meal_plan_id, index)
+)
+|]
+
+data DbMealPlanRecipeT f
+  = DbMealPlanRecipe
+      { mMealPlanId :: C f Int32
+      , mIndex      :: C f Int32
+      , mRecipeId   :: C f Int32
+      }
+  deriving (Generic)
+
+instance Beamable DbMealPlanRecipeT
+
+instance Table DbMealPlanRecipeT where
+  data PrimaryKey DbMealPlanRecipeT f = DbMealPlanRecipeId (C f Int32) (C f Int32) deriving (Generic)
+  primaryKey = DbMealPlanRecipeId <$> getField @"mMealPlanId" <*> getField @"mIndex"
+
+instance Beamable (PrimaryKey DbMealPlanRecipeT) where
+
+sqlCreateDbMealPlanNoteT :: SQLite.Query
+sqlCreateDbMealPlanNoteT = [I.i|
+CREATE TABLE IF NOT EXISTS meal_plan_notes (
+  meal_plan_id INTEGER NOT NULL REFERENCES meal_plan_headers (id) ON DELETE CASCADE ON UPDATE CASCADE,
+  index INTEGER NOT NULL,
+  note TEXT NOT NULL,
+  PRIMARY KEY (meal_plan_id, index)
+)
+|]
+
+data DbMealPlanNoteT f
+  = DbMealPlanNote
+      { mMealPlanId :: C f Int32
+      , mIndex      :: C f Int32
+      , mNote       :: C f Text
+      }
+  deriving (Generic)
+
+instance Beamable DbMealPlanNoteT
+
+instance Table DbMealPlanNoteT where
+  data PrimaryKey DbMealPlanNoteT f = DbMealPlanNoteId (C f Int32) (C f Int32) deriving (Generic)
+  primaryKey = DbMealPlanNoteId <$> getField @"mMealPlanId" <*> getField @"mIndex"
+
+instance Beamable (PrimaryKey DbMealPlanNoteT)
