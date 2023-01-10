@@ -14,7 +14,7 @@ import qualified Data.Text       as T
 import           Data.Time       (Day)
 
 import           KonBoard.Base   (Text)
-import           KonBoard.Recipe (RecipeStored)
+import           KonBoard.Recipe (Id, RecipeStored)
 
 -- | Time of a meal in a day.
 data MealPhase
@@ -47,19 +47,22 @@ fromMealPhase mp =
 type Note = Text
 
 -- | Plan of a meal.
-data MealPlan
+data MealPlan r
   = MealPlan
       { day     :: Day
       , phase   :: MealPhase
-      , recipes :: [RecipeStored]
+      , recipes :: [r]
       , notes   :: [Note]
       }
   deriving (Eq, Ord, Show)
 
+type MealPlanWithId = MealPlan Id
+type MealPlanWithRecipe = MealPlan RecipeStored
+
 -- | Interface to storage of 'MealPlan's.
 data MealPlanStore m
   = MealPlanStore
-      { putMealPlan     :: MealPlan -> m ()
-      , searchMealPlans :: Day -> Day -> m [MealPlan]
+      { putMealPlan     :: MealPlanWithId -> m ()
+      , searchMealPlans :: Day -> Day -> m [MealPlanWithRecipe]
         -- ^ Get meal plans stored between the start date (inclusive) and the end date (exclusive).
       }

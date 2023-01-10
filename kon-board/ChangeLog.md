@@ -1,5 +1,11 @@
 # Revision history for kon-board
 
+## 0.7.0.0  -- ?
+
+- **BREAKING CHANGES**: `MealPlan` type
+  - Now it takes a type parameter `r`, which is supposed to be `Recipe.Id` or `RecipeStored`.
+
+
 ## 0.6.1.0  -- 2023-01-07
 
 - Add `KonBoard.Db` module and `recipeStoreDb` function.

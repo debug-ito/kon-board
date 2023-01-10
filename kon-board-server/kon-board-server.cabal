@@ -1,5 +1,5 @@
 name:                   kon-board-server
-version:                0.6.1.0
+version:                0.7.0.0
 author:                 Toshio Ito <debug.ito@gmail.com>
 maintainer:             Toshio Ito <debug.ito@gmail.com>
 license:                BSD3
@@ -27,7 +27,7 @@ library
                         KonBoard.Web.App
   -- other-modules:        
   build-depends:        base >=4.13.0.0 && <4.14,
-                        kon-board ==0.6.1.0,
+                        kon-board ==0.7.0.0,
                         monad-logger,
                         mtl,
                         wai-extra,
