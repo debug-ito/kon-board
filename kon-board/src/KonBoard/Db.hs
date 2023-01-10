@@ -209,16 +209,16 @@ sqlCreateDbMealPlanRecipeT :: SQLite.Query
 sqlCreateDbMealPlanRecipeT = [I.i|
 CREATE TABLE IF NOT EXISTS meal_plan_recipes (
   meal_plan_id INTEGER NOT NULL REFERENCES meal_plan_headers (id) ON DELETE CASCADE ON UPDATE CASCADE,
-  index INTEGER NOT NULL,
+  list_index INTEGER NOT NULL,
   recipe_id INTEGER NOT NULL REFERENCES recipes (id) ON DELETE CASCADE ON UPDATE CASCADE,
-  PRIMARY KEY (meal_plan_id, index)
+  PRIMARY KEY (meal_plan_id, list_index)
 )
 |]
 
 data DbMealPlanRecipeT f
   = DbMealPlanRecipe
       { mMealPlanId :: C f Int32
-      , mIndex      :: C f Int32
+      , mListIndex  :: C f Int32
       , mRecipeId   :: C f Int32
       }
   deriving (Generic)
@@ -227,7 +227,7 @@ instance Beamable DbMealPlanRecipeT
 
 instance Table DbMealPlanRecipeT where
   data PrimaryKey DbMealPlanRecipeT f = DbMealPlanRecipeId (C f Int32) (C f Int32) deriving (Generic)
-  primaryKey = DbMealPlanRecipeId <$> getField @"mMealPlanId" <*> getField @"mIndex"
+  primaryKey = DbMealPlanRecipeId <$> getField @"mMealPlanId" <*> getField @"mListIndex"
 
 instance Beamable (PrimaryKey DbMealPlanRecipeT) where
 
@@ -235,16 +235,16 @@ sqlCreateDbMealPlanNoteT :: SQLite.Query
 sqlCreateDbMealPlanNoteT = [I.i|
 CREATE TABLE IF NOT EXISTS meal_plan_notes (
   meal_plan_id INTEGER NOT NULL REFERENCES meal_plan_headers (id) ON DELETE CASCADE ON UPDATE CASCADE,
-  index INTEGER NOT NULL,
+  list_index INTEGER NOT NULL,
   note TEXT NOT NULL,
-  PRIMARY KEY (meal_plan_id, index)
+  PRIMARY KEY (meal_plan_id, list_index)
 )
 |]
 
 data DbMealPlanNoteT f
   = DbMealPlanNote
       { mMealPlanId :: C f Int32
-      , mIndex      :: C f Int32
+      , mListIndex  :: C f Int32
       , mNote       :: C f Text
       }
   deriving (Generic)
@@ -253,6 +253,6 @@ instance Beamable DbMealPlanNoteT
 
 instance Table DbMealPlanNoteT where
   data PrimaryKey DbMealPlanNoteT f = DbMealPlanNoteId (C f Int32) (C f Int32) deriving (Generic)
-  primaryKey = DbMealPlanNoteId <$> getField @"mMealPlanId" <*> getField @"mIndex"
+  primaryKey = DbMealPlanNoteId <$> getField @"mMealPlanId" <*> getField @"mListIndex"
 
 instance Beamable (PrimaryKey DbMealPlanNoteT)
