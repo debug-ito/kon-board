@@ -54,15 +54,12 @@ data MealPlan r
       , recipes :: [r]
       , notes   :: [Note]
       }
-  deriving (Eq, Ord, Show)
-
-type MealPlanWithId = MealPlan Id
-type MealPlanWithRecipe = MealPlan RecipeStored
+  deriving (Eq, Foldable, Functor, Ord, Show, Traversable)
 
 -- | Interface to storage of 'MealPlan's.
 data MealPlanStore m
   = MealPlanStore
-      { putMealPlan     :: MealPlanWithId -> m ()
-      , searchMealPlans :: Day -> Day -> m [MealPlanWithRecipe]
+      { putMealPlan     :: MealPlan Id -> m ()
+      , searchMealPlans :: Day -> Day -> m [MealPlan RecipeStored]
         -- ^ Get meal plans stored between the start date (inclusive) and the end date (exclusive).
       }
