@@ -11,6 +11,7 @@ import           Elm.Derive             (deriveBoth)
 import           KonBoard.Base          (HasField (..), Text)
 import           KonBoard.Bridge.Recipe (BRecipeStored, toBRecipeStored)
 import           KonBoard.MealPlan      (MealPlan (..), fromMealPhase, toMealPhase)
+import           KonBoard.Recipe        (RecipeStored)
 import           KonBoard.Util.Aeson    (dropLabelOptions)
 
 -- | Easy-to-encode version of 'MealPlan'.
@@ -25,7 +26,7 @@ data BMealPlan
       }
   deriving (Eq, Ord, Show)
 
-toBMealPlan :: MealPlan -> BMealPlan
+toBMealPlan :: MealPlan RecipeStored -> BMealPlan
 toBMealPlan mp =
   BMealPlan
   { year = y
