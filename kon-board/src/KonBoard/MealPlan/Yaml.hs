@@ -15,27 +15,27 @@ import           KonBoard.Base       (ByteString, FromJSON (..), Generic, HasFie
                                       genericToJSON, throw, throwString, traverse_)
 import           KonBoard.MealPlan   (MealPhase (..), MealPlan (..), MealPlanStore (..),
                                       toMealPhase)
-import           KonBoard.Recipe     (RecipeStore (..))
+import           KonBoard.Recipe     (RecipeStore (..), RecipeStored (..))
 import           KonBoard.Util.Aeson (dropLabelOptions)
 import           KonBoard.Util.Yaml  (ArrayOrSingle (..), decodeYaml, splitYamlDocs)
 
-readYamlFile :: (MonadThrow m, MonadIO m) => RecipeStore m -> FilePath -> m [MealPlan]
+readYamlFile :: (MonadThrow m, MonadIO m) => RecipeStore m -> FilePath -> m [MealPlan RecipeStored]
 readYamlFile r f = readYaml r =<< (liftIO $ BS.readFile f)
 
 loadYamlFile :: (MonadThrow m, MonadIO m) =>  MealPlanStore m -> RecipeStore m -> FilePath -> m ()
-loadYamlFile mps r f  = traverse_ (putMealPlan mps) =<< readYamlFile r f
+loadYamlFile mps r f  = traverse_ (putMealPlan mps . fmap (getField @"id")) =<< readYamlFile r f
 
-readYaml :: (MonadThrow m) => RecipeStore m -> ByteString -> m [MealPlan]
+readYaml :: (MonadThrow m) => RecipeStore m -> ByteString -> m [MealPlan RecipeStored]
 readYaml rs rawDoc = do
   ymps <- either throwString return $ traverse decodeYaml $ splitYamlDocs rawDoc
   fmap concat $ traverse (either throwString return) =<< (traverse (fromYMealPlan rs) $ ymps)
 
-fromYMealPlan :: Monad m => RecipeStore m -> YMealPlan -> m (Either String [MealPlan])
+fromYMealPlan :: Monad m => RecipeStore m -> YMealPlan -> m (Either String [MealPlan RecipeStored])
 fromYMealPlan rs ymp = fmap accumErrors $ traverse fromYDayPlan' $ getField @"plan" ymp
   where
     fromYDayPlan' = fromYDayPlan rs (getField @"year" ymp) (getField @"month" ymp)
 
-fromYDayPlan :: Monad m => RecipeStore m -> Integer -> Int -> YDayPlan -> m (Either String MealPlan)
+fromYDayPlan :: Monad m => RecipeStore m -> Integer -> Int -> YDayPlan -> m (Either String (MealPlan RecipeStored))
 fromYDayPlan rs y mon ydp = do
   eRecipes <- fmap accumErrors $ traverse getRecipeByName' $ flatten $ getField @"m" ydp
   return $ mkMealPlan <$> eRecipes <*> (fromYMealPhase $ getField @"p" ydp)
