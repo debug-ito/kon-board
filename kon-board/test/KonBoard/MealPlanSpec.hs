@@ -37,7 +37,7 @@ spec = do
 gday :: Integer -> Int -> Int -> Day
 gday = fromGregorian
 
-planWithoutID :: MealPlan -> (Day, MealPhase, [Name], [Note])
+planWithoutID :: MealPlan RecipeStored -> (Day, MealPhase, [Name], [Note])
 planWithoutID mp = ( getField @"day" mp
                    , getField @"phase" mp
                    , map (getField @"name" . getField @"recipe") $ getField @"recipes" mp
