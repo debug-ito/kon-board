@@ -13,4 +13,4 @@ main :: IO ()
 main = hspec spec
 
 spec :: Spec
-spec = before mealPlanStoreMemory $ specForStore "mealPlanStoreMemory"
+spec = before (return mealPlanStoreMemory) $ specForStore "mealPlanStoreMemory"

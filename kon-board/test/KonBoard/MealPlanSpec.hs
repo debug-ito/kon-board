@@ -5,6 +5,7 @@ module KonBoard.MealPlanSpec
     ) where
 
 import           Control.Monad          (forM_)
+import           Control.Monad.IO.Class (MonadIO (..))
 import           Control.Monad.Logger   (LoggingT)
 import           Data.Time              (Day, fromGregorian)
 import           GHC.Records            (HasField (..))
@@ -13,7 +14,7 @@ import           Test.Hspec
 import           KonBoard.MealPlan      (MealPhase (..), MealPlan (..), MealPlanStore (..), Note,
                                          fromMealPhase, toMealPhase)
 import qualified KonBoard.MealPlan.Yaml as MY
-import           KonBoard.Recipe        (Name, Recipe, RecipeStored (..))
+import           KonBoard.Recipe        (Name, Recipe, RecipeStore, RecipeStored (..))
 import           KonBoard.Recipe.Memory (recipeStoreMemory)
 import qualified KonBoard.Recipe.Yaml   as RY
 import           KonBoard.TestLogger    (basicLogging)
@@ -44,10 +45,11 @@ planWithoutID mp = ( getField @"day" mp
                    , getField @"notes" mp
                    )
 
-loadYamls :: MealPlanStore (LoggingT IO) -> IO (MealPlanStore (LoggingT IO))
-loadYamls ms = basicLogging $ do
+loadYamls :: (RecipeStore (LoggingT IO) -> IO (MealPlanStore (LoggingT IO))) -> IO (MealPlanStore (LoggingT IO))
+loadYamls newMealPlanStore = basicLogging $ do
   rs <- recipeStoreMemory
   mapM_ (RY.loadYamlFile rs) recipeFiles
+  ms <- liftIO $ newMealPlanStore rs
   mapM_ (MY.loadYamlFile ms rs) planFiles
   return ms
   where
@@ -70,7 +72,7 @@ loadYamls ms = basicLogging $ do
 
 -- | Common set of tests for a 'MealPlanStore'. The user of this function should pass an empty
 -- 'MealPlanStore'.
-specForStore :: String -> SpecWith (MealPlanStore (LoggingT IO))
+specForStore :: String -> SpecWith (RecipeStore (LoggingT IO) -> IO (MealPlanStore (LoggingT IO)))
 specForStore storeName = beforeWith loadYamls $ describe storeName $ do
   describe "searchMealPlans" $ do
     specify "empty result" $ \s -> do
