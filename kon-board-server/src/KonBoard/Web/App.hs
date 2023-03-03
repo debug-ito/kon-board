@@ -20,10 +20,10 @@ import qualified Data.Text.Lazy                 as TL
 import qualified Data.Text.Lazy.Encoding        as TL
 import           GHC.Records                    (HasField (..))
 import           Network.Wai.Middleware.Rewrite (rewritePureWithQueries)
+import qualified Servant                        as Sv
 import           Servant                        (Application, Handler (..), Raw,
                                                  ServerError (errBody), hoistServer, (:<|>) (..),
                                                  (:>))
-import qualified Servant                        as Sv
 import           System.FilePath.Glob           (glob)
 
 import           KonBoard.Bridge.MealPlan       (BMealPlan, toBMealPlan)
@@ -100,7 +100,7 @@ makeDefaultKonApp =  do
   forM_ recipeFiles $ \recipeFile -> do
     logDebugN ("Load recipe file: " <> pack recipeFile)
     liftIO $ RecipeY.loadYamlFile recipeS recipeFile
-  mealplanS <- mealPlanStoreMemory
+  mealplanS <- mealPlanStoreMemory recipeS
   mealplanFiles <- liftIO $ glob "meal-plans/*.yaml"
   forM_ mealplanFiles $ \mealplanFile -> do
     logDebugN ("Load meal plan file: " <> pack mealplanFile)
