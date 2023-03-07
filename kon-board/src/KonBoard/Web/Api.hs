@@ -1,6 +1,6 @@
 -- |  Web API definitions
-module KonBoard.Web.API
-    ( DataAPI
+module KonBoard.Web.Api
+    ( DataApi
     ) where
 
 import           Servant.API
@@ -10,7 +10,7 @@ import           KonBoard.Bridge.MealPlan (BMealPlan)
 import           KonBoard.Bridge.Recipe   (BRecipeId, BRecipeStored)
 import           KonBoard.Bridge.Time     (BDay)
 
-type DataAPI = "api" :> "v1" :>
+type DataApi = "api" :> "v1" :>
                ( GetMealPlans
                  :<|> GetRecipe
                )

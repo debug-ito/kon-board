@@ -36,9 +36,9 @@ import qualified KonBoard.MealPlan.Yaml         as MealPlanY
 import           KonBoard.Recipe                (RecipeStore (..))
 import           KonBoard.Recipe.Memory         (recipeStoreMemory)
 import qualified KonBoard.Recipe.Yaml           as RecipeY
-import           KonBoard.Web.API               (DataAPI)
+import           KonBoard.Web.Api               (DataApi)
 
-type AppAPI = DataAPI
+type AppApi = DataApi
               :<|> "static" :> Raw
 
 -- | KonBoard Web application
@@ -80,7 +80,7 @@ appWith :: KonApp AppM -> Application
 appWith konApp = application
   where
     application = rewriteRoot $ Sv.serve api $ hoistServer api appToHandler service
-    api = Proxy :: Proxy AppAPI
+    api = Proxy :: Proxy AppApi
     service = ( handleGetMealPlans (getField @"mealPlanStore" konApp)
                 :<|> handleGetRecipe (getField @"recipeStore" konApp)
               )

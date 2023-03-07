@@ -13,7 +13,7 @@ import           KonBoard.Bridge.MealPlan (BMealPlan)
 import           KonBoard.Bridge.Recipe   (BIngDesc, BIngGrouped, BIngredient, BRecipeId,
                                            BRecipeStored, BRef)
 import           KonBoard.Bridge.Time     (BDay)
-import           KonBoard.Web.API         (DataAPI)
+import           KonBoard.Web.Api         (DataApi)
 
 main :: IO ()
 main = do
@@ -34,7 +34,7 @@ main = do
       , Elm.DefineElm (Proxy :: Proxy BIngredient)
       , Elm.DefineElm (Proxy :: Proxy BIngGrouped)
       ]
-    api_proxy = Proxy :: Proxy DataAPI
+    api_proxy = Proxy :: Proxy DataApi
     elm_imports = Elm.defElmImports
     typeAlt = Elm.defaultTypeAlterations
     customToString (Elm.ETyCon (ElmT.ETCon "BDay"))      = "identity"

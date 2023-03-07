@@ -39,7 +39,7 @@ library
                         KonBoard.Bridge.Time,
                         KonBoard.Util.Yaml,
                         KonBoard.Util.Aeson,
-                        KonBoard.Web.API,
+                        KonBoard.Web.Api,
                         KonBoard.Db
   other-modules:        KonBoard.Base,
                         KonBoard.Db.Orphans
