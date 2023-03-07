@@ -13,7 +13,7 @@ import           Test.Hspec
 import           KonBoard.MealPlan      (MealPhase (..), MealPlan (..))
 import qualified KonBoard.MealPlan.Yaml as MY
 import           KonBoard.Recipe        (Name, RecipeStore (..), RecipeStored)
-import           KonBoard.Recipe.Memory (recipeStoreMemory)
+import           KonBoard.Recipe.Memory (newRecipeStore)
 import qualified KonBoard.Recipe.Yaml   as RY
 
 import           KonBoard.TestLogger    (basicLogging)
@@ -28,7 +28,7 @@ spec :: Spec
 spec = do
   describe "readYamlFile" $ do
     specify "plan_example.yaml" $ runLog $ do
-      sRecipe <- recipeStoreMemory
+      sRecipe <- newRecipeStore
       void $ RY.loadYamlFile sRecipe "test/recipes/recipe_example.yaml"
       r1 <- getRecipe sRecipe "Name of the meal"
       r2 <- getRecipe sRecipe "Name of the external recipe"

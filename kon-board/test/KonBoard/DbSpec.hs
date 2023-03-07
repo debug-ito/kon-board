@@ -47,7 +47,7 @@ openDbOnTempFile :: IO (Conn, FilePath)
 openDbOnTempFile = do
   (path, h) <- openTempFile "test" "recipe.sqlite3"
   hClose h
-  c <- Db.openSqlite path
+  c <- Db.newSqliteConn path
   return (c, path)
 
 closeDbOnTempFile :: (Conn, FilePath) -> IO ()

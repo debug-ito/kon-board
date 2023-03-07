@@ -1,5 +1,5 @@
 module KonBoard.Recipe.Memory
-    ( recipeStoreMemory
+    ( newRecipeStore
     ) where
 
 import qualified Crypto.Hash.MD5        as MD5
@@ -13,8 +13,8 @@ import           KonBoard.Base          (ByteString, HasField (..), HashMap, IOR
                                          newIORef, readIORef, throwString, when, writeIORef)
 import           KonBoard.Recipe        (Id, Name, Recipe, RecipeStore (..), RecipeStored (..))
 
-recipeStoreMemory :: (MonadIO m1, MonadIO m2, MonadThrow m2) => m1 (RecipeStore m2)
-recipeStoreMemory = do
+newRecipeStore :: (MonadIO m1, MonadIO m2, MonadThrow m2) => m1 (RecipeStore m2)
+newRecipeStore = do
   refStore <- liftIO $ (newIORef mempty :: IO (IORef RecipeStoreMemory))
   let insertImpl r = do
         rs <- liftIO $ readIORef refStore

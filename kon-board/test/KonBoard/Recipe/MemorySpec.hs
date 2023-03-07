@@ -11,7 +11,7 @@ import           GHC.Records               (HasField (..))
 import           Test.Hspec
 
 import           KonBoard.Recipe           (Id, Name, RecipeStore (..), RecipeStored (..))
-import           KonBoard.Recipe.Memory    (recipeStoreMemory)
+import           KonBoard.Recipe.Memory    (newRecipeStore)
 import           KonBoard.Recipe.Yaml      (loadYamlFile)
 
 import           KonBoard.Recipe.TestStore (recipeStoreSpec)
@@ -20,8 +20,8 @@ main :: IO ()
 main = hspec spec
 
 spec :: Spec
-spec = describe "recipeStoreMemory" $ do
-  before recipeStoreMemory $ recipeStoreSpec
+spec = describe "newRecipeStore" $ do
+  before newRecipeStore $ recipeStoreSpec
   specify "recipeID has to be stable regardless of store" $ do
     let input = [ ["recipe_multi.yaml"],
                   ["recipe_in.yaml", "recipe_url.yaml", "recipe_in_url.yaml", "recipe_multi.yaml"],
@@ -32,7 +32,7 @@ spec = describe "recipeStoreMemory" $ do
 
 openStore :: [FilePath] -> IO (RecipeStore IO)
 openStore files = do
-  rs <- recipeStoreMemory
+  rs <- newRecipeStore
   traverse_ (loadYamlFile rs) $ map ("test/recipes/" <>) files
   return rs
 

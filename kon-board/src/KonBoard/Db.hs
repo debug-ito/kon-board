@@ -1,7 +1,7 @@
 {-# LANGUAGE QuasiQuotes #-}
 module KonBoard.Db
     ( Conn
-    , openSqlite
+    , newSqliteConn
     , close
     , recipeStoreDb
     ) where
@@ -69,8 +69,8 @@ instance Database be Db
 data Conn
   = Conn SQLite.Connection
 
-openSqlite :: MonadIO m => FilePath -> m Conn
-openSqlite f = liftIO $ do
+newSqliteConn :: MonadIO m => FilePath -> m Conn
+newSqliteConn f = liftIO $ do
   conn <- fmap Conn $ SQLite.open f
   initDb conn
   return conn

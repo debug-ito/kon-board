@@ -31,10 +31,10 @@ import           KonBoard.Bridge.Recipe         (BRecipeId, BRecipeStored, fromB
                                                  toBRecipeStored)
 import           KonBoard.Bridge.Time           (BDay, fromBDay)
 import           KonBoard.MealPlan              (MealPlanStore (..))
-import           KonBoard.MealPlan.Memory       (mealPlanStoreMemory)
+import           KonBoard.MealPlan.Memory       (newMealPlanStore)
 import qualified KonBoard.MealPlan.Yaml         as MealPlanY
 import           KonBoard.Recipe                (RecipeStore (..))
-import           KonBoard.Recipe.Memory         (recipeStoreMemory)
+import           KonBoard.Recipe.Memory         (newRecipeStore)
 import qualified KonBoard.Recipe.Yaml           as RecipeY
 import           KonBoard.Web.Api               (DataApi)
 
@@ -95,12 +95,12 @@ appWith konApp = application
 
 makeDefaultKonApp :: LoggingT IO (KonApp AppM)
 makeDefaultKonApp =  do
-  recipeS <- recipeStoreMemory
+  recipeS <- newRecipeStore
   recipeFiles <- liftIO $ glob "recipes/*.yaml"
   forM_ recipeFiles $ \recipeFile -> do
     logDebugN ("Load recipe file: " <> pack recipeFile)
     liftIO $ RecipeY.loadYamlFile recipeS recipeFile
-  mealplanS <- mealPlanStoreMemory recipeS
+  mealplanS <- newMealPlanStore recipeS
   mealplanFiles <- liftIO $ glob "meal-plans/*.yaml"
   forM_ mealplanFiles $ \mealplanFile -> do
     logDebugN ("Load meal plan file: " <> pack mealplanFile)

@@ -1,5 +1,5 @@
 module KonBoard.MealPlan.Memory
-    ( mealPlanStoreMemory
+    ( newMealPlanStore
     ) where
 
 import qualified Data.Map.Strict   as M
@@ -11,8 +11,8 @@ import           KonBoard.Base     (HasField (..), MonadIO, MonadThrow, liftIO, 
 import           KonBoard.MealPlan (MealPhase, MealPlan (..), MealPlanStore (..))
 import           KonBoard.Recipe   (Id, RecipeStore (getRecipeById), RecipeStored)
 
-mealPlanStoreMemory :: (MonadIO m1, MonadIO m2, MonadThrow m2) => RecipeStore m2 -> m1 (MealPlanStore m2)
-mealPlanStoreMemory rStore = do
+newMealPlanStore :: (MonadIO m1, MonadIO m2, MonadThrow m2) => RecipeStore m2 -> m1 (MealPlanStore m2)
+newMealPlanStore rStore = do
   refM <- liftIO $ newIORef M.empty
   let putMP m = liftIO $ modifyIORef refM $ putMealPlanImpl m
       searchMP s e = searchMealPlansImpl rStore s e =<< (liftIO $ readIORef refM)
