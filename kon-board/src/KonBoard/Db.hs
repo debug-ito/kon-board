@@ -48,8 +48,6 @@ data DbRecipeT f
       }
   deriving (Generic)
 
-type DbRecipe = DbRecipeT Identity
-
 instance Beamable DbRecipeT
 
 instance Table DbRecipeT where
@@ -128,7 +126,7 @@ toDbRecipe r =
            , rRawYaml = Beam.val_ $ getField @"rawYaml" r
            }
 
-toDbRecipeStored :: (MonadThrow m) => RecipeStored -> m DbRecipe
+toDbRecipeStored :: (MonadThrow m) => RecipeStored -> m (DbRecipeT Identity)
 toDbRecipeStored rs = do
   ri <- fromRecipeId $ getField @"id" rs
   return $ DbRecipe { rId = ri
@@ -139,7 +137,7 @@ toDbRecipeStored rs = do
   where
     r = getField @"recipe" rs
 
-fromDbRecipe :: (MonadThrow m) => DbRecipe -> m RecipeStored
+fromDbRecipe :: (MonadThrow m) => DbRecipeT Identity -> m RecipeStored
 fromDbRecipe dbR = do
   r <- either throwString return $ parseRecipe $ getField @"rRawYaml" dbR
   return $ RecipeStored { id = toRecipeId $ getField @"rId" dbR, recipe = r }
@@ -160,13 +158,13 @@ addDbRecipe r = fmap (getField @"rId") $ takeFirst =<< (runInsertReturningList $
     takeFirst []    = throwString "get no insert result"
     takeFirst (x:_) = return x
 
-updateDbRecipe :: (MonadBeam Backend m) => DbRecipe -> m ()
+updateDbRecipe :: (MonadBeam Backend m) => DbRecipeT Identity -> m ()
 updateDbRecipe r = Beam.runUpdate $ Beam.save (recipes dbSettings) r
 
-getDbRecipeById :: (MonadBeam Backend m) => Int32 -> m (Maybe DbRecipe)
+getDbRecipeById :: (MonadBeam Backend m) => Int32 -> m (Maybe (DbRecipeT Identity))
 getDbRecipeById recipeId = Beam.runSelectReturningOne $ Beam.lookup_ (recipes dbSettings) (DbRecipeId recipeId)
 
-getDbRecipeByName :: (MonadBeam Backend m) => Text -> m (Maybe DbRecipe)
+getDbRecipeByName :: (MonadBeam Backend m) => Text -> m (Maybe (DbRecipeT Identity))
 getDbRecipeByName recipeName = Beam.runSelectReturningOne $ Beam.select query
   where
     query = do
