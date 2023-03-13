@@ -32,8 +32,9 @@ specRecipeStore = do
           _ <- loadCommonRecipes store
           (Just old) <- getRecipeByName store "recipe 1"
           newRecipe <- either throwString return $ parseRecipe "name: recipe 1 updated\nurl: http://example.com/2/new"
-          let newInput = RecipeStored { id = getField @"id" old
-                                      , recipe = newRecipe
+          let newInput = RecipeStored { recipe = newRecipe
+                                      , id = getField @"id" old
+                                      , createdAt = getField @"createdAt" old
                                       }
           updateRecipe store newInput
           gotForOldName <- getRecipeByName store "recipe 1"

@@ -16,6 +16,7 @@ import           Data.IORef             as X (IORef, modifyIORef, newIORef, read
 import           Data.Monoid            as X (Monoid (..))
 import           Data.Semigroup         as X (Semigroup (..))
 import           Data.Text              as X (Text)
+import           Data.Time              as X (UTCTime, getCurrentTime)
 import           Data.Traversable       as X (Traversable (..))
 import           GHC.Generics           as X (Generic)
 import           GHC.Records            as X (HasField (..))

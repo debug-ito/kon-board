@@ -44,13 +44,14 @@ recipeStoreSpec = beforeWith loadCommonRecipes $ specWithStore
       describe "getRecipeByName" $ do
         specify "it should return the correct recipe content" $ \store -> do
           (Just got) <- getRecipeByName store "recipe 1"
-          let expected = RecipeStored { id = getField @"id" got
-                                      , recipe = Recipe { _name = "recipe 1"
+          let expected = RecipeStored { recipe = Recipe { _name = "recipe 1"
                                                         , _ingredients = []
                                                         , _description = ""
                                                         , _references = [RefUrl "http://example.com/1" Nothing]
                                                         , _rawYaml = "name: recipe 1\nurl: http://example.com/1\n"
                                                         }
+                                      , id = getField @"id" got
+                                      , createdAt = getField @"createdAt" got
                                       }
           got `shouldBe` expected
         specify "it should return Nothing for non-existent name" $ \store -> do
@@ -68,7 +69,7 @@ recipeStoreSpec = beforeWith loadCommonRecipes $ specWithStore
         let oldId = getField @"id" old
             newRecipeYaml = "name: recipe 1\ndesc: hoge hoge\n"
             (Right newRecipe) = parseRecipe newRecipeYaml
-            newStored = RecipeStored { id = oldId, recipe = newRecipe }
+            newStored = RecipeStored { recipe = newRecipe, id = oldId,  createdAt = getField @"createdAt" old}
         void $ updateRecipe store newStored
         gotByName <- getRecipeByName store "recipe 1"
         gotByName `shouldBe` Just newStored

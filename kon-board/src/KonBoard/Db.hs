@@ -21,7 +21,7 @@ import qualified Database.SQLite.Simple                   as SQLite
 
 import           KonBoard.Base                            (ByteString, Generic, HasField (..),
                                                            Int32, MonadIO (..), MonadThrow, Text,
-                                                           throwString)
+                                                           UTCTime, throwString)
 import           KonBoard.Db.Orphans                      ()
 import           KonBoard.Recipe                          (Id, IngDesc (..), Ingredient (..),
                                                            Recipe, RecipeStore (..),
@@ -34,7 +34,8 @@ CREATE TABLE IF NOT EXISTS recipes (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL UNIQUE,
   search_text TEXT NOT NULL,
-  raw_yaml BLOB NOT NULL
+  raw_yaml BLOB NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
 )|]
 
 -- TODO: should we add created_at and updated_at columns??
@@ -45,6 +46,7 @@ data DbRecipeT f
       , rName       :: C f Text
       , rSearchText :: C f Text
       , rRawYaml    :: C f ByteString
+      , rCreatedAt  :: C f UTCTime
       }
   deriving (Generic)
 
@@ -124,6 +126,7 @@ toDbRecipe r =
            , rName = Beam.val_ $ getField @"name" r
            , rSearchText = Beam.val_ $ makeSearchText r
            , rRawYaml = Beam.val_ $ getField @"rawYaml" r
+           , rCreatedAt = Beam.default_
            }
 
 toDbRecipeStored :: (MonadThrow m) => RecipeStored -> m (DbRecipeT Identity)
@@ -133,6 +136,7 @@ toDbRecipeStored rs = do
                     , rName = getField @"name" r
                     , rSearchText = makeSearchText r
                     , rRawYaml = getField @"rawYaml" r
+                    , rCreatedAt = getField @"createdAt" rs
                     }
   where
     r = getField @"recipe" rs
@@ -140,7 +144,10 @@ toDbRecipeStored rs = do
 fromDbRecipe :: (MonadThrow m) => DbRecipeT Identity -> m RecipeStored
 fromDbRecipe dbR = do
   r <- either throwString return $ parseRecipe $ getField @"rRawYaml" dbR
-  return $ RecipeStored { id = toRecipeId $ getField @"rId" dbR, recipe = r }
+  return $ RecipeStored { recipe = r
+                        , id = toRecipeId $ getField @"rId" dbR
+                        , createdAt = getField @"rCreatedAt" dbR
+                        }
 
 toRecipeId :: Int32 -> Id
 toRecipeId = T.pack . show

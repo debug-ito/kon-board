@@ -10,7 +10,8 @@ import           Data.Text.Encoding     (decodeUtf8, encodeUtf8)
 
 import           KonBoard.Base          (ByteString, HasField (..), HashMap, IORef, MonadIO (..),
                                          MonadLogger, MonadThrow, Monoid (..), Semigroup (..),
-                                         newIORef, readIORef, throwString, when, writeIORef)
+                                         UTCTime, getCurrentTime, newIORef, readIORef, throwString,
+                                         when, writeIORef)
 import           KonBoard.Recipe        (Id, Name, Recipe, RecipeStore (..), RecipeStored (..))
 
 newRecipeStore :: (MonadIO m1, MonadIO m2, MonadThrow m2) => m1 (RecipeStore m2)
@@ -18,7 +19,8 @@ newRecipeStore = do
   refStore <- liftIO $ (newIORef mempty :: IO (IORef RecipeStoreMemory))
   let addImpl r = do
         rs <- liftIO $ readIORef refStore
-        (rs', i) <- addRecipePure r rs
+        createTime <- liftIO $ getCurrentTime
+        (rs', i) <- addRecipePure r createTime rs
         liftIO $ writeIORef refStore rs'
         return i
       updateImpl r = do
@@ -64,13 +66,13 @@ addUnsafe r rs = updated
     rId = getField @"id" r
     rName = getField @"name" $ getField @"recipe" r
 
-addRecipePure :: MonadThrow m => Recipe -> RecipeStoreMemory -> m (RecipeStoreMemory, Id)
-addRecipePure r rs = do
+addRecipePure :: MonadThrow m => Recipe -> UTCTime -> RecipeStoreMemory -> m (RecipeStoreMemory, Id)
+addRecipePure r createTime rs = do
   when (HM.member rname $ fromName rs) $ do
     throwString ("Conflict of recipe name: " <> T.unpack rname)
   when (HM.member rid $ fromId rs) $ do
     throwString ("Conflict of recipe ID (" <> T.unpack rid <> ") for name: " <> T.unpack rname)
-  return (addUnsafe (RecipeStored rid r) rs, rid)
+  return (addUnsafe (RecipeStored r rid createTime) rs, rid)
   where
     rname = getField @"name" r
     rid = makeId rname

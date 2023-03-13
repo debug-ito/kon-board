@@ -22,7 +22,7 @@ module KonBoard.Recipe.Internal.Type
 
 import qualified Data.Text     as T
 
-import           KonBoard.Base (ByteString, HasField (..), Text, when)
+import           KonBoard.Base (ByteString, HasField (..), Text, UTCTime, when)
 
 
 -- | Human-friendly name for a recipe.
@@ -110,8 +110,9 @@ type Id = Text
 -- | A 'Recipe' stored in 'RecipeStore'.
 data RecipeStored
   = RecipeStored
-      { id     :: Id
-      , recipe :: Recipe
+      { recipe    :: Recipe
+      , id        :: Id
+      , createdAt :: UTCTime
       }
   deriving (Eq, Ord, Show)
 
