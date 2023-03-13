@@ -19,7 +19,7 @@ import           Database.Beam.Backend.SQL.BeamExtensions (MonadBeamInsertReturn
 import           Database.Beam.Sqlite                     (Sqlite, SqliteM, runBeamSqlite)
 import qualified Database.SQLite.Simple                   as SQLite
 
-import           KonBoard.Base                            (ByteString, Generic, HasField (..),
+import           KonBoard.Base                            (ByteString, Day, Generic, HasField (..),
                                                            Int32, MonadIO (..), MonadThrow, Text,
                                                            UTCTime, throwString)
 import           KonBoard.Db.Orphans                      ()
@@ -185,20 +185,16 @@ sqlCreateDbMealPlanHeaderT :: SQLite.Query
 sqlCreateDbMealPlanHeaderT = [I.i|
 CREATE TABLE IF NOT EXISTS meal_plan_headers (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  year INTEGER NOT NULL,
-  month INTEGER NOT NULL,
-  day INTEGER NOT NULL,
+  day TEXT NOT NULL,
   phase TEXT NOT NULL,
-  UNIQUE (year, month, day, phase)
+  UNIQUE (day, phase)
 )
 |]
 
 data DbMealPlanHeaderT f
   = DbMealPlanHeader
       { mId    :: C f Int32
-      , mYear  :: C f Int32
-      , mMonth :: C f Int32
-      , mDay   :: C f Int32
+      , mDay   :: C f Day
       , mPhase :: C f Text
       }
   deriving (Generic)
