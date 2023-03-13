@@ -15,9 +15,9 @@ newMealPlanStore :: (MonadIO m1, MonadIO m2, MonadThrow m2) => RecipeStore m2 ->
 newMealPlanStore rStore = do
   refM <- liftIO $ newIORef M.empty
   let putMP m = liftIO $ modifyIORef refM $ putMealPlanImpl m
-      searchMP s e = searchMealPlansImpl rStore s e =<< (liftIO $ readIORef refM)
+      getMP s e = getMealPlansImpl rStore s e =<< (liftIO $ readIORef refM)
   return $ MealPlanStore { putMealPlan = putMP
-                         , searchMealPlans = searchMP
+                         , getMealPlans = getMP
                          }
 
 type MealPlanMap = M.Map Key (MealPlan Id)
@@ -30,8 +30,8 @@ mkKey mp = (getField @"day" mp, getField @"phase" mp)
 putMealPlanImpl :: MealPlan Id -> MealPlanMap -> MealPlanMap
 putMealPlanImpl mp = M.insert (mkKey mp) mp
 
-searchMealPlansImpl :: MonadThrow m => RecipeStore m -> Day -> Day -> MealPlanMap -> m [MealPlan RecipeStored]
-searchMealPlansImpl rStore start end mpm = traverse (resolveRecipe rStore) $ M.elems $ M.takeWhileAntitone endCondition $ M.dropWhileAntitone startCondition mpm
+getMealPlansImpl :: MonadThrow m => RecipeStore m -> Day -> Day -> MealPlanMap -> m [MealPlan RecipeStored]
+getMealPlansImpl rStore start end mpm = traverse (resolveRecipe rStore) $ M.elems $ M.takeWhileAntitone endCondition $ M.dropWhileAntitone startCondition mpm
   where
     startCondition (d, _) = d < start
     endCondition (d, _) = d < end

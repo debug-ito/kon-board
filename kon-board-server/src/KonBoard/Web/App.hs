@@ -62,7 +62,7 @@ handleGetMealPlans :: MonadThrow m
                    -> m [BMealPlan]
 handleGetMealPlans store bs be = do
   (start, end) <- serverErrorOnLeft Sv.err400 $ (,) <$> (fromBDay bs) <*> (fromBDay be)
-  fmap (map toBMealPlan)$ searchMealPlans store start end
+  fmap (map toBMealPlan)$ getMealPlans store start end
 
 handleGetRecipe :: MonadThrow m
                 => RecipeStore m
