@@ -103,6 +103,8 @@ initDb (Conn c) =
 
 -- TODO: maybe we should enable some pragmas such as auto_vacuum and foreign_keys
 
+type Backend = Sqlite
+
 dbSettings :: DatabaseSettings be Db
 dbSettings = Beam.defaultDbSettings
 
@@ -118,7 +120,7 @@ makeSearchText r = T.intercalate "\n" elements
     selectRefSource _             = []
 
 
-toDbRecipe :: Recipe -> DbRecipeT (QExpr Sqlite s)
+toDbRecipe :: Recipe -> DbRecipeT (QExpr Backend s)
 toDbRecipe r =
   DbRecipe { rId = Beam.default_
            , rName = Beam.val_ $ getField @"name" r
@@ -148,7 +150,7 @@ toRecipeId = T.pack . show
 fromRecipeId :: (MonadThrow m) => Id -> m Int32
 fromRecipeId ri = either throwString return $ fmap fst $ TRead.decimal ri
 
-addDbRecipe :: (MonadBeamInsertReturning Sqlite m, MonadThrow m) => DbRecipeT (QExpr Sqlite s) -> m Int32
+addDbRecipe :: (MonadBeamInsertReturning Backend m, MonadThrow m) => DbRecipeT (QExpr Backend s) -> m Int32
 addDbRecipe r = fmap (getField @"rId") $ takeFirst =<< (runInsertReturningList $ Beam.insertOnly table cols vals)
   where
     table = recipes dbSettings
@@ -158,13 +160,13 @@ addDbRecipe r = fmap (getField @"rId") $ takeFirst =<< (runInsertReturningList $
     takeFirst []    = throwString "get no insert result"
     takeFirst (x:_) = return x
 
-updateDbRecipe :: (MonadBeam Sqlite m) => DbRecipe -> m ()
+updateDbRecipe :: (MonadBeam Backend m) => DbRecipe -> m ()
 updateDbRecipe r = Beam.runUpdate $ Beam.save (recipes dbSettings) r
 
-getDbRecipeById :: (MonadBeam Sqlite m) => Int32 -> m (Maybe DbRecipe)
+getDbRecipeById :: (MonadBeam Backend m) => Int32 -> m (Maybe DbRecipe)
 getDbRecipeById recipeId = Beam.runSelectReturningOne $ Beam.lookup_ (recipes dbSettings) (DbRecipeId recipeId)
 
-getDbRecipeByName :: (MonadBeam Sqlite m) => Text -> m (Maybe DbRecipe)
+getDbRecipeByName :: (MonadBeam Backend m) => Text -> m (Maybe DbRecipe)
 getDbRecipeByName recipeName = Beam.runSelectReturningOne $ Beam.select query
   where
     query = do
