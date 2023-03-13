@@ -81,7 +81,7 @@ close (Conn c) = liftIO $ SQLite.close c
 recipeStoreDb :: (MonadIO m, MonadThrow m) => Conn -> RecipeStore m
 recipeStoreDb (Conn c) =
   RecipeStore
-  { insertRecipe = \r -> liftIO $ runBeamSqlite c $ fmap toRecipeId $ insertDbRecipe $ toDbRecipe r
+  { addRecipe = \r -> liftIO $ runBeamSqlite c $ fmap toRecipeId $ addDbRecipe $ toDbRecipe r
   , updateRecipe = \r -> do
       dbR <- liftIO $ toDbRecipeStored r
       liftIO $ runBeamSqlite c $ updateDbRecipe dbR
@@ -148,8 +148,8 @@ toRecipeId = T.pack . show
 fromRecipeId :: (MonadThrow m) => Id -> m Int32
 fromRecipeId ri = either throwString return $ fmap fst $ TRead.decimal ri
 
-insertDbRecipe :: (MonadBeamInsertReturning Sqlite m, MonadThrow m) => DbRecipeT (QExpr Sqlite s) -> m Int32
-insertDbRecipe r = fmap (getField @"rId") $ takeFirst =<< (runInsertReturningList $ Beam.insertOnly table cols vals)
+addDbRecipe :: (MonadBeamInsertReturning Sqlite m, MonadThrow m) => DbRecipeT (QExpr Sqlite s) -> m Int32
+addDbRecipe r = fmap (getField @"rId") $ takeFirst =<< (runInsertReturningList $ Beam.insertOnly table cols vals)
   where
     table = recipes dbSettings
     -- SQLite doesn't support "DEFAULT" for column expression, so we need to specify inserted columns explicitly.

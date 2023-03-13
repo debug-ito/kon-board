@@ -118,7 +118,7 @@ data RecipeStored
 -- | Storage interface of recipes.
 data RecipeStore m
   = RecipeStore
-      { insertRecipe    :: Recipe -> m Id
+      { addRecipe       :: Recipe -> m Id
       , updateRecipe    :: RecipeStored -> m ()
       , getRecipeById   :: Id -> m (Maybe RecipeStored)
       , getRecipeByName :: Name -> m (Maybe RecipeStored)

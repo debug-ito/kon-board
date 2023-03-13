@@ -16,9 +16,9 @@ import           KonBoard.Recipe        (Id, Name, Recipe, RecipeStore (..), Rec
 newRecipeStore :: (MonadIO m1, MonadIO m2, MonadThrow m2) => m1 (RecipeStore m2)
 newRecipeStore = do
   refStore <- liftIO $ (newIORef mempty :: IO (IORef RecipeStoreMemory))
-  let insertImpl r = do
+  let addImpl r = do
         rs <- liftIO $ readIORef refStore
-        (rs', i) <- insertRecipePure r rs
+        (rs', i) <- addRecipePure r rs
         liftIO $ writeIORef refStore rs'
         return i
       updateImpl r = do
@@ -32,7 +32,7 @@ newRecipeStore = do
       getByNameImpl n = do
         rs <- liftIO $ readIORef refStore
         return $ getRecipeByNamePure n rs
-  return $ RecipeStore { insertRecipe = insertImpl
+  return $ RecipeStore { addRecipe = addImpl
                        , updateRecipe = updateImpl
                        , getRecipeById = getByIdImpl
                        , getRecipeByName = getByNameImpl
@@ -55,8 +55,8 @@ instance Monoid RecipeStoreMemory where
   mempty = RecipeStoreMemory mempty mempty
 
 -- | Unsafe means that this function doesn't check the association between the ID and Name.
-insertUnsafe :: RecipeStored -> RecipeStoreMemory -> RecipeStoreMemory
-insertUnsafe r rs = updated
+addUnsafe :: RecipeStored -> RecipeStoreMemory -> RecipeStoreMemory
+addUnsafe r rs = updated
   where
     updated = rs { fromId = HM.insert rId r $ fromId rs
                  , fromName = HM.insert rName r $ fromName rs
@@ -64,13 +64,13 @@ insertUnsafe r rs = updated
     rId = getField @"id" r
     rName = getField @"name" $ getField @"recipe" r
 
-insertRecipePure :: MonadThrow m => Recipe -> RecipeStoreMemory -> m (RecipeStoreMemory, Id)
-insertRecipePure r rs = do
+addRecipePure :: MonadThrow m => Recipe -> RecipeStoreMemory -> m (RecipeStoreMemory, Id)
+addRecipePure r rs = do
   when (HM.member rname $ fromName rs) $ do
     throwString ("Conflict of recipe name: " <> T.unpack rname)
   when (HM.member rid $ fromId rs) $ do
     throwString ("Conflict of recipe ID (" <> T.unpack rid <> ") for name: " <> T.unpack rname)
-  return (insertUnsafe (RecipeStored rid r) rs, rid)
+  return (addUnsafe (RecipeStored rid r) rs, rid)
   where
     rname = getField @"name" r
     rid = makeId rname
@@ -82,7 +82,7 @@ updateRecipePure :: MonadThrow m => RecipeStored -> RecipeStoreMemory -> m Recip
 updateRecipePure updated rs = do
   when (rId /= rIdFromName) $ do
     throwString ("Mismatch of ID. RecipeStoreMemory doesn't support changing the name. New name was: " <> T.unpack rName)
-  return $ insertUnsafe updated rs
+  return $ addUnsafe updated rs
   where
     rId = getField @"id" updated
     rName = getField @"name" $ getField @"recipe" updated
