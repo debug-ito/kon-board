@@ -211,51 +211,51 @@ instance Beamable (PrimaryKey DbMealPlanHeaderT)
 sqlCreateDbMealPlanRecipeT :: SQLite.Query
 sqlCreateDbMealPlanRecipeT = [I.i|
 CREATE TABLE IF NOT EXISTS meal_plan_recipes (
-  meal_plan_id INTEGER NOT NULL REFERENCES meal_plan_headers (id) ON DELETE CASCADE ON UPDATE CASCADE,
+  meal_plan__id INTEGER NOT NULL REFERENCES meal_plan_headers (id) ON DELETE CASCADE ON UPDATE CASCADE,
   list_index INTEGER NOT NULL,
-  recipe_id INTEGER NOT NULL REFERENCES recipes (id) ON DELETE CASCADE ON UPDATE CASCADE,
-  PRIMARY KEY (meal_plan_id, list_index)
+  recipe__id INTEGER NOT NULL REFERENCES recipes (id) ON DELETE CASCADE ON UPDATE CASCADE,
+  PRIMARY KEY (meal_plan__id, list_index)
 )
 |]
 
 data DbMealPlanRecipeT f
   = DbMealPlanRecipe
-      { mMealPlanId :: C f Int32
-      , mListIndex  :: C f Int32
-      , mRecipeId   :: C f Int32
+      { mMealPlan  :: PrimaryKey DbMealPlanHeaderT f
+      , mListIndex :: C f Int32
+      , mRecipe    :: PrimaryKey DbRecipeT f
       }
   deriving (Generic)
 
 instance Beamable DbMealPlanRecipeT
 
 instance Table DbMealPlanRecipeT where
-  data PrimaryKey DbMealPlanRecipeT f = DbMealPlanRecipeId (C f Int32) (C f Int32) deriving (Generic)
-  primaryKey = DbMealPlanRecipeId <$> getField @"mMealPlanId" <*> getField @"mListIndex"
+  data PrimaryKey DbMealPlanRecipeT f = DbMealPlanRecipeId (PrimaryKey DbMealPlanHeaderT f) (C f Int32) deriving (Generic)
+  primaryKey = DbMealPlanRecipeId <$> getField @"mMealPlan" <*> getField @"mListIndex"
 
 instance Beamable (PrimaryKey DbMealPlanRecipeT) where
 
 sqlCreateDbMealPlanNoteT :: SQLite.Query
 sqlCreateDbMealPlanNoteT = [I.i|
 CREATE TABLE IF NOT EXISTS meal_plan_notes (
-  meal_plan_id INTEGER NOT NULL REFERENCES meal_plan_headers (id) ON DELETE CASCADE ON UPDATE CASCADE,
+  meal_plan__id INTEGER NOT NULL REFERENCES meal_plan_headers (id) ON DELETE CASCADE ON UPDATE CASCADE,
   list_index INTEGER NOT NULL,
   note TEXT NOT NULL,
-  PRIMARY KEY (meal_plan_id, list_index)
+  PRIMARY KEY (meal_plan__id, list_index)
 )
 |]
 
 data DbMealPlanNoteT f
   = DbMealPlanNote
-      { mMealPlanId :: C f Int32
-      , mListIndex  :: C f Int32
-      , mNote       :: C f Text
+      { mMealPlan  :: PrimaryKey DbMealPlanHeaderT f
+      , mListIndex :: C f Int32
+      , mNote      :: C f Text
       }
   deriving (Generic)
 
 instance Beamable DbMealPlanNoteT
 
 instance Table DbMealPlanNoteT where
-  data PrimaryKey DbMealPlanNoteT f = DbMealPlanNoteId (C f Int32) (C f Int32) deriving (Generic)
-  primaryKey = DbMealPlanNoteId <$> getField @"mMealPlanId" <*> getField @"mListIndex"
+  data PrimaryKey DbMealPlanNoteT f = DbMealPlanNoteId (PrimaryKey DbMealPlanHeaderT f) (C f Int32) deriving (Generic)
+  primaryKey = DbMealPlanNoteId <$> getField @"mMealPlan" <*> getField @"mListIndex"
 
 instance Beamable (PrimaryKey DbMealPlanNoteT)
