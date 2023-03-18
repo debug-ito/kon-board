@@ -60,7 +60,10 @@ instance Beamable (PrimaryKey DbRecipeT)
 
 data Db f
   = Db
-      { recipes :: f (TableEntity DbRecipeT)
+      { recipes         :: f (TableEntity DbRecipeT)
+      , mealPlanHeaders :: f (TableEntity DbMealPlanHeaderT)
+      , mealPlanRecipes :: f (TableEntity DbMealPlanRecipeT)
+      , mealPlanNotes   :: f (TableEntity DbMealPlanNoteT)
       }
   deriving (Generic)
 
@@ -156,14 +159,16 @@ fromRecipeId :: (MonadThrow m) => Id -> m Int32
 fromRecipeId ri = either throwString return $ fmap fst $ TRead.decimal ri
 
 addDbRecipe :: (MonadBeamInsertReturning Backend m, MonadThrow m) => DbRecipeT (QExpr Backend s) -> m Int32
-addDbRecipe r = fmap (getField @"rId") $ takeFirst =<< (runInsertReturningList $ Beam.insertOnly table cols vals)
+addDbRecipe r = fmap (getField @"rId") $ takeFirst "get no insert result" =<< (runInsertReturningList $ Beam.insertOnly table cols vals)
   where
     table = recipes dbSettings
     -- SQLite doesn't support "DEFAULT" for column expression, so we need to specify inserted columns explicitly.
     cols t = (rName t, rSearchText t, rRawYaml t)
     vals = Beam.insertData [(rName r, rSearchText r, rRawYaml r)]
-    takeFirst []    = throwString "get no insert result"
-    takeFirst (x:_) = return x
+
+takeFirst :: MonadThrow m => String -> [a] -> m a
+takeFirst err []  = throwString err
+takeFirst _ (x:_) = return x
 
 updateDbRecipe :: (MonadBeam Backend m) => DbRecipeT Identity -> m ()
 updateDbRecipe r = Beam.runUpdate $ Beam.save (recipes dbSettings) r
@@ -207,6 +212,24 @@ instance Table DbMealPlanHeaderT where
 
 instance Beamable (PrimaryKey DbMealPlanHeaderT)
 
+getMealPlanHeader :: (MonadBeam Backend m) => Day -> Text -> m (Maybe (DbMealPlanHeaderT Identity))
+getMealPlanHeader day phase = Beam.runSelectReturningOne $ Beam.select $ query
+  where
+    query = do
+      h <- Beam.all_ $ mealPlanHeaders dbSettings
+      Beam.guard_ $ mDay h ==. Beam.val_ day
+      Beam.guard_ $ mPhase h ==. Beam.val_ phase
+      return h
+
+ensureMealPlanHeader :: (MonadBeam Backend m, MonadThrow m) => Day -> Text -> m (DbMealPlanHeaderT Identity)
+ensureMealPlanHeader day phase = do
+  mHeader <- getMealPlanHeader day phase
+  case mHeader of
+    Just h -> return h
+    Nothing -> takeFirst "get no insert result" =<< (runInsertReturningList $ Beam.insertOnly (mealPlanHeaders dbSettings) cols $ Beam.insertData vals)
+  where
+    cols t = (mDay t, mPhase t)
+    vals = [(Beam.val_ day, Beam.val_ phase)]
 
 sqlCreateDbMealPlanRecipeT :: SQLite.Query
 sqlCreateDbMealPlanRecipeT = [I.i|
