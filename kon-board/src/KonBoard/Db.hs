@@ -221,7 +221,7 @@ getMealPlanHeader day phase = Beam.runSelectReturningOne $ Beam.select $ query
       Beam.guard_ $ mPhase h ==. Beam.val_ phase
       return h
 
-ensureMealPlanHeader :: (MonadBeam Backend m, MonadThrow m) => Day -> Text -> m (DbMealPlanHeaderT Identity)
+ensureMealPlanHeader :: (MonadBeamInsertReturning Backend m, MonadThrow m) => Day -> Text -> m (DbMealPlanHeaderT Identity)
 ensureMealPlanHeader day phase = do
   mHeader <- getMealPlanHeader day phase
   case mHeader of
@@ -229,6 +229,7 @@ ensureMealPlanHeader day phase = do
     Nothing -> takeFirst "get no insert result" =<< (runInsertReturningList $ Beam.insertOnly (mealPlanHeaders dbSettings) cols $ Beam.insertData vals)
   where
     cols t = (mDay t, mPhase t)
+    vals :: [(QExpr Backend s Day, QExpr Backend s Text)] -- we need this signature to compile.
     vals = [(Beam.val_ day, Beam.val_ phase)]
 
 sqlCreateDbMealPlanRecipeT :: SQLite.Query
