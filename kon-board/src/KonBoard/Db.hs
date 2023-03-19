@@ -20,8 +20,8 @@ import           Database.Beam.Sqlite                     (Sqlite, SqliteM, runB
 import qualified Database.SQLite.Simple                   as SQLite
 
 import           KonBoard.Base                            (ByteString, Day, Generic, HasField (..),
-                                                           Int32, MonadIO (..), MonadThrow, Text,
-                                                           UTCTime, throwString)
+                                                           Int32, Int8, MonadIO (..), MonadThrow,
+                                                           Text, UTCTime, throwString, toGregorian)
 import           KonBoard.Db.Orphans                      ()
 import           KonBoard.Recipe                          (Id, IngDesc (..), Ingredient (..),
                                                            Recipe, RecipeStore (..),
@@ -190,17 +190,21 @@ sqlCreateDbMealPlanHeaderT :: SQLite.Query
 sqlCreateDbMealPlanHeaderT = [I.i|
 CREATE TABLE IF NOT EXISTS meal_plan_headers (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  day TEXT NOT NULL,
+  year INTEGER NOT NULL,
+  month INTEGER NOT NULL,
+  day_of_month INTEGER NOT NULL,
   phase TEXT NOT NULL,
-  UNIQUE (day, phase)
+  UNIQUE (year, month, day_of_month, phase)
 )
 |]
 
 data DbMealPlanHeaderT f
   = DbMealPlanHeader
-      { mId    :: C f Int32
-      , mDay   :: C f Day
-      , mPhase :: C f Text
+      { mId         :: C f Int32
+      , mYear       :: C f Int32
+      , mMonth      :: C f Int8
+      , mDayOfMonth :: C f Int8
+      , mPhase      :: C f Text
       }
   deriving (Generic)
 
@@ -212,12 +216,20 @@ instance Table DbMealPlanHeaderT where
 
 instance Beamable (PrimaryKey DbMealPlanHeaderT)
 
+toGregorianDb :: Day -> (Int32, Int8, Int8)
+toGregorianDb d = (fromIntegral year, fromIntegral month, fromIntegral dom)
+  where
+    (year, month, dom) = toGregorian d
+
 getMealPlanHeader :: (MonadBeam Backend m) => Day -> Text -> m (Maybe (DbMealPlanHeaderT Identity))
 getMealPlanHeader day phase = Beam.runSelectReturningOne $ Beam.select $ query
   where
+    (year, month, dom) = toGregorianDb day
     query = do
       h <- Beam.all_ $ mealPlanHeaders dbSettings
-      Beam.guard_ $ mDay h ==. Beam.val_ day
+      Beam.guard_ $ mYear h ==. Beam.val_ year
+      Beam.guard_ $ mMonth h ==. Beam.val_ month
+      Beam.guard_ $ mDayOfMonth h ==. Beam.val_ dom
       Beam.guard_ $ mPhase h ==. Beam.val_ phase
       return h
 
@@ -228,9 +240,10 @@ ensureMealPlanHeader day phase = do
     Just h -> return h
     Nothing -> takeFirst "get no insert result" =<< (runInsertReturningList $ Beam.insertOnly (mealPlanHeaders dbSettings) cols $ Beam.insertData vals)
   where
-    cols t = (mDay t, mPhase t)
-    vals :: [(QExpr Backend s Day, QExpr Backend s Text)] -- we need this signature to compile.
-    vals = [(Beam.val_ day, Beam.val_ phase)]
+    (year, month, dom) = toGregorianDb day
+    cols t = (mYear t, mMonth t, mDayOfMonth t, mPhase t)
+    vals :: [(QExpr Backend s Int32, QExpr Backend s Int8, QExpr Backend s Int8, QExpr Backend s Text)] -- we need this signature to compile.
+    vals = [(Beam.val_ year, Beam.val_ month, Beam.val_ dom, Beam.val_ phase)]
 
 sqlCreateDbMealPlanRecipeT :: SQLite.Query
 sqlCreateDbMealPlanRecipeT = [I.i|
