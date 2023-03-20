@@ -277,6 +277,11 @@ deleteMealPlanRecipes headerId = Beam.runDelete $ Beam.delete (mealPlanRecipes d
     condition :: forall s. (forall s'. DbMealPlanRecipeT (QExpr Backend s')) -> QExpr Backend s Bool
     condition t = getField @"mMealPlan" t ==. Beam.val_ headerId
 
+insertMealPlanRecipes :: (MonadBeam Backend m) => PrimaryKey DbMealPlanHeaderT Identity -> [PrimaryKey DbRecipeT Identity] -> m ()
+insertMealPlanRecipes headerId recipeIds = Beam.runInsert $ Beam.insert (mealPlanRecipes dbSettings) $ Beam.insertValues $ map toRecipeRef $ zip [0..] recipeIds
+  where
+    toRecipeRef (index, recipeId) = DbMealPlanRecipe { mMealPlan = headerId, mListIndex = index, mRecipe = recipeId }
+
 sqlCreateDbMealPlanNoteT :: SQLite.Query
 sqlCreateDbMealPlanNoteT = [I.i|
 CREATE TABLE IF NOT EXISTS meal_plan_notes (
