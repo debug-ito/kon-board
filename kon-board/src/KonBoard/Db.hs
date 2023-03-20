@@ -271,6 +271,12 @@ instance Table DbMealPlanRecipeT where
 
 instance Beamable (PrimaryKey DbMealPlanRecipeT) where
 
+deleteMealPlanRecipes :: (MonadBeam Backend m) => PrimaryKey DbMealPlanHeaderT Identity -> m ()
+deleteMealPlanRecipes headerId = Beam.runDelete $ Beam.delete (mealPlanRecipes dbSettings) $ \t -> condition t
+  where
+    condition :: forall s. (forall s'. DbMealPlanRecipeT (QExpr Backend s')) -> QExpr Backend s Bool
+    condition t = getField @"mMealPlan" t ==. Beam.val_ headerId
+
 sqlCreateDbMealPlanNoteT :: SQLite.Query
 sqlCreateDbMealPlanNoteT = [I.i|
 CREATE TABLE IF NOT EXISTS meal_plan_notes (
