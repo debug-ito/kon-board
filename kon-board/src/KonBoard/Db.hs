@@ -307,3 +307,14 @@ instance Table DbMealPlanNoteT where
   primaryKey = DbMealPlanNoteId <$> getField @"mMealPlan" <*> getField @"mListIndex"
 
 instance Beamable (PrimaryKey DbMealPlanNoteT)
+
+deleteMealPlanNotes :: (MonadBeam Backend m) => PrimaryKey DbMealPlanHeaderT Identity -> m ()
+deleteMealPlanNotes headerId = Beam.runDelete $ Beam.delete (mealPlanNotes dbSettings) $ \t -> condition t
+  where
+    condition :: forall s. (forall s'. DbMealPlanNoteT (QExpr Backend s')) -> QExpr Backend s Bool
+    condition t = getField @"mMealPlan" t ==. Beam.val_ headerId
+
+insertMealPlanNotes :: (MonadBeam Backend m) => PrimaryKey DbMealPlanHeaderT Identity -> [Text] -> m ()
+insertMealPlanNotes headerId notes = Beam.runInsert $ Beam.insert (mealPlanNotes dbSettings) $ Beam.insertValues $ map toNoteTableEntry $ zip [0..] notes
+  where
+    toNoteTableEntry (index, note) = DbMealPlanNote { mMealPlan = headerId, mListIndex = index, mNote = note }
