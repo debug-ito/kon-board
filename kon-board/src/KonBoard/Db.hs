@@ -12,7 +12,7 @@ import qualified Data.Text.Read                           as TRead
 import           Database.Beam                            (Beamable, C, Database, DatabaseSettings,
                                                            HasQBuilder, Identity, MonadBeam,
                                                            PrimaryKey, QExpr, Table (..),
-                                                           TableEntity, (==.))
+                                                           TableEntity, pk, (==.))
 import qualified Database.Beam                            as Beam
 import           Database.Beam.Backend                    (BeamSqlBackend)
 import           Database.Beam.Backend.SQL.BeamExtensions (MonadBeamInsertReturning (..))
@@ -318,3 +318,14 @@ insertMealPlanNotes :: (MonadBeam Backend m) => PrimaryKey DbMealPlanHeaderT Ide
 insertMealPlanNotes headerId notes = Beam.runInsert $ Beam.insert (mealPlanNotes dbSettings) $ Beam.insertValues $ map toNoteTableEntry $ zip [0..] notes
   where
     toNoteTableEntry (index, note) = DbMealPlanNote { mMealPlan = headerId, mListIndex = index, mNote = note }
+
+----------------------------------------------------------------
+
+putDbMealPlans :: (MonadBeamInsertReturning Backend m, MonadThrow m) => Day -> Text -> [PrimaryKey DbRecipeT Identity] -> [Text] -> m ()
+putDbMealPlans day phase rs notes = do
+  header <- ensureMealPlanHeader day phase
+  let headerId = pk header
+  deleteMealPlanRecipes headerId
+  deleteMealPlanNotes headerId
+  insertMealPlanRecipes headerId rs
+  insertMealPlanNotes headerId notes
