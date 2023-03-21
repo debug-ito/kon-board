@@ -12,7 +12,8 @@ import qualified Data.Text.Read                           as TRead
 import           Database.Beam                            (Beamable, C, Database, DatabaseSettings,
                                                            HasQBuilder, Identity, MonadBeam,
                                                            PrimaryKey, QExpr, Table (..),
-                                                           TableEntity, pk, (==.))
+                                                           TableEntity, pk, (&&.), (==.), (>.),
+                                                           (||.))
 import qualified Database.Beam                            as Beam
 import           Database.Beam.Backend                    (BeamSqlBackend)
 import           Database.Beam.Backend.SQL.BeamExtensions (MonadBeamInsertReturning (..))
@@ -221,6 +222,10 @@ toGregorianDb d = (fromIntegral year, fromIntegral month, fromIntegral dom)
   where
     (year, month, dom) = toGregorian d
 
+isNewerThan :: (QExpr Backend s Int32, QExpr Backend s Int8, QExpr Backend s Int8) -> (QExpr Backend s Int32, QExpr Backend s Int8, QExpr Backend s Int8) -> QExpr Backend s Bool
+isNewerThan (aY, aM, aD) (bY, bM, bD) =
+  (aY >. bY) ||. ((aY ==. bY) &&. ((aM >. bM) ||. ((aM ==. bM) &&. (aD >. bD))))
+
 getMealPlanHeader :: (MonadBeam Backend m) => Day -> Text -> m (Maybe (DbMealPlanHeaderT Identity))
 getMealPlanHeader day phase = Beam.runSelectReturningOne $ Beam.select $ query
   where
@@ -329,3 +334,20 @@ putDbMealPlans day phase rs notes = do
   deleteMealPlanNotes headerId
   insertMealPlanRecipes headerId rs
   insertMealPlanNotes headerId notes
+
+getDbMealPlans :: (MonadBeam Backend m) => Day -> Day -> m [(DbMealPlanHeaderT Identity, [DbMealPlanRecipeT Identity], [DbMealPlanNoteT Identity])]
+getDbMealPlans startDay endDay = fmap groupResult $ Beam.runSelectReturningList $ Beam.select $ query
+  where
+    (startYear, startMonth, startDom) = toGregorianDb startDay
+    startDayQ = (Beam.val_ startYear, Beam.val_ startMonth, Beam.val_ startDom)
+    (endYear, endMonth, endDom) = toGregorianDb endDay
+    endDayQ = (Beam.val_ endYear, Beam.val_ endMonth, Beam.val_ endDom)
+    query = do
+      header <- Beam.all_ $ mealPlanHeaders dbSettings
+      let headerDayQ = (mYear header, mMonth header, mDayOfMonth header)
+      Beam.guard_ ((endDayQ `isNewerThan` headerDayQ) &&. (Beam.not_ $ startDayQ `isNewerThan` headerDayQ))
+      r <- Beam.join_ (mealPlanRecipes dbSettings) $ \t -> Beam.references_ (getField @"mMealPlan" t) header
+      n <- Beam.join_ (mealPlanNotes dbSettings) $ \t -> Beam.references_ (getField @"mMealPlan" t) header
+      return (header, r, n)
+    groupResult :: [(DbMealPlanHeaderT Identity, DbMealPlanRecipeT Identity, DbMealPlanNoteT Identity)] -> [(DbMealPlanHeaderT Identity, [DbMealPlanRecipeT Identity], [DbMealPlanNoteT Identity])]
+    groupResult = undefined -- TODO
