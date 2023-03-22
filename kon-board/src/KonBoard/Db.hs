@@ -65,10 +65,10 @@ instance Beamable (PrimaryKey DbRecipeT)
 
 data Db f
   = Db
-      { recipes         :: f (TableEntity DbRecipeT)
-      , mealPlanHeaders :: f (TableEntity DbMealPlanHeaderT)
-      , mealPlanRecipes :: f (TableEntity DbMealPlanRecipeT)
-      , mealPlanNotes   :: f (TableEntity DbMealPlanNoteT)
+      { dbRecipes         :: f (TableEntity DbRecipeT)
+      , dbMealPlanHeaders :: f (TableEntity DbMealPlanHeaderT)
+      , dbMealPlanRecipes :: f (TableEntity DbMealPlanRecipeT)
+      , dbMealPlanNotes   :: f (TableEntity DbMealPlanNoteT)
       }
   deriving (Generic)
 
@@ -168,7 +168,7 @@ fromRecipeId ri = either throwString return $ fmap fst $ TRead.decimal ri
 addDbRecipe :: (MonadBeamInsertReturning Backend m, MonadThrow m) => DbRecipeT (QExpr Backend s) -> m Int32
 addDbRecipe r = fmap (getField @"rId") $ takeFirst "get no insert result" =<< (runInsertReturningList $ Beam.insertOnly table cols vals)
   where
-    table = getField @"recipes" dbSettings
+    table = getField @"dbRecipes" dbSettings
     -- SQLite doesn't support "DEFAULT" for column expression, so we need to specify inserted columns explicitly.
     cols t = (rName t, rSearchText t, rRawYaml t)
     vals = Beam.insertData [(rName r, rSearchText r, rRawYaml r)]
@@ -178,16 +178,16 @@ takeFirst err []  = throwString err
 takeFirst _ (x:_) = return x
 
 updateDbRecipe :: (MonadBeam Backend m) => DbRecipeT Identity -> m ()
-updateDbRecipe r = Beam.runUpdate $ Beam.save (getField @"recipes" dbSettings) r
+updateDbRecipe r = Beam.runUpdate $ Beam.save (getField @"dbRecipes" dbSettings) r
 
 getDbRecipeById :: (MonadBeam Backend m) => Int32 -> m (Maybe (DbRecipeT Identity))
-getDbRecipeById recipeId = Beam.runSelectReturningOne $ Beam.lookup_ (getField @"recipes" dbSettings) (DbRecipeId recipeId)
+getDbRecipeById recipeId = Beam.runSelectReturningOne $ Beam.lookup_ (getField @"dbRecipes" dbSettings) (DbRecipeId recipeId)
 
 getDbRecipeByName :: (MonadBeam Backend m) => Text -> m (Maybe (DbRecipeT Identity))
 getDbRecipeByName recipeName = Beam.runSelectReturningOne $ Beam.select query
   where
     query = do
-      r <- Beam.all_ $ getField @"recipes" dbSettings
+      r <- Beam.all_ $ getField @"dbRecipes" dbSettings
       Beam.guard_ $ getField @"rName" r ==. Beam.val_ recipeName
       return r
 
@@ -240,7 +240,7 @@ getMealPlanHeader d p = Beam.runSelectReturningOne $ Beam.select $ query
   where
     (year, month, dom) = toGregorianDb d
     query = do
-      h <- Beam.all_ $ mealPlanHeaders dbSettings
+      h <- Beam.all_ $ dbMealPlanHeaders dbSettings
       Beam.guard_ $ mYear h ==. Beam.val_ year
       Beam.guard_ $ mMonth h ==. Beam.val_ month
       Beam.guard_ $ mDayOfMonth h ==. Beam.val_ dom
@@ -255,7 +255,7 @@ getMealPlanHeadersByDayRange startDay endDay = Beam.runSelectReturningList $ Bea
     (endYear, endMonth, endDom) = toGregorianDb endDay
     endDayQ = (Beam.val_ endYear, Beam.val_ endMonth, Beam.val_ endDom)
     query = do
-      header <- Beam.all_ $ mealPlanHeaders dbSettings
+      header <- Beam.all_ $ dbMealPlanHeaders dbSettings
       let headerDayQ = (mYear header, mMonth header, mDayOfMonth header)
       Beam.guard_ ((endDayQ `isNewerThan` headerDayQ) &&. (Beam.not_ $ startDayQ `isNewerThan` headerDayQ))
       return header
@@ -269,7 +269,7 @@ ensureMealPlanHeader d p = do
   mHeader <- getMealPlanHeader d p
   case mHeader of
     Just h -> return h
-    Nothing -> takeFirst "get no insert result" =<< (runInsertReturningList $ Beam.insertOnly (mealPlanHeaders dbSettings) cols $ Beam.insertData vals)
+    Nothing -> takeFirst "get no insert result" =<< (runInsertReturningList $ Beam.insertOnly (dbMealPlanHeaders dbSettings) cols $ Beam.insertData vals)
   where
     (year, month, dom) = toGregorianDb d
     cols t = (mYear t, mMonth t, mDayOfMonth t, mPhase t)
@@ -305,13 +305,13 @@ instance Table DbMealPlanRecipeT where
 instance Beamable (PrimaryKey DbMealPlanRecipeT) where
 
 deleteMealPlanRecipes :: (MonadBeam Backend m) => PrimaryKey DbMealPlanHeaderT Identity -> m ()
-deleteMealPlanRecipes headerId = Beam.runDelete $ Beam.delete (mealPlanRecipes dbSettings) $ \t -> condition t
+deleteMealPlanRecipes headerId = Beam.runDelete $ Beam.delete (dbMealPlanRecipes dbSettings) $ \t -> condition t
   where
     condition :: forall s. (forall s'. DbMealPlanRecipeT (QExpr Backend s')) -> QExpr Backend s Bool
     condition t = getField @"mMealPlan" t ==. Beam.val_ headerId
 
 insertMealPlanRecipes :: (MonadBeam Backend m) => PrimaryKey DbMealPlanHeaderT Identity -> [PrimaryKey DbRecipeT Identity] -> m ()
-insertMealPlanRecipes headerId recipeIds = Beam.runInsert $ Beam.insert (mealPlanRecipes dbSettings) $ Beam.insertValues $ map toRecipeRef $ zip [0..] recipeIds
+insertMealPlanRecipes headerId recipeIds = Beam.runInsert $ Beam.insert (dbMealPlanRecipes dbSettings) $ Beam.insertValues $ map toRecipeRef $ zip [0..] recipeIds
   where
     toRecipeRef (index, recipeId) = DbMealPlanRecipe { mMealPlan = headerId, mListIndex = index, mRecipe = recipeId }
 
@@ -319,9 +319,9 @@ getMealPlanRecipes :: (MonadBeam Backend m) => PrimaryKey DbMealPlanHeaderT Iden
 getMealPlanRecipes hId = fmap extractRecipes $ Beam.runSelectReturningList $ Beam.select $ Beam.orderBy_ order $ query
   where
     query = do
-      mpR <- Beam.all_ (mealPlanRecipes dbSettings)
+      mpR <- Beam.all_ (dbMealPlanRecipes dbSettings)
       Beam.guard_ (getField @"mMealPlan" mpR ==. Beam.val_ hId)
-      r <- Beam.join_ (getField @"recipes" dbSettings) (Beam.references_ $ getField @"mRecipe" mpR)
+      r <- Beam.join_ (getField @"dbRecipes" dbSettings) (Beam.references_ $ getField @"mRecipe" mpR)
       return (getField @"mListIndex" mpR, r)
     order (listIndex, _) = Beam.asc_ listIndex
     extractRecipes = map (\(_, r) -> r)
@@ -356,13 +356,13 @@ instance Table DbMealPlanNoteT where
 instance Beamable (PrimaryKey DbMealPlanNoteT)
 
 deleteMealPlanNotes :: (MonadBeam Backend m) => PrimaryKey DbMealPlanHeaderT Identity -> m ()
-deleteMealPlanNotes headerId = Beam.runDelete $ Beam.delete (mealPlanNotes dbSettings) $ \t -> condition t
+deleteMealPlanNotes headerId = Beam.runDelete $ Beam.delete (dbMealPlanNotes dbSettings) $ \t -> condition t
   where
     condition :: forall s. (forall s'. DbMealPlanNoteT (QExpr Backend s')) -> QExpr Backend s Bool
     condition t = getField @"mMealPlan" t ==. Beam.val_ headerId
 
 insertMealPlanNotes :: (MonadBeam Backend m) => PrimaryKey DbMealPlanHeaderT Identity -> [Text] -> m ()
-insertMealPlanNotes headerId ns = Beam.runInsert $ Beam.insert (mealPlanNotes dbSettings) $ Beam.insertValues $ map toNoteTableEntry $ zip [0..] ns
+insertMealPlanNotes headerId ns = Beam.runInsert $ Beam.insert (dbMealPlanNotes dbSettings) $ Beam.insertValues $ map toNoteTableEntry $ zip [0..] ns
   where
     toNoteTableEntry (index, note) = DbMealPlanNote { mMealPlan = headerId, mListIndex = index, mNote = note }
 
@@ -370,7 +370,7 @@ getMealPlanNotes :: (MonadBeam Backend m) => PrimaryKey DbMealPlanHeaderT Identi
 getMealPlanNotes hId = fmap (map $ getField @"mNote") $ Beam.runSelectReturningList $ Beam.select $ Beam.orderBy_ order $ query
   where
     query = do
-      n <- Beam.all_ (mealPlanNotes dbSettings)
+      n <- Beam.all_ (dbMealPlanNotes dbSettings)
       Beam.guard_ (getField @"mMealPlan" n ==. Beam.val_ hId)
       return n
     order n = Beam.asc_ $ getField @"mListIndex" n
