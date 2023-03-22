@@ -4,6 +4,7 @@ module KonBoard.Db
     , newSqliteConn
     , close
     , recipeStoreDb
+    , mealPlanStoreDb
     ) where
 
 import qualified Data.String.Interpolate                  as I
@@ -22,8 +23,11 @@ import qualified Database.SQLite.Simple                   as SQLite
 
 import           KonBoard.Base                            (ByteString, Day, Generic, HasField (..),
                                                            Int32, Int8, MonadIO (..), MonadThrow,
-                                                           Text, UTCTime, throwString, toGregorian)
+                                                           Text, UTCTime, fromGregorian,
+                                                           throwString, toGregorian)
 import           KonBoard.Db.Orphans                      ()
+import           KonBoard.MealPlan                        (MealPlan (..), MealPlanStore (..),
+                                                           fromMealPhase, toMealPhase)
 import           KonBoard.Recipe                          (Id, IngDesc (..), Ingredient (..),
                                                            Recipe, RecipeStore (..),
                                                            RecipeStored (..), Ref (..), parseRecipe)
@@ -81,6 +85,8 @@ newSqliteConn f = liftIO $ do
 
 close :: MonadIO m => Conn -> m ()
 close (Conn c) = liftIO $ SQLite.close c
+
+-- TODO: consider using transactions
 
 recipeStoreDb :: (MonadIO m, MonadThrow m) => Conn -> RecipeStore m
 recipeStoreDb (Conn c) =
@@ -162,7 +168,7 @@ fromRecipeId ri = either throwString return $ fmap fst $ TRead.decimal ri
 addDbRecipe :: (MonadBeamInsertReturning Backend m, MonadThrow m) => DbRecipeT (QExpr Backend s) -> m Int32
 addDbRecipe r = fmap (getField @"rId") $ takeFirst "get no insert result" =<< (runInsertReturningList $ Beam.insertOnly table cols vals)
   where
-    table = recipes dbSettings
+    table = getField @"recipes" dbSettings
     -- SQLite doesn't support "DEFAULT" for column expression, so we need to specify inserted columns explicitly.
     cols t = (rName t, rSearchText t, rRawYaml t)
     vals = Beam.insertData [(rName r, rSearchText r, rRawYaml r)]
@@ -172,16 +178,16 @@ takeFirst err []  = throwString err
 takeFirst _ (x:_) = return x
 
 updateDbRecipe :: (MonadBeam Backend m) => DbRecipeT Identity -> m ()
-updateDbRecipe r = Beam.runUpdate $ Beam.save (recipes dbSettings) r
+updateDbRecipe r = Beam.runUpdate $ Beam.save (getField @"recipes" dbSettings) r
 
 getDbRecipeById :: (MonadBeam Backend m) => Int32 -> m (Maybe (DbRecipeT Identity))
-getDbRecipeById recipeId = Beam.runSelectReturningOne $ Beam.lookup_ (recipes dbSettings) (DbRecipeId recipeId)
+getDbRecipeById recipeId = Beam.runSelectReturningOne $ Beam.lookup_ (getField @"recipes" dbSettings) (DbRecipeId recipeId)
 
 getDbRecipeByName :: (MonadBeam Backend m) => Text -> m (Maybe (DbRecipeT Identity))
 getDbRecipeByName recipeName = Beam.runSelectReturningOne $ Beam.select query
   where
     query = do
-      r <- Beam.all_ $ recipes dbSettings
+      r <- Beam.all_ $ getField @"recipes" dbSettings
       Beam.guard_ $ getField @"rName" r ==. Beam.val_ recipeName
       return r
 
@@ -221,6 +227,9 @@ toGregorianDb :: Day -> (Int32, Int8, Int8)
 toGregorianDb d = (fromIntegral year, fromIntegral month, fromIntegral dom)
   where
     (year, month, dom) = toGregorian d
+
+fromGregorianDb :: Int32 -> Int8 -> Int8 -> Day
+fromGregorianDb y m d = fromGregorian (fromIntegral y) (fromIntegral m) (fromIntegral d)
 
 isNewerThan :: (QExpr Backend s Int32, QExpr Backend s Int8, QExpr Backend s Int8) -> (QExpr Backend s Int32, QExpr Backend s Int8, QExpr Backend s Int8) -> QExpr Backend s Bool
 isNewerThan (aY, aM, aD) (bY, bM, bD) =
@@ -312,7 +321,7 @@ getMealPlanRecipes hId = fmap extractRecipes $ Beam.runSelectReturningList $ Bea
     query = do
       mpR <- Beam.all_ (mealPlanRecipes dbSettings)
       Beam.guard_ (getField @"mMealPlan" mpR ==. Beam.val_ hId)
-      r <- Beam.join_ (recipes dbSettings) (Beam.references_ $ getField @"mRecipe" mpR)
+      r <- Beam.join_ (getField @"recipes" dbSettings) (Beam.references_ $ getField @"mRecipe" mpR)
       return (getField @"mListIndex" mpR, r)
     order (listIndex, _) = Beam.asc_ listIndex
     extractRecipes = map (\(_, r) -> r)
@@ -381,3 +390,25 @@ getDbMealPlans :: (MonadBeam Backend m) => Day -> Day -> m [(DbMealPlanHeaderT I
 getDbMealPlans startDay endDay = traverse getCompleteMealPlan =<< getMealPlanHeadersByDayRange startDay endDay
   where
     getCompleteMealPlan h = (,,) h <$> getMealPlanRecipes (pk h) <*> getMealPlanNotes (pk h)
+
+toMealPlan :: (MonadThrow m) => (DbMealPlanHeaderT Identity, [DbRecipeT Identity], [Text]) -> m (MealPlan RecipeStored)
+toMealPlan (header, rs, ns) = do
+  p <- either throwString return $ toMealPhase $ getField @"mPhase" header
+  rStored <- traverse fromDbRecipe rs
+  let mp = MealPlan
+           { day = fromGregorianDb (getField @"mYear" header) (getField @"mMonth" header) (getField @"mDayOfMonth" header)
+           , phase = p
+           , recipes = rStored
+           , notes = ns
+           }
+  return mp
+
+-- TODO: consider using transactions
+
+mealPlanStoreDb :: (MonadThrow m, MonadIO m) => Conn -> MealPlanStore m
+mealPlanStoreDb (Conn c) = MealPlanStore { putMealPlan = putMpImpl, getMealPlans = getMpImpl }
+  where
+    putMpImpl mp = do
+      rIds <- fmap (map DbRecipeId) $ traverse fromRecipeId $ getField @"recipes" mp
+      liftIO $ runBeamSqlite c $ putDbMealPlans (getField @"day" mp) (fromMealPhase $ getField @"phase" mp) rIds (getField @"notes" mp)
+    getMpImpl startDay endDay = liftIO $ runBeamSqlite c $ traverse toMealPlan =<< (getDbMealPlans startDay endDay)
