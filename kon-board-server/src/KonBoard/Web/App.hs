@@ -5,6 +5,7 @@ module KonBoard.Web.App
       -- * KonApp
     , KonApp
     , newKonApp
+    , closeKonApp
     ) where
 
 import           Control.Applicative            ((<$>), (<*>))
@@ -30,11 +31,10 @@ import           KonBoard.Bridge.MealPlan       (BMealPlan, toBMealPlan)
 import           KonBoard.Bridge.Recipe         (BRecipeId, BRecipeStored, fromBRecipeId,
                                                  toBRecipeStored)
 import           KonBoard.Bridge.Time           (BDay, fromBDay)
+import qualified KonBoard.Db                    as Db
 import           KonBoard.MealPlan              (MealPlanStore (..))
-import           KonBoard.MealPlan.Memory       (newMealPlanStore)
 import qualified KonBoard.MealPlan.Yaml         as MealPlanY
 import           KonBoard.Recipe                (RecipeStore (..))
-import           KonBoard.Recipe.Memory         (newRecipeStore)
 import qualified KonBoard.Recipe.Yaml           as RecipeY
 import           KonBoard.Web.Api               (DataApi)
 
@@ -47,6 +47,7 @@ data KonApp m
       { mealPlanStore :: MealPlanStore m
       , recipeStore   :: RecipeStore m
       , dirStatic     :: FilePath
+      , dbConn        :: Db.Conn
       }
 
 -- | The application monad
@@ -95,12 +96,13 @@ appWith konApp = application
 
 newKonApp :: LoggingT IO (KonApp AppM)
 newKonApp =  do
-  recipeS <- newRecipeStore
+  conn <- Db.newSqliteConn "kon-board.sqlite3"
+  let recipeS = Db.recipeStoreDb conn
+      mealplanS = Db.mealPlanStoreDb conn
   recipeFiles <- liftIO $ glob "recipes/*.yaml"
   forM_ recipeFiles $ \recipeFile -> do
     logDebugN ("Load recipe file: " <> pack recipeFile)
     liftIO $ RecipeY.loadYamlFile recipeS recipeFile
-  mealplanS <- newMealPlanStore recipeS
   mealplanFiles <- liftIO $ glob "meal-plans/*.yaml"
   forM_ mealplanFiles $ \mealplanFile -> do
     logDebugN ("Load meal plan file: " <> pack mealplanFile)
@@ -108,4 +110,8 @@ newKonApp =  do
   return $ KonApp { mealPlanStore = mealplanS
                   , recipeStore = recipeS
                   , dirStatic = "static"
+                  , dbConn = conn
                   }
+
+closeKonApp :: MonadIO m1 => KonApp m2 -> m1 ()
+closeKonApp app = liftIO $ Db.close $ getField @"dbConn" app

@@ -3,18 +3,19 @@ module KonBoard.Exec.Server
     ( main
     ) where
 
+import           Control.Exception.Safe   (bracket)
+import           Control.Monad.IO.Class   (MonadIO (..))
 import           Control.Monad.Logger     (logInfoN, runStderrLoggingT)
 import           Data.Monoid              ((<>))
 import           Data.Text                (pack)
 import           Network.Wai.Handler.Warp (run)
 
-import           KonBoard.Web.App         (appWith, newKonApp)
+import           KonBoard.Web.App         (appWith, closeKonApp, newKonApp)
 
 main :: IO ()
-main = do
-  server <- runStderrLoggingT $ newKonApp
-  let port = 8888 :: Int
-  runStderrLoggingT $ do
+main = runStderrLoggingT $ do
+  bracket newKonApp closeKonApp $ \server -> do
+    let port = 8888 :: Int
     logInfoN ("Listen on port " <> (pack $ show port))
-  run port $ appWith server
+    liftIO $ run port $ appWith server
 
