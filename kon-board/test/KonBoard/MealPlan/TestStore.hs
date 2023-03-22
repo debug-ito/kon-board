@@ -27,11 +27,9 @@ planWithoutId mp = ( getField @"day" mp
                    , getField @"notes" mp
                    )
 
-loadYamls :: (RecipeStore (LoggingT IO) -> IO (MealPlanStore (LoggingT IO))) -> IO (MealPlanStore (LoggingT IO))
-loadYamls newMealPlanStore = basicLogging $ do
-  rs <- newRecipeStore
+loadYamls :: (RecipeStore (LoggingT IO), MealPlanStore (LoggingT IO)) -> IO (MealPlanStore (LoggingT IO))
+loadYamls (rs, ms) = basicLogging $ do
   mapM_ (RY.loadYamlFile rs) recipeFiles
-  ms <- liftIO $ newMealPlanStore rs
   mapM_ (MY.loadYamlFile ms rs) planFiles
   return ms
   where
@@ -52,8 +50,8 @@ loadYamls newMealPlanStore = basicLogging $ do
                 , "plan_notes.yaml"
                 ]
 
-mealPlanStoreSpec :: String -> SpecWith (RecipeStore (LoggingT IO) -> IO (MealPlanStore (LoggingT IO)))
-mealPlanStoreSpec storeName = beforeWith loadYamls $ describe storeName $ do
+mealPlanStoreSpec :: SpecWith (RecipeStore (LoggingT IO), MealPlanStore (LoggingT IO))
+mealPlanStoreSpec = beforeWith loadYamls $ do
   describe "getMealPlans" $ do
     specify "empty result" $ \s -> do
       got <- basicLogging $ getMealPlans s (gday 2020 3 1) (gday 2020 3 20)
