@@ -8,11 +8,11 @@ import           Data.Monoid              ((<>))
 import           Data.Text                (pack)
 import           Network.Wai.Handler.Warp (run)
 
-import           KonBoard.Web.App         (appWith, makeDefaultKonApp)
+import           KonBoard.Web.App         (appWith, newKonApp)
 
 main :: IO ()
 main = do
-  server <- runStderrLoggingT $ makeDefaultKonApp
+  server <- runStderrLoggingT $ newKonApp
   let port = 8888 :: Int
   runStderrLoggingT $ do
     logInfoN ("Listen on port " <> (pack $ show port))

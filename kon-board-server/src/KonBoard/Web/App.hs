@@ -4,7 +4,7 @@ module KonBoard.Web.App
       appWith
       -- * KonApp
     , KonApp
-    , makeDefaultKonApp
+    , newKonApp
     ) where
 
 import           Control.Applicative            ((<$>), (<*>))
@@ -93,8 +93,8 @@ appWith konApp = application
         rewrite (("days" : _), q) _        = (index_page, q)
         rewrite pq _                       = pq
 
-makeDefaultKonApp :: LoggingT IO (KonApp AppM)
-makeDefaultKonApp =  do
+newKonApp :: LoggingT IO (KonApp AppM)
+newKonApp =  do
   recipeS <- newRecipeStore
   recipeFiles <- liftIO $ glob "recipes/*.yaml"
   forM_ recipeFiles $ \recipeFile -> do
