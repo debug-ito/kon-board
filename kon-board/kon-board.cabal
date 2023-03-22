@@ -85,6 +85,7 @@ test-suite spec
                         KonBoard.MealPlanSpec,
                         KonBoard.MealPlan.YamlSpec,
                         KonBoard.MealPlan.MemorySpec,
+                        KonBoard.MealPlan.TestStore,
                         KonBoard.Util.YamlSpec,
                         KonBoard.Bridge.TimeSpec,
                         KonBoard.TestLogger,

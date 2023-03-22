@@ -5,12 +5,12 @@ module KonBoard.MealPlan.MemorySpec
 
 import           Test.Hspec
 
-import           KonBoard.MealPlan.Memory (newMealPlanStore)
+import           KonBoard.MealPlan.Memory    (newMealPlanStore)
 
-import           KonBoard.MealPlanSpec    (specForStore)
+import           KonBoard.MealPlan.TestStore (mealPlanStoreSpec)
 
 main :: IO ()
 main = hspec spec
 
 spec :: Spec
-spec = before (return newMealPlanStore) $ specForStore "newMealPlanStore"
+spec = before (return newMealPlanStore) $ mealPlanStoreSpec "newMealPlanStore"
