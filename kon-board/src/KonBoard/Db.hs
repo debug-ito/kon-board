@@ -267,6 +267,8 @@ ensureMealPlanHeader day phase = do
     vals :: [(QExpr Backend s Int32, QExpr Backend s Int8, QExpr Backend s Int8, QExpr Backend s Text)] -- we need this signature to compile.
     vals = [(Beam.val_ year, Beam.val_ month, Beam.val_ dom, Beam.val_ phase)]
 
+----------------------------------------------------------------
+
 sqlCreateDbMealPlanRecipeT :: SQLite.Query
 sqlCreateDbMealPlanRecipeT = [I.i|
 CREATE TABLE IF NOT EXISTS meal_plan_recipes (
@@ -304,8 +306,19 @@ insertMealPlanRecipes headerId recipeIds = Beam.runInsert $ Beam.insert (mealPla
   where
     toRecipeRef (index, recipeId) = DbMealPlanRecipe { mMealPlan = headerId, mListIndex = index, mRecipe = recipeId }
 
-getMealPlanRecipes :: PrimaryKey DbMealPlanHeaderT Identity -> m [DbRecipeT Identity]
-getMealPlanRecipes hId = undefined -- TODO
+getMealPlanRecipes :: (MonadBeam Backend m) => PrimaryKey DbMealPlanHeaderT Identity -> m [DbRecipeT Identity]
+getMealPlanRecipes hId = fmap extractRecipes $ Beam.runSelectReturningList $ Beam.select $ Beam.orderBy_ order $ query
+  where
+    query = do
+      mpR <- Beam.all_ (mealPlanRecipes dbSettings)
+      Beam.guard_ (getField @"mMealPlan" mpR ==. Beam.val_ hId)
+      r <- Beam.join_ (recipes dbSettings) (Beam.references_ $ getField @"mRecipe" mpR)
+      return (getField @"mListIndex" mpR, r)
+    order (listIndex, _) = Beam.asc_ listIndex
+    extractRecipes = map (\(_, r) -> r)
+
+
+----------------------------------------------------------------
 
 sqlCreateDbMealPlanNoteT :: SQLite.Query
 sqlCreateDbMealPlanNoteT = [I.i|
