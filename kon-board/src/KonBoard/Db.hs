@@ -377,20 +377,7 @@ putDbMealPlans day phase rs notes = do
   insertMealPlanRecipes headerId rs
   insertMealPlanNotes headerId notes
 
--- getDbMealPlans :: (MonadBeam Backend m) => Day -> Day -> m [(DbMealPlanHeaderT Identity, [DbMealPlanRecipeT Identity], [DbMealPlanNoteT Identity])]
--- getDbMealPlans startDay endDay = fmap groupResult $ Beam.runSelectReturningList $ Beam.select $ query
---   where
---     (startYear, startMonth, startDom) = toGregorianDb startDay
---     startDayQ = (Beam.val_ startYear, Beam.val_ startMonth, Beam.val_ startDom)
---     (endYear, endMonth, endDom) = toGregorianDb endDay
---     endDayQ = (Beam.val_ endYear, Beam.val_ endMonth, Beam.val_ endDom)
---     query = do
---       header <- Beam.all_ $ mealPlanHeaders dbSettings
---       let headerDayQ = (mYear header, mMonth header, mDayOfMonth header)
---       Beam.guard_ ((endDayQ `isNewerThan` headerDayQ) &&. (Beam.not_ $ startDayQ `isNewerThan` headerDayQ))
---       r <- Beam.join_ (mealPlanRecipes dbSettings) $ \t -> Beam.references_ (getField @"mMealPlan" t) header
---       n <- Beam.join_ (mealPlanNotes dbSettings) $ \t -> Beam.references_ (getField @"mMealPlan" t) header
---       return (header, r, n)
---       -- TODO: we must specify order!
---     groupResult :: [(DbMealPlanHeaderT Identity, DbMealPlanRecipeT Identity, DbMealPlanNoteT Identity)] -> [(DbMealPlanHeaderT Identity, [DbMealPlanRecipeT Identity], [DbMealPlanNoteT Identity])]
---     groupResult = undefined -- TODO
+getDbMealPlans :: (MonadBeam Backend m) => Day -> Day -> m [(DbMealPlanHeaderT Identity, [DbRecipeT Identity], [Text])]
+getDbMealPlans startDay endDay = traverse getCompleteMealPlan =<< getMealPlanHeadersByDayRange startDay endDay
+  where
+    getCompleteMealPlan h = (,,) h <$> getMealPlanRecipes (pk h) <*> getMealPlanNotes (pk h)
