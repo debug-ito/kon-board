@@ -3,17 +3,20 @@ module KonBoard.DbSpec
     , spec
     ) where
 
-import           Control.Exception.Safe    (throwString)
-import           GHC.Records               (HasField (..))
-import           System.Directory          (removeFile)
-import           System.IO                 (hClose, openTempFile)
+import           Control.Exception.Safe      (throwString)
+import           Control.Monad.Logger        (LoggingT)
+import           GHC.Records                 (HasField (..))
+import           System.Directory            (removeFile)
+import           System.IO                   (hClose, openTempFile)
 import           Test.Hspec
 
-import           KonBoard.Db               (Conn)
-import qualified KonBoard.Db               as Db
-import           KonBoard.Recipe           (RecipeStore (..), RecipeStored (..), parseRecipe)
+import           KonBoard.Db                 (Conn)
+import qualified KonBoard.Db                 as Db
+import           KonBoard.MealPlan           (MealPlanStore)
+import           KonBoard.Recipe             (RecipeStore (..), RecipeStored (..), parseRecipe)
 
-import           KonBoard.Recipe.TestStore (loadCommonRecipes, recipeStoreSpec)
+import           KonBoard.MealPlan.TestStore (mealPlanStoreSpec)
+import           KonBoard.Recipe.TestStore   (loadCommonRecipes, recipeStoreSpec)
 
 main :: IO ()
 main = hspec spec
@@ -21,6 +24,7 @@ main = hspec spec
 spec :: Spec
 spec = do
   specRecipeStore
+  specMealPlanStore
 
 specRecipeStore :: Spec
 specRecipeStore = do
@@ -44,6 +48,12 @@ specRecipeStore = do
           gotForOldId <- getRecipeById store $ getField @"id" old
           gotForOldId `shouldBe` Just newInput
 
+specMealPlanStore :: Spec
+specMealPlanStore = do
+  before openDbOnTempFile $ after closeDbOnTempFile $ do
+    beforeWith getStores $ describe "mealPlanStoreDb" $ do
+      mealPlanStoreSpec
+
 openDbOnTempFile :: IO (Conn, FilePath)
 openDbOnTempFile = do
   (path, h) <- openTempFile "test" "recipe.sqlite3"
@@ -58,3 +68,6 @@ closeDbOnTempFile (c, path) = do
 
 getRecipeStore :: (Conn, FilePath) -> IO (RecipeStore IO)
 getRecipeStore (c, _) = return $ Db.recipeStoreDb c
+
+getStores :: (Conn, FilePath) -> IO (RecipeStore (LoggingT IO), MealPlanStore (LoggingT IO))
+getStores (c, _) = return (Db.recipeStoreDb c, Db.mealPlanStoreDb c)
