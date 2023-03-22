@@ -357,6 +357,15 @@ insertMealPlanNotes headerId notes = Beam.runInsert $ Beam.insert (mealPlanNotes
   where
     toNoteTableEntry (index, note) = DbMealPlanNote { mMealPlan = headerId, mListIndex = index, mNote = note }
 
+getMealPlanNotes :: (MonadBeam Backend m) => PrimaryKey DbMealPlanHeaderT Identity -> m [Text]
+getMealPlanNotes hId = fmap (map $ getField @"mNote") $ Beam.runSelectReturningList $ Beam.select $ Beam.orderBy_ order $ query
+  where
+    query = do
+      n <- Beam.all_ (mealPlanNotes dbSettings)
+      Beam.guard_ (getField @"mMealPlan" n ==. Beam.val_ hId)
+      return n
+    order n = Beam.asc_ $ getField @"mListIndex" n
+
 ----------------------------------------------------------------
 
 putDbMealPlans :: (MonadBeamInsertReturning Backend m, MonadThrow m) => Day -> Text -> [PrimaryKey DbRecipeT Identity] -> [Text] -> m ()
