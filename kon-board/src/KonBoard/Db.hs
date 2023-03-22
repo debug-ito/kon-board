@@ -85,19 +85,20 @@ newSqliteConn f = liftIO $ do
 close :: MonadIO m => Conn -> m ()
 close (Conn c) = liftIO $ SQLite.close c
 
--- TODO: consider using transactions
+runBeamSqliteTx :: Conn -> SqliteM a -> IO a
+runBeamSqliteTx (Conn c) action = SQLite.withTransaction c $ runBeamSqlite c action
 
 recipeStoreDb :: (MonadIO m, MonadThrow m) => Conn -> RecipeStore m
-recipeStoreDb (Conn c) =
+recipeStoreDb c =
   RecipeStore
-  { addRecipe = \r -> liftIO $ runBeamSqlite c $ fmap toRecipeId $ addDbRecipe $ toDbRecipe r
+  { addRecipe = \r -> liftIO $ runBeamSqliteTx c $ fmap toRecipeId $ addDbRecipe $ toDbRecipe r
   , updateRecipe = \r -> do
       dbR <- liftIO $ toDbRecipeStored r
-      liftIO $ runBeamSqlite c $ updateDbRecipe dbR
+      liftIO $ runBeamSqliteTx c $ updateDbRecipe dbR
   , getRecipeById = \i -> do
       dbrId <- fromRecipeId i
-      traverse fromDbRecipe =<< (liftIO $ runBeamSqlite c $ getDbRecipeById dbrId)
-  , getRecipeByName = \n -> traverse fromDbRecipe =<< (liftIO $ runBeamSqlite c $ getDbRecipeByName n)
+      traverse fromDbRecipe =<< (liftIO $ runBeamSqliteTx c $ getDbRecipeById dbrId)
+  , getRecipeByName = \n -> traverse fromDbRecipe =<< (liftIO $ runBeamSqliteTx c $ getDbRecipeByName n)
   }
 
 initDb :: Conn -> IO ()
@@ -406,13 +407,11 @@ toMealPlan (header, rs, ns) = do
            }
   return mp
 
--- TODO: consider using transactions
-
 mealPlanStoreDb :: (MonadThrow m, MonadIO m) => Conn -> MealPlanStore m
-mealPlanStoreDb (Conn c) = MealPlanStore { putMealPlan = putMpImpl, getMealPlans = getMpImpl }
+mealPlanStoreDb c = MealPlanStore { putMealPlan = putMpImpl, getMealPlans = getMpImpl }
   where
     putMpImpl mp = do
       rIds <- fmap (map DbRecipeId) $ traverse fromRecipeId $ getField @"recipes" mp
-      liftIO $ runBeamSqlite c $ putDbMealPlans (getField @"day" mp) (fromMealPhase $ getField @"phase" mp) rIds (getField @"notes" mp)
-    getMpImpl startDay endDay = liftIO $ runBeamSqlite c $ fmap sort $ traverse toMealPlan =<< (getDbMealPlans startDay endDay)
+      liftIO $ runBeamSqliteTx c $ putDbMealPlans (getField @"day" mp) (fromMealPhase $ getField @"phase" mp) rIds (getField @"notes" mp)
+    getMpImpl startDay endDay = liftIO $ runBeamSqliteTx c $ fmap sort $ traverse toMealPlan =<< (getDbMealPlans startDay endDay)
     -- TODO: We need to sort the MealPlans in Haskell to handle order of MealPhases. Or, maybe we can add a custom prefix to the MealPhase strings to let the DB sorting?
