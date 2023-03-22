@@ -105,14 +105,18 @@ recipeStoreDb (Conn c) =
 initDb :: Conn -> IO ()
 initDb (Conn c) =
   mapM_ (SQLite.execute_ c)
-  [ sqlCreateDbRecipeT
+  [ sqlPragmas
+  , sqlCreateDbRecipeT
   , sqlCreateDbMealPlanHeaderT
   , sqlCreateDbMealPlanRecipeT
   , sqlCreateDbMealPlanNoteT
   ]
 
-
--- TODO: maybe we should enable some pragmas such as auto_vacuum and foreign_keys
+sqlPragmas :: SQLite.Query
+sqlPragmas = [I.i|
+PRAGMA auto_vacuum = FULL;
+PRAGMA foreign_keys = true;
+|]
 
 type Backend = Sqlite
 
