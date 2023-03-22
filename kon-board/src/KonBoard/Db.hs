@@ -27,8 +27,8 @@ import           KonBoard.Base                            (ByteString, Day, Gene
                                                            Text, UTCTime, fromGregorian,
                                                            throwString, toGregorian)
 import           KonBoard.Db.Orphans                      ()
-import           KonBoard.MealPlan                        (MealPlan (..), MealPlanStore (..),
-                                                           fromMealPhase, toMealPhase)
+import           KonBoard.MealPlan                        (MealPhase (..), MealPlan (..),
+                                                           MealPlanStore (..))
 import           KonBoard.Recipe                          (Id, IngDesc (..), Ingredient (..),
                                                            Recipe, RecipeStore (..),
                                                            RecipeStored (..), Ref (..), parseRecipe)
@@ -209,13 +209,31 @@ CREATE TABLE IF NOT EXISTS meal_plan_headers (
 )
 |]
 
+type DbMealPhase = Text
+
+toDbMealPhase :: MealPhase -> DbMealPhase
+toDbMealPhase mp =
+  case mp of
+    Breakfast   -> "0"
+    Lunch       -> "1"
+    Dinner      -> "2"
+    MealOther s -> "@" <> s
+
+fromDbMealPhase :: MonadThrow m => DbMealPhase -> m MealPhase
+fromDbMealPhase mp =
+  case mp of
+    "0" -> return Breakfast
+    "1" -> return Lunch
+    "2" -> return Dinner
+    _ -> maybe (throwString ("unknown MealPhase string: " <> T.unpack mp)) (return . MealOther) $ T.stripPrefix "@" mp
+
 data DbMealPlanHeaderT f
   = DbMealPlanHeader
       { mId         :: C f Int32
       , mYear       :: C f Int32
       , mMonth      :: C f Int8
       , mDayOfMonth :: C f Int8
-      , mPhase      :: C f Text
+      , mPhase      :: C f DbMealPhase
       }
   deriving (Generic)
 
@@ -239,7 +257,7 @@ isNewerThan :: (QExpr Backend s Int32, QExpr Backend s Int8, QExpr Backend s Int
 isNewerThan (aY, aM, aD) (bY, bM, bD) =
   (aY >. bY) ||. ((aY ==. bY) &&. ((aM >. bM) ||. ((aM ==. bM) &&. (aD >. bD))))
 
-getMealPlanHeader :: (MonadBeam Backend m) => Day -> Text -> m (Maybe (DbMealPlanHeaderT Identity))
+getMealPlanHeader :: (MonadBeam Backend m) => Day -> DbMealPhase -> m (Maybe (DbMealPlanHeaderT Identity))
 getMealPlanHeader d p = Beam.runSelectReturningOne $ Beam.select $ query
   where
     (year, month, dom) = toGregorianDb d
@@ -268,7 +286,7 @@ getMealPlanHeadersByDayRange startDay endDay = Beam.runSelectReturningList $ Bea
               , Beam.asc_ $ getField @"mDayOfMonth" h
               )
 
-ensureMealPlanHeader :: (MonadBeamInsertReturning Backend m, MonadThrow m) => Day -> Text -> m (DbMealPlanHeaderT Identity)
+ensureMealPlanHeader :: (MonadBeamInsertReturning Backend m, MonadThrow m) => Day -> DbMealPhase -> m (DbMealPlanHeaderT Identity)
 ensureMealPlanHeader d p = do
   mHeader <- getMealPlanHeader d p
   case mHeader of
@@ -381,7 +399,7 @@ getMealPlanNotes hId = fmap (map $ getField @"mNote") $ Beam.runSelectReturningL
 
 ----------------------------------------------------------------
 
-putDbMealPlans :: (MonadBeamInsertReturning Backend m, MonadThrow m) => Day -> Text -> [PrimaryKey DbRecipeT Identity] -> [Text] -> m ()
+putDbMealPlans :: (MonadBeamInsertReturning Backend m, MonadThrow m) => Day -> DbMealPhase -> [PrimaryKey DbRecipeT Identity] -> [Text] -> m ()
 putDbMealPlans d p rs ns = do
   header <- ensureMealPlanHeader d p
   let headerId = pk header
@@ -397,7 +415,7 @@ getDbMealPlans startDay endDay = traverse getCompleteMealPlan =<< getMealPlanHea
 
 toMealPlan :: (MonadThrow m) => (DbMealPlanHeaderT Identity, [DbRecipeT Identity], [Text]) -> m (MealPlan RecipeStored)
 toMealPlan (header, rs, ns) = do
-  p <- either throwString return $ toMealPhase $ getField @"mPhase" header
+  p <- fromDbMealPhase $ getField @"mPhase" header
   rStored <- traverse fromDbRecipe rs
   let mp = MealPlan
            { day = fromGregorianDb (getField @"mYear" header) (getField @"mMonth" header) (getField @"mDayOfMonth" header)
@@ -412,6 +430,6 @@ mealPlanStoreDb c = MealPlanStore { putMealPlan = putMpImpl, getMealPlans = getM
   where
     putMpImpl mp = do
       rIds <- fmap (map DbRecipeId) $ traverse fromRecipeId $ getField @"recipes" mp
-      liftIO $ runBeamSqliteTx c $ putDbMealPlans (getField @"day" mp) (fromMealPhase $ getField @"phase" mp) rIds (getField @"notes" mp)
+      liftIO $ runBeamSqliteTx c $ putDbMealPlans (getField @"day" mp) (toDbMealPhase $ getField @"phase" mp) rIds (getField @"notes" mp)
     getMpImpl startDay endDay = liftIO $ runBeamSqliteTx c $ fmap sort $ traverse toMealPlan =<< (getDbMealPlans startDay endDay)
     -- TODO: We need to sort the MealPlans in Haskell to handle order of MealPhases. Or, maybe we can add a custom prefix to the MealPhase strings to let the DB sorting?
