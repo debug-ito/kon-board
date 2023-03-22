@@ -236,15 +236,15 @@ isNewerThan (aY, aM, aD) (bY, bM, bD) =
   (aY >. bY) ||. ((aY ==. bY) &&. ((aM >. bM) ||. ((aM ==. bM) &&. (aD >. bD))))
 
 getMealPlanHeader :: (MonadBeam Backend m) => Day -> Text -> m (Maybe (DbMealPlanHeaderT Identity))
-getMealPlanHeader day phase = Beam.runSelectReturningOne $ Beam.select $ query
+getMealPlanHeader d p = Beam.runSelectReturningOne $ Beam.select $ query
   where
-    (year, month, dom) = toGregorianDb day
+    (year, month, dom) = toGregorianDb d
     query = do
       h <- Beam.all_ $ mealPlanHeaders dbSettings
       Beam.guard_ $ mYear h ==. Beam.val_ year
       Beam.guard_ $ mMonth h ==. Beam.val_ month
       Beam.guard_ $ mDayOfMonth h ==. Beam.val_ dom
-      Beam.guard_ $ mPhase h ==. Beam.val_ phase
+      Beam.guard_ $ mPhase h ==. Beam.val_ p
       return h
 
 getMealPlanHeadersByDayRange :: (MonadBeam Backend m) => Day -> Day -> m [DbMealPlanHeaderT Identity]
@@ -265,16 +265,16 @@ getMealPlanHeadersByDayRange startDay endDay = Beam.runSelectReturningList $ Bea
               )
 
 ensureMealPlanHeader :: (MonadBeamInsertReturning Backend m, MonadThrow m) => Day -> Text -> m (DbMealPlanHeaderT Identity)
-ensureMealPlanHeader day phase = do
-  mHeader <- getMealPlanHeader day phase
+ensureMealPlanHeader d p = do
+  mHeader <- getMealPlanHeader d p
   case mHeader of
     Just h -> return h
     Nothing -> takeFirst "get no insert result" =<< (runInsertReturningList $ Beam.insertOnly (mealPlanHeaders dbSettings) cols $ Beam.insertData vals)
   where
-    (year, month, dom) = toGregorianDb day
+    (year, month, dom) = toGregorianDb d
     cols t = (mYear t, mMonth t, mDayOfMonth t, mPhase t)
     vals :: [(QExpr Backend s Int32, QExpr Backend s Int8, QExpr Backend s Int8, QExpr Backend s Text)] -- we need this signature to compile.
-    vals = [(Beam.val_ year, Beam.val_ month, Beam.val_ dom, Beam.val_ phase)]
+    vals = [(Beam.val_ year, Beam.val_ month, Beam.val_ dom, Beam.val_ p)]
 
 ----------------------------------------------------------------
 
@@ -362,7 +362,7 @@ deleteMealPlanNotes headerId = Beam.runDelete $ Beam.delete (mealPlanNotes dbSet
     condition t = getField @"mMealPlan" t ==. Beam.val_ headerId
 
 insertMealPlanNotes :: (MonadBeam Backend m) => PrimaryKey DbMealPlanHeaderT Identity -> [Text] -> m ()
-insertMealPlanNotes headerId notes = Beam.runInsert $ Beam.insert (mealPlanNotes dbSettings) $ Beam.insertValues $ map toNoteTableEntry $ zip [0..] notes
+insertMealPlanNotes headerId ns = Beam.runInsert $ Beam.insert (mealPlanNotes dbSettings) $ Beam.insertValues $ map toNoteTableEntry $ zip [0..] ns
   where
     toNoteTableEntry (index, note) = DbMealPlanNote { mMealPlan = headerId, mListIndex = index, mNote = note }
 
@@ -378,13 +378,13 @@ getMealPlanNotes hId = fmap (map $ getField @"mNote") $ Beam.runSelectReturningL
 ----------------------------------------------------------------
 
 putDbMealPlans :: (MonadBeamInsertReturning Backend m, MonadThrow m) => Day -> Text -> [PrimaryKey DbRecipeT Identity] -> [Text] -> m ()
-putDbMealPlans day phase rs notes = do
-  header <- ensureMealPlanHeader day phase
+putDbMealPlans d p rs ns = do
+  header <- ensureMealPlanHeader d p
   let headerId = pk header
   deleteMealPlanRecipes headerId
   deleteMealPlanNotes headerId
   insertMealPlanRecipes headerId rs
-  insertMealPlanNotes headerId notes
+  insertMealPlanNotes headerId ns
 
 getDbMealPlans :: (MonadBeam Backend m) => Day -> Day -> m [(DbMealPlanHeaderT Identity, [DbRecipeT Identity], [Text])]
 getDbMealPlans startDay endDay = traverse getCompleteMealPlan =<< getMealPlanHeadersByDayRange startDay endDay
