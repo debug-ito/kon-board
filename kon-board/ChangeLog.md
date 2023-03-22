@@ -1,9 +1,15 @@
 # Revision history for kon-board
 
-## 0.7.0.0  -- ?
+## 0.7.0.0  -- 2023-03-22
 
-- **BREAKING CHANGES**: `MealPlan` type
-  - Now it takes a type parameter `r`, which is supposed to be `Recipe.Id` or `RecipeStored`.
+- **BREAKING CHANGES**:
+  - Now `MealPlan` type takes a type parameter `r`, which is supposed to be `Recipe.Id` or `RecipeStored`.
+  - Changed `MealPlanStore` API: now `putMealPlan` takes `MealPlan Id` while `getMealPlans` emits `MealPlan RecipeStored`.
+  - Now `MealPlan.Memory.newMealPlanStore` takes `RecipeStore` as a parameter. This is necessary for the store to emit `RecipeStored`.
+  - Now `RecipeStored` type has `createdAt` field.
+  - Constructor functions are now named `newBluhBluh`.
+  - Now symbols basically follow strict camelCase or PascalCase (e.g. use `Api`, not `API`).
+- Db module: add `mealPlanStoreDb`.
 
 
 ## 0.6.1.0  -- 2023-01-07
