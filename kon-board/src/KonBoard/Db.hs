@@ -44,8 +44,6 @@ CREATE TABLE IF NOT EXISTS recipes (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 )|]
 
--- TODO: should we add created_at and updated_at columns??
-
 data DbRecipeT f
   = DbRecipe
       { rId         :: C f Int32
