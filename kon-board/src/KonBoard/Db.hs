@@ -7,7 +7,6 @@ module KonBoard.Db
     , mealPlanStoreDb
     ) where
 
-import           Data.List                                (sort)
 import qualified Data.String.Interpolate                  as I
 import qualified Data.Text                                as T
 import qualified Data.Text.Read                           as TRead
@@ -284,6 +283,7 @@ getMealPlanHeadersByDayRange startDay endDay = Beam.runSelectReturningList $ Bea
     order h = ( Beam.asc_ $ getField @"mYear" h
               , Beam.asc_ $ getField @"mMonth" h
               , Beam.asc_ $ getField @"mDayOfMonth" h
+              , Beam.asc_ $ getField @"mPhase" h
               )
 
 ensureMealPlanHeader :: (MonadBeamInsertReturning Backend m, MonadThrow m) => Day -> DbMealPhase -> m (DbMealPlanHeaderT Identity)
@@ -431,5 +431,4 @@ mealPlanStoreDb c = MealPlanStore { putMealPlan = putMpImpl, getMealPlans = getM
     putMpImpl mp = do
       rIds <- fmap (map DbRecipeId) $ traverse fromRecipeId $ getField @"recipes" mp
       liftIO $ runBeamSqliteTx c $ putDbMealPlans (getField @"day" mp) (toDbMealPhase $ getField @"phase" mp) rIds (getField @"notes" mp)
-    getMpImpl startDay endDay = liftIO $ runBeamSqliteTx c $ fmap sort $ traverse toMealPlan =<< (getDbMealPlans startDay endDay)
-    -- TODO: We need to sort the MealPlans in Haskell to handle order of MealPhases. Or, maybe we can add a custom prefix to the MealPhase strings to let the DB sorting?
+    getMpImpl startDay endDay = liftIO $ runBeamSqliteTx c $ traverse toMealPlan =<< (getDbMealPlans startDay endDay)
