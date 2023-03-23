@@ -10,7 +10,7 @@ module KonBoard.Web.App
 
 import           Control.Applicative            ((<$>), (<*>))
 import           Control.Exception.Safe         (MonadThrow, throw, try)
-import           Control.Monad                  (forM_)
+import           Control.Monad                  (forM_, when)
 import           Control.Monad.Except           (ExceptT (..))
 import           Control.Monad.Logger           (LoggingT, logDebugN, logInfoN, runStderrLoggingT)
 import           Control.Monad.Trans            (MonadIO (liftIO))
@@ -25,6 +25,7 @@ import qualified Servant                        as Sv
 import           Servant                        (Application, Handler (..), Raw,
                                                  ServerError (errBody), hoistServer, (:<|>) (..),
                                                  (:>))
+import           System.Directory               (doesFileExist, removeFile)
 import           System.FilePath.Glob           (glob)
 
 import           KonBoard.Bridge.MealPlan       (BMealPlan, toBMealPlan)
@@ -96,7 +97,7 @@ appWith konApp = application
 
 newKonApp :: LoggingT IO (KonApp AppM)
 newKonApp =  do
-  conn <- Db.newSqliteConn "kon-board.sqlite3"
+  conn <- initConn
   let recipeS = Db.recipeStoreDb conn
       mealplanS = Db.mealPlanStoreDb conn
   recipeFiles <- liftIO $ glob "recipes/*.yaml"
@@ -112,6 +113,13 @@ newKonApp =  do
                   , dirStatic = "static"
                   , dbConn = conn
                   }
+  where
+    initConn = do
+      let dbFile = "kon-board.sqlite3"
+      exists <- liftIO $ doesFileExist dbFile
+      when exists $ do
+        liftIO $ removeFile dbFile
+      Db.newSqliteConn dbFile
 
 closeKonApp :: MonadIO m1 => KonApp m2 -> m1 ()
 closeKonApp app = liftIO $ Db.close $ getField @"dbConn" app
