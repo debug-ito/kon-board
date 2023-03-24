@@ -1,6 +1,6 @@
 # Revision history for kon-board
 
-## 0.7.0.1  -- ?
+## 0.7.1.0  -- ?
 
 - Now kon-board-server uses `KonBoard.Db` for the storage backend.
 
