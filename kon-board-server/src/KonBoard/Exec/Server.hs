@@ -10,10 +10,11 @@ import           Data.Monoid              ((<>))
 import           Data.Text                (pack)
 import           Network.Wai.Handler.Warp (run)
 
-import           KonBoard.Web.App         (appWith, closeKonApp, newKonApp)
+import           KonBoard.Web.App         (appWith, closeKonApp, initDb, newKonApp)
 
 main :: IO ()
 main = runStderrLoggingT $ do
+  initDb
   bracket newKonApp closeKonApp $ \server -> do
     let port = 8888 :: Int
     logInfoN ("Listen on port " <> (pack $ show port))

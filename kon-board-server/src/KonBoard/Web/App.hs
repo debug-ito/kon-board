@@ -6,13 +6,16 @@ module KonBoard.Web.App
     , KonApp
     , newKonApp
     , closeKonApp
+      -- * Db
+    , initDb
     ) where
 
 import           Control.Applicative            ((<$>), (<*>))
-import           Control.Exception.Safe         (MonadThrow, throw, try)
+import           Control.Exception.Safe         (MonadMask, MonadThrow, bracket, throw, try)
 import           Control.Monad                  (forM_, when)
 import           Control.Monad.Except           (ExceptT (..))
-import           Control.Monad.Logger           (LoggingT, logDebugN, logInfoN, runStderrLoggingT)
+import           Control.Monad.Logger           (LoggingT, MonadLogger, logDebugN, logInfoN,
+                                                 runStderrLoggingT)
 import           Control.Monad.Trans            (MonadIO (liftIO))
 import           Data.Monoid                    ((<>))
 import           Data.Proxy                     (Proxy (..))
@@ -95,31 +98,40 @@ appWith konApp = application
         rewrite (("days" : _), q) _        = (index_page, q)
         rewrite pq _                       = pq
 
+dbFile :: FilePath
+dbFile = "kon-board.sqlite3"
+
 newKonApp :: LoggingT IO (KonApp AppM)
 newKonApp =  do
-  conn <- initConn
-  let recipeS = Db.recipeStoreDb conn
-      mealplanS = Db.mealPlanStoreDb conn
-  recipeFiles <- liftIO $ glob "recipes/*.yaml"
-  forM_ recipeFiles $ \recipeFile -> do
-    logDebugN ("Load recipe file: " <> pack recipeFile)
-    liftIO $ RecipeY.loadYamlFile recipeS recipeFile
-  mealplanFiles <- liftIO $ glob "meal-plans/*.yaml"
-  forM_ mealplanFiles $ \mealplanFile -> do
-    logDebugN ("Load meal plan file: " <> pack mealplanFile)
-    liftIO $ MealPlanY.loadYamlFile mealplanS recipeS mealplanFile
-  return $ KonApp { mealPlanStore = mealplanS
-                  , recipeStore = recipeS
+  conn <- Db.newSqliteConn dbFile
+  return $ KonApp { mealPlanStore = Db.mealPlanStoreDb conn
+                  , recipeStore = Db.recipeStoreDb conn
                   , dirStatic = "static"
                   , dbConn = conn
                   }
-  where
-    initConn = do
-      let dbFile = "kon-board.sqlite3"
-      exists <- liftIO $ doesFileExist dbFile
-      when exists $ do
-        liftIO $ removeFile dbFile
-      Db.newSqliteConn dbFile
 
 closeKonApp :: MonadIO m1 => KonApp m2 -> m1 ()
 closeKonApp app = liftIO $ Db.close $ getField @"dbConn" app
+
+initDb :: (MonadLogger m, MonadIO m, MonadMask m) => m ()
+initDb = do
+  clearDb
+  bracket (Db.newSqliteConn dbFile) Db.close $ \conn -> do
+    let recipeS = Db.recipeStoreDb conn
+    loadRecipes recipeS
+    loadMealPlans recipeS $ Db.mealPlanStoreDb conn
+  where
+    clearDb = do
+      exists <- liftIO $ doesFileExist dbFile
+      when exists $ do
+        liftIO $ removeFile dbFile
+    loadRecipes recipeS = do
+      recipeFiles <- liftIO $ glob "recipes/*.yaml"
+      forM_ recipeFiles $ \recipeFile -> do
+        logDebugN ("Load recipe file: " <> pack recipeFile)
+        liftIO $ RecipeY.loadYamlFile recipeS recipeFile
+    loadMealPlans recipeS mealPlanS = do
+      mealPlanFiles <- liftIO $ glob "meal-plans/*.yaml"
+      forM_ mealPlanFiles $ \mealPlanFile -> do
+        logDebugN ("Load meal plan file: " <> pack mealPlanFile)
+        liftIO $ MealPlanY.loadYamlFile mealPlanS recipeS mealPlanFile
