@@ -124,6 +124,7 @@ initDb = do
     clearDb = do
       exists <- liftIO $ doesFileExist dbFile
       when exists $ do
+        logDebugN (pack dbFile <> " exists. Remove it.")
         liftIO $ removeFile dbFile
     loadRecipes recipeS = do
       recipeFiles <- liftIO $ glob "recipes/*.yaml"
