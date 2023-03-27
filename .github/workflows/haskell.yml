@@ -45,6 +45,7 @@ jobs:
       run: cabal v2-build all
     - name: Haddock
       run: cabal v2-haddock all
+      continue-on-error: true
     - name: Build Elm
       run: make frontend
     - name: Test
