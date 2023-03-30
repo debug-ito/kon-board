@@ -103,6 +103,7 @@ dbFile = "kon-board.sqlite3"
 
 newKonApp :: LoggingT IO (KonApp AppM)
 newKonApp =  do
+  logDebugN ("open " <> pack dbFile)
   conn <- Db.newSqliteConn dbFile
   return $ KonApp { mealPlanStore = Db.mealPlanStoreDb conn
                   , recipeStore = Db.recipeStoreDb conn
