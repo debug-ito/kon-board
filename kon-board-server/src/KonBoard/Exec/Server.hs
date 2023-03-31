@@ -1,6 +1,7 @@
 -- | Executable of kon-board backend server
 module KonBoard.Exec.Server
     ( main
+    , initDbMain
     ) where
 
 import           Control.Exception.Safe   (bracket)
@@ -25,4 +26,7 @@ main = runStderrLoggingT $ do
     let port = 8888 :: Int
     logInfoN ("Listen on port " <> (pack $ show port))
     liftIO $ run port $ appWith server
+
+initDbMain :: IO ()
+initDbMain = runStderrLoggingT initDb
 
