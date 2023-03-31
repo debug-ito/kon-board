@@ -1,8 +1,11 @@
 # Revision history for kon-board
 
-## 0.7.1.0  -- ?
+## 0.7.1.0  -- 2023-03-31
 
 - Now kon-board-server uses `KonBoard.Db` for the storage backend.
+  - By default, `kon-board-server` initializes the DB at start-up.
+  - If you set `KON_BOARD_NO_INIT_DB_AT_START` environment variable to a non-empty string, the `kon-board-server` uses the DB as-is.
+- Add `kon-board-init-db` executable, which just initializes the DB and quits.
 
 ## 0.7.0.0  -- 2023-03-22
 
