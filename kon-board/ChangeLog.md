@@ -1,5 +1,7 @@
 # Revision history for kon-board
 
+## 0.7.2.0  -- ?
+
 ## 0.7.1.0  -- 2023-03-31
 
 - Now kon-board-server uses `KonBoard.Db` for the storage backend.
