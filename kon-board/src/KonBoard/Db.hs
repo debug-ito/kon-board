@@ -98,6 +98,7 @@ recipeStoreDb c =
       dbrId <- fromRecipeId i
       traverse fromDbRecipe =<< (liftIO $ runBeamSqliteTx c $ getDbRecipeById dbrId)
   , getRecipeByName = \n -> traverse fromDbRecipe =<< (liftIO $ runBeamSqliteTx c $ getDbRecipeByName n)
+  , getRecipesByQuery = \_ -> throwString "not implemented" -- TODO
   }
 
 initDb :: Conn -> IO ()

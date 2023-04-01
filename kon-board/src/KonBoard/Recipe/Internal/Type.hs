@@ -20,9 +20,10 @@ module KonBoard.Recipe.Internal.Type
     , RecipeStored (..)
     ) where
 
-import qualified Data.Text     as T
+import qualified Data.Text      as T
 
-import           KonBoard.Base (ByteString, HasField (..), Text, UTCTime, when)
+import           KonBoard.Base  (ByteString, HasField (..), Text, UTCTime, when)
+import           KonBoard.Query (Query)
 
 
 -- | Human-friendly name for a recipe.
@@ -119,10 +120,10 @@ data RecipeStored
 -- | Storage interface of recipes.
 data RecipeStore m
   = RecipeStore
-      { addRecipe       :: Recipe -> m Id
-      , updateRecipe    :: RecipeStored -> m ()
-      , getRecipeById   :: Id -> m (Maybe RecipeStored)
-      , getRecipeByName :: Name -> m (Maybe RecipeStored)
+      { addRecipe         :: Recipe -> m Id
+      , updateRecipe      :: RecipeStored -> m ()
+      , getRecipeById     :: Id -> m (Maybe RecipeStored)
+      , getRecipeByName   :: Name -> m (Maybe RecipeStored)
+      , getRecipesByQuery :: Query -> m [RecipeStored]
         -- TODO: add deleteRecipe
       }
-

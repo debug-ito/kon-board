@@ -34,10 +34,12 @@ newRecipeStore = do
       getByNameImpl n = do
         rs <- liftIO $ readIORef refStore
         return $ getRecipeByNamePure n rs
+      getByQueryImpl _ = throwString "not implemented"
   return $ RecipeStore { addRecipe = addImpl
                        , updateRecipe = updateImpl
                        , getRecipeById = getByIdImpl
                        , getRecipeByName = getByNameImpl
+                       , getRecipesByQuery = getByQueryImpl
                        }
 
 

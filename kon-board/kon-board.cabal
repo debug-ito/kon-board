@@ -42,7 +42,8 @@ library
                         KonBoard.Web.Api,
                         KonBoard.Db
   other-modules:        KonBoard.Base,
-                        KonBoard.Db.Orphans
+                        KonBoard.Db.Orphans,
+                        KonBoard.Query
   build-depends:        base >=4.13.0.0 && <4.14,
                         text,
                         aeson >=2.0 && <2.1,
