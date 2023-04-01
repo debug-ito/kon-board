@@ -1,5 +1,6 @@
 module KonBoard.Recipe.TestStore
     ( recipeStoreSpec
+    , getRecipesByQuerySpec
     , loadCommonRecipes
     ) where
 
@@ -75,3 +76,19 @@ recipeStoreSpec = beforeWith loadCommonRecipes $ specWithStore
         gotByName `shouldBe` Just newStored
         gotById <- getRecipeById store oldId
         gotById `shouldBe` Just newStored
+
+getRecipesByQuerySpec :: SpecWith (RecipeStore IO)
+getRecipesByQuerySpec = beforeWith loadCommonRecipes $ specWithStore
+  where
+    specWithStore = do
+      describe "getRecipesByQuery" $ do
+        specify "empty query should return all" $ \_ -> True `shouldBe` False -- TODO
+        specify "count" $ \_ -> True `shouldBe` False -- TODO
+        specify "offset" $ \_ -> True `shouldBe` False -- TODO
+        specify "zero hit" $ \_ -> True `shouldBe` False -- TODO
+        specify "hit by name" $ \_ -> True `shouldBe` False -- TODO
+        specify "hit by ing" $ \_ -> True `shouldBe` False -- TODO
+        specify "hit by desc" $ \_ -> True `shouldBe` False -- TODO
+        specify "hit by ref source" $ \_ -> True `shouldBe` False -- TODO
+        specify "hit by ref url" $ \_ -> True `shouldBe` False -- TODO
+        specify "hit by name and desc" $ \_ -> True `shouldBe` False -- TODO

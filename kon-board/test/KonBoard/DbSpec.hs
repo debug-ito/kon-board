@@ -16,7 +16,8 @@ import           KonBoard.MealPlan           (MealPlanStore)
 import           KonBoard.Recipe             (RecipeStore (..), RecipeStored (..), parseRecipe)
 
 import           KonBoard.MealPlan.TestStore (mealPlanStoreSpec)
-import           KonBoard.Recipe.TestStore   (loadCommonRecipes, recipeStoreSpec)
+import           KonBoard.Recipe.TestStore   (getRecipesByQuerySpec, loadCommonRecipes,
+                                              recipeStoreSpec)
 
 main :: IO ()
 main = hspec spec
@@ -31,6 +32,7 @@ specRecipeStore = do
   before openDbOnTempFile $ after closeDbOnTempFile $ do
     beforeWith getRecipeStore $ describe "recipeStoreDb" $ do
       recipeStoreSpec
+      getRecipesByQuerySpec
       describe "updateRecipe" $ do
         specify "change name of a recipe" $ \store -> do
           _ <- loadCommonRecipes store
