@@ -1,0 +1,25 @@
+---
+name: recipe 1
+url: http://example.com/1
+---
+name: special curry rice
+url: http://example.com/2
+---
+name: with ings
+ings:
+  - onion, 1
+  - carrot, 1
+desc: hoge hoge
+---
+name: with desc
+desc: blah quux blah
+---
+name: with source
+source: blah fuga blah
+---
+name: R in ings
+ings:
+  - rice, 1 cup
+---
+name: R in desc
+desc: just boil rice.

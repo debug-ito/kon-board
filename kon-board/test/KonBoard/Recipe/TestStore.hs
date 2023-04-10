@@ -26,16 +26,17 @@ loadAndCheckName store inputName = do
   rsById `shouldBe` rs
   -- putStrLn ("Recipe: '" <> T.unpack inputName <> "' -> ID: " <> T.unpack rid)
 
-loadCommonRecipes :: RecipeStore IO -> IO (RecipeStore IO)
-loadCommonRecipes rs = do
-  traverse_ (loadYamlFile rs) $ map ("test/recipes/" <>) commonYamlFiles
+loadTestRecipes :: [FilePath] -> RecipeStore IO -> IO (RecipeStore IO)
+loadTestRecipes files rs = do
+  traverse_ (loadYamlFile rs) $ map ("test/recipes/" <>) files
   return rs
-  where
-    commonYamlFiles = [ "recipe_in.yaml"
-                      , "recipe_in_url.yaml"
-                      , "recipe_multi.yaml"
-                      , "recipe_url.yaml"
-                      ]
+
+loadCommonRecipes :: RecipeStore IO -> IO (RecipeStore IO)
+loadCommonRecipes = loadTestRecipes [ "recipe_in.yaml"
+                                    , "recipe_in_url.yaml"
+                                    , "recipe_multi.yaml"
+                                    , "recipe_url.yaml"
+                                    ]
 
 -- | Common spec of 'RecipeStore'. The caller must provide an empty 'RecipeStore'.
 recipeStoreSpec :: SpecWith (RecipeStore IO)
@@ -78,7 +79,7 @@ recipeStoreSpec = beforeWith loadCommonRecipes $ specWithStore
         gotById `shouldBe` Just newStored
 
 getRecipesByQuerySpec :: SpecWith (RecipeStore IO)
-getRecipesByQuerySpec = beforeWith loadCommonRecipes $ specWithStore
+getRecipesByQuerySpec = beforeWith (loadTestRecipes ["recipe_query_test.yaml"]) $ specWithStore
   where
     specWithStore = do
       describe "getRecipesByQuery" $ do
@@ -92,3 +93,4 @@ getRecipesByQuerySpec = beforeWith loadCommonRecipes $ specWithStore
         specify "hit by ref source" $ \_ -> True `shouldBe` False -- TODO
         specify "hit by ref url" $ \_ -> True `shouldBe` False -- TODO
         specify "hit by name and desc" $ \_ -> True `shouldBe` False -- TODO
+        specify "two query terms (AND condition)" $ \_ -> True `shouldBe` False -- TODO
