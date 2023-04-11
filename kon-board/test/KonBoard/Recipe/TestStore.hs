@@ -11,7 +11,7 @@ import qualified Data.Text                     as T
 import           GHC.Records                   (HasField (..))
 import           Test.Hspec
 
-import           KonBoard.Query                (Query (..))
+import           KonBoard.Query                (Answer (..), Query (..))
 import           KonBoard.Recipe               (Id, Name, RecipeStore (..), RecipeStored (..),
                                                 Ref (..))
 import           KonBoard.Recipe.Internal.Type (Recipe (..))
@@ -90,22 +90,24 @@ getRecipesByQuerySpec = beforeWith (loadTestRecipes ["recipe_query_test.yaml"]) 
         specify "zero hit" $ \_ -> True `shouldBe` False -- TODO
         specify "hit by name" $ \rs -> do
           got <- getRecipesByQuery rs $ qDef { query = "curry" }
-          map rName got `shouldBe` ["special curry rice"]
+          rNames got `shouldBe` (False, ["special curry rice"])
         specify "hit by ing" $ \rs -> do
           got <- getRecipesByQuery rs $ qDef { query = "onion" }
-          map rName got `shouldBe` ["with ings"]
+          rNames got `shouldBe` (False, ["with ings"])
         specify "hit by desc" $ \rs -> do
           got <- getRecipesByQuery rs $ qDef { query = "quux" }
-          map rName got `shouldBe` ["with desc"]
+          rNames got `shouldBe` (False, ["with desc"])
         specify "hit by ref source" $ \rs -> do
           got <- getRecipesByQuery rs $ qDef { query = "fuga" }
-          map rName got `shouldBe` ["with source"]
+          rNames got `shouldBe` (False, ["with source"])
         specify "hit by ref url" $ \rs -> do
           got <- getRecipesByQuery rs $ qDef { query = "example.com" }
-          map rName got `shouldBe` ["special curry rice", "recipe 1"]
+          rNames got `shouldBe` (False, ["special curry rice", "recipe 1"])
         specify "hit by name, ings and desc" $ \rs -> do
           got <- getRecipesByQuery rs $ qDef { query = "rice" }
-          map rName got `shouldBe` ["special curry rice", "R in ings", "R in desc"]
+          rNames got `shouldBe` (False, ["special curry rice", "R in ings", "R in desc"])
         specify "two query terms (AND condition)" $ \_ -> True `shouldBe` False -- TODO
-    rName rStored = getField @"name" $ getField @"recipe" rStored
+    rNames ans = ( getField @"hasNext" ans
+                 , map (getField @"name" . getField @"recipe") $ getField @"items" ans
+                 )
     qDef = Query { query = "", count = 100, offset = 0 }

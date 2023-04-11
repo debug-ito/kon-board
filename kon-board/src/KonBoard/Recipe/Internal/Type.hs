@@ -23,7 +23,7 @@ module KonBoard.Recipe.Internal.Type
 import qualified Data.Text      as T
 
 import           KonBoard.Base  (ByteString, HasField (..), Text, UTCTime, when)
-import           KonBoard.Query (Query)
+import           KonBoard.Query (Answer, Query)
 
 
 -- | Human-friendly name for a recipe.
@@ -124,6 +124,6 @@ data RecipeStore m
       , updateRecipe      :: RecipeStored -> m ()
       , getRecipeById     :: Id -> m (Maybe RecipeStored)
       , getRecipeByName   :: Name -> m (Maybe RecipeStored)
-      , getRecipesByQuery :: Query -> m [RecipeStored]
+      , getRecipesByQuery :: Query -> m (Answer RecipeStored)
         -- TODO: add deleteRecipe
       }

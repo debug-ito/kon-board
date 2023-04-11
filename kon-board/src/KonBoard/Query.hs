@@ -1,5 +1,6 @@
 module KonBoard.Query
     ( Query(..)
+    , Answer(..)
     ) where
 
 import           KonBoard.Base (Generic, Text)
@@ -11,3 +12,10 @@ data Query
       , offset :: Int
       }
   deriving (Eq, Generic, Ord, Show)
+
+data Answer a
+  = Answer
+      { items   :: [a]
+      , hasNext :: Bool
+      }
+  deriving (Eq, Foldable, Functor, Generic, Ord, Show, Traversable)
