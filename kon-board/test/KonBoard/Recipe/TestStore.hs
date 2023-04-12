@@ -82,12 +82,41 @@ recipeStoreSpec = beforeWith loadCommonRecipes $ specWithStore
 getRecipesByQuerySpec :: SpecWith (RecipeStore IO)
 getRecipesByQuerySpec = beforeWith (loadTestRecipes ["recipe_query_test.yaml"]) $ specWithStore
   where
+    allRecipeNames = [ "R in desc"
+                     , "R in ings"
+                     , "with source"
+                     , "with desc"
+                     , "with ings"
+                     , "special curry rice"
+                     , "recipe 1"
+                     ]
     specWithStore = do
       describe "getRecipesByQuery" $ do
-        specify "empty query should return all" $ \_ -> True `shouldBe` False -- TODO
-        specify "count" $ \_ -> True `shouldBe` False -- TODO
-        specify "offset" $ \_ -> True `shouldBe` False -- TODO
-        specify "zero hit" $ \_ -> True `shouldBe` False -- TODO
+        specify "empty query should return all" $ \rs -> do
+          got <- getRecipesByQuery rs $ qDef { query = "" }
+          rNames got `shouldBe` (False, allRecipeNames)
+        specify "count" $ \rs -> do
+          got <- getRecipesByQuery rs $ qDef { query = "", count = 3 }
+          rNames got `shouldBe` (True, take 3 allRecipeNames)
+        specify "offset" $ \rs -> do
+          got <- getRecipesByQuery rs $ qDef { query = "", offset = 3 }
+          rNames got `shouldBe` (False, drop 3 allRecipeNames)
+        specify "count and offset" $ \rs -> do
+          got <- getRecipesByQuery rs $ qDef { query = "", count = 3, offset = 3 }
+          rNames got `shouldBe` (True, take 3 $ drop 3 allRecipeNames)
+        specify "count = length" $ \rs -> do
+          got <- getRecipesByQuery rs $ qDef { query = "", count = fromIntegral $ length allRecipeNames }
+          rNames got `shouldBe` (False, allRecipeNames)
+        specify "count = length with offset" $ \rs -> do
+          let os = 2
+          got <- getRecipesByQuery rs $ qDef { query = "", count = fromIntegral (length allRecipeNames - os), offset = fromIntegral os }
+          rNames got `shouldBe` (False, drop os allRecipeNames)
+        specify "too big offset" $ \rs -> do
+          got <- getRecipesByQuery rs $ qDef { query = "", offset = fromIntegral $ length allRecipeNames }
+          rNames got `shouldBe` (False, [])
+        specify "zero hit" $ \rs -> do
+          got <- getRecipesByQuery rs $ qDef { query = "xxxx" }
+          rNames got `shouldBe` (False, [])
         specify "hit by name" $ \rs -> do
           got <- getRecipesByQuery rs $ qDef { query = "curry" }
           rNames got `shouldBe` (False, ["special curry rice"])
@@ -105,8 +134,10 @@ getRecipesByQuerySpec = beforeWith (loadTestRecipes ["recipe_query_test.yaml"]) 
           rNames got `shouldBe` (False, ["special curry rice", "recipe 1"])
         specify "hit by name, ings and desc" $ \rs -> do
           got <- getRecipesByQuery rs $ qDef { query = "rice" }
-          rNames got `shouldBe` (False, ["special curry rice", "R in ings", "R in desc"])
-        specify "two query terms (AND condition)" $ \_ -> True `shouldBe` False -- TODO
+          rNames got `shouldBe` (False, ["R in desc", "R in ings", "special curry rice"])
+        specify "two query terms (AND condition)" $ \rs -> do
+          got <- getRecipesByQuery rs $ qDef { query = "rice example.com" }
+          rNames got `shouldBe` (False, ["special curry rice"])
     rNames ans = ( getField @"hasNext" ans
                  , map (getField @"name" . getField @"recipe") $ getField @"items" ans
                  )
