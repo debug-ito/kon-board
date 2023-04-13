@@ -28,6 +28,7 @@ import           KonBoard.Base                            (ByteString, Day, Gene
 import           KonBoard.Db.Orphans                      ()
 import           KonBoard.MealPlan                        (MealPhase (..), MealPlan (..),
                                                            MealPlanStore (..))
+import           KonBoard.Query                           (Answer (..), QTerms (..))
 import           KonBoard.Recipe                          (Id, IngDesc (..), Ingredient (..),
                                                            Recipe, RecipeStore (..),
                                                            RecipeStored (..), Ref (..), parseRecipe)
@@ -194,6 +195,20 @@ getDbRecipeByName recipeName = Beam.runSelectReturningOne $ Beam.select query
       r <- Beam.all_ $ getField @"dbRecipes" dbSettings
       Beam.guard_ $ getField @"rName" r ==. Beam.val_ recipeName
       return r
+
+getDbRecipesByQuery :: (MonadBeam Backend m) => QTerms -> Word -> Word -> m (Answer (DbRecipeT Identity))
+getDbRecipesByQuery (QTerms qTerms) count offset = fmap toAnswer $ Beam.runSelectReturningList $ Beam.select $ modifyQuery $ selectQuery
+  where
+    selectQuery = do
+      r <- Beam.all_ $ getField @"dbRecipes" dbSettings
+      mapM_ containsTerm qTerms
+      return r
+    containsTerm t = undefined -- TODO: how can we write '%' || ? || '%' in Beam?
+    modifyQuery q = Beam.limit_ (fromIntegral $ count + 1) $ Beam.offset_ (fromIntegral offset) $ Beam.orderBy_ order q
+    order r = Beam.desc_ $ getField @"rCreatedAt" r
+    toAnswer rs = Answer { items = take (fromIntegral count) rs
+                         , hasNext = length rs == (fromIntegral count - 1)
+                         }
 
 ----------------------------------------------------------------
 
