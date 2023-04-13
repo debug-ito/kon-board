@@ -29,8 +29,8 @@ import           KonBoard.Base                            (ByteString, Day, Gene
 import           KonBoard.Db.Orphans                      ()
 import           KonBoard.MealPlan                        (MealPhase (..), MealPlan (..),
                                                            MealPlanStore (..))
-import           KonBoard.Query                           (Answer (..), QTerms (..), Query (..),
-                                                           parseQTerms)
+import           KonBoard.Query                           (Answer (..), QTerms (..), parseQTerms)
+import qualified KonBoard.Query                           as KQuery (Query (..))
 import           KonBoard.Recipe                          (Id, IngDesc (..), Ingredient (..),
                                                            Recipe, RecipeStore (..),
                                                            RecipeStored (..), Ref (..), parseRecipe)
