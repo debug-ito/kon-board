@@ -18,12 +18,13 @@ import           Database.Beam                            (Beamable, C, Database
 import qualified Database.Beam                            as Beam
 import           Database.Beam.Backend                    (BeamSqlBackend)
 import           Database.Beam.Backend.SQL.BeamExtensions (MonadBeamInsertReturning (..))
+import           Database.Beam.Query.CustomSQL            (customExpr_)
 import           Database.Beam.Sqlite                     (Sqlite, SqliteM, runBeamSqlite)
 import qualified Database.SQLite.Simple                   as SQLite
 
 import           KonBoard.Base                            (ByteString, Day, Generic, HasField (..),
-                                                           Int32, Int8, MonadIO (..), MonadThrow,
-                                                           Text, UTCTime, fromGregorian,
+                                                           Int32, Int8, IsString, MonadIO (..),
+                                                           MonadThrow, Text, UTCTime, fromGregorian,
                                                            throwString, toGregorian)
 import           KonBoard.Db.Orphans                      ()
 import           KonBoard.MealPlan                        (MealPhase (..), MealPlan (..),
@@ -201,14 +202,27 @@ getDbRecipesByQuery (QTerms qTerms) count offset = fmap toAnswer $ Beam.runSelec
   where
     selectQuery = do
       r <- Beam.all_ $ getField @"dbRecipes" dbSettings
-      mapM_ containsTerm qTerms
+      mapM_ (containsTerm r) qTerms
       return r
-    containsTerm t = undefined -- TODO: how can we write '%' || ? || '%' in Beam?
+    containsTerm r t = Beam.guard_ $ Beam.like_ (getField @"rSearchText" r) (infixPattern t)
     modifyQuery q = Beam.limit_ (fromIntegral $ count + 1) $ Beam.offset_ (fromIntegral offset) $ Beam.orderBy_ order q
     order r = Beam.desc_ $ getField @"rCreatedAt" r
     toAnswer rs = Answer { items = take (fromIntegral count) rs
-                         , hasNext = length rs == (fromIntegral count - 1)
+                         , hasNext = length rs == (fromIntegral count + 1)
                          }
+
+infixPattern :: Text -> Beam.QGenExpr c Backend s Text
+infixPattern term = convertToQ $ addWildCards $ escape "_" $ escape "%" $ escape escapeChar term
+  where
+    escapeChar :: (Monoid a, IsString a) => a
+    escapeChar = "\\"
+    escape target t = T.replace target (escapeChar <> target) t
+    addWildCards t = "%" <> t <> "%"
+    convertToQ t =  escapedPatternQ $ Beam.val_ t
+    escapedPatternQ :: Beam.QGenExpr c Backend s Text -> Beam.QGenExpr c Backend s Text
+    escapedPatternQ = customExpr_ escapedPattern
+    escapedPattern :: (Monoid b, IsString b) => b -> b
+    escapedPattern t = t <> " ESCAPE '" <> escapeChar <> "'"
 
 ----------------------------------------------------------------
 

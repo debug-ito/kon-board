@@ -15,6 +15,7 @@ import           Data.Int               as X (Int32, Int8)
 import           Data.IORef             as X (IORef, modifyIORef, newIORef, readIORef, writeIORef)
 import           Data.Monoid            as X (Monoid (..))
 import           Data.Semigroup         as X (Semigroup (..))
+import           Data.String            as X (IsString)
 import           Data.Text              as X (Text)
 import           Data.Time              as X (Day, UTCTime, fromGregorian, getCurrentTime,
                                               toGregorian)
