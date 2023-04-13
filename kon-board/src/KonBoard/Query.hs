@@ -1,7 +1,14 @@
 module KonBoard.Query
-    ( Query(..)
+    ( -- * Query
+      Query(..)
     , Answer(..)
+      -- * QTerms
+    , QTerms(..)
+    , parseQTerms
     ) where
+
+import           Data.Char     (isSpace)
+import qualified Data.Text     as T
 
 import           KonBoard.Base (Generic, Text)
 
@@ -19,3 +26,11 @@ data Answer a
       , hasNext :: Bool
       }
   deriving (Eq, Foldable, Functor, Generic, Ord, Show, Traversable)
+
+-- | Parsed query text.
+data QTerms
+  = QTerms [Text]
+  deriving (Eq, Ord, Show)
+
+parseQTerms :: Text -> Either String QTerms
+parseQTerms input = return $ QTerms $ filter (/= "") $ T.split isSpace input
