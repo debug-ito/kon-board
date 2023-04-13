@@ -29,7 +29,8 @@ import           KonBoard.Base                            (ByteString, Day, Gene
 import           KonBoard.Db.Orphans                      ()
 import           KonBoard.MealPlan                        (MealPhase (..), MealPlan (..),
                                                            MealPlanStore (..))
-import           KonBoard.Query                           (Answer (..), QTerms (..))
+import           KonBoard.Query                           (Answer (..), QTerms (..), Query (..),
+                                                           parseQTerms)
 import           KonBoard.Recipe                          (Id, IngDesc (..), Ingredient (..),
                                                            Recipe, RecipeStore (..),
                                                            RecipeStored (..), Ref (..), parseRecipe)
@@ -100,7 +101,10 @@ recipeStoreDb c =
       dbrId <- fromRecipeId i
       traverse fromDbRecipe =<< (liftIO $ runBeamSqliteTx c $ getDbRecipeById dbrId)
   , getRecipeByName = \n -> traverse fromDbRecipe =<< (liftIO $ runBeamSqliteTx c $ getDbRecipeByName n)
-  , getRecipesByQuery = \_ -> throwString "not implemented" -- TODO
+  , getRecipesByQuery = \q -> do
+      qTerms <- either throwString return $ parseQTerms $ getField @"query" q
+      dbRs <- liftIO $ runBeamSqliteTx c $ getDbRecipesByQuery qTerms (getField @"count" q) (getField @"offset" q)
+      traverse fromDbRecipe dbRs
   }
 
 initDb :: Conn -> IO ()
