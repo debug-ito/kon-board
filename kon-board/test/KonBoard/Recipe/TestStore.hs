@@ -138,6 +138,9 @@ getRecipesByQuerySpec = beforeWith (loadTestRecipes ["recipe_query_test.yaml"]) 
         specify "two query terms (AND condition)" $ \rs -> do
           got <- getRecipesByQuery rs $ qDef { query = "rice example.com" }
           rNames got `shouldBe` (False, ["special curry rice"])
+        specify "query term with underscore" $ \rs -> do
+          got <- getRecipesByQuery rs $ qDef { query = "n_with_bar" }
+          rNames got `shouldBe` (False, ["n_with_bar_underscore"])
     rNames ans = ( getField @"hasNext" ans
                  , map (getField @"name" . getField @"recipe") $ getField @"items" ans
                  )

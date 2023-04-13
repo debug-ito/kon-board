@@ -23,3 +23,9 @@ ings:
 ---
 name: R in desc
 desc: just boil rice.
+---
+name: n_with_bar_underscore
+desc: hoge
+---
+name: n-with-bar-hyphen
+desc: foobar
