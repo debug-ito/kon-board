@@ -210,7 +210,7 @@ getDbRecipesByQuery (QTerms qTerms) count offset = fmap toAnswer $ Beam.runSelec
       return r
     containsTerm r t = Beam.guard_ $ likeEscaped (getField @"rSearchText" r) t
     modifyQuery q = Beam.limit_ (fromIntegral $ count + 1) $ Beam.offset_ (fromIntegral offset) $ Beam.orderBy_ order q
-    order r = Beam.desc_ $ getField @"rCreatedAt" r
+    order r = Beam.asc_ $ getField @"rName" r
     toAnswer rs = Answer { items = take (fromIntegral count) rs
                          , hasNext = length rs == (fromIntegral count + 1)
                          }

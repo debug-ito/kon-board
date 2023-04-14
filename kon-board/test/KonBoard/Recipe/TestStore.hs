@@ -7,6 +7,7 @@ module KonBoard.Recipe.TestStore
 import           Control.Monad                 (forM_, void)
 import           Control.Monad.Trans           (MonadIO (..))
 import           Data.Foldable                 (traverse_)
+import           Data.List                     (sort)
 import qualified Data.Text                     as T
 import           GHC.Records                   (HasField (..))
 import           Test.Hspec
@@ -82,16 +83,16 @@ recipeStoreSpec = beforeWith loadCommonRecipes $ specWithStore
 getRecipesByQuerySpec :: SpecWith (RecipeStore IO)
 getRecipesByQuerySpec = beforeWith (loadTestRecipes ["recipe_query_test.yaml"]) $ specWithStore
   where
-    allRecipeNames = [ "n-with-bar-hyphen"
-                     , "n_with_bar_underscore"
-                     , "R in desc"
-                     , "R in ings"
-                     , "with source"
-                     , "with desc"
-                     , "with ings"
-                     , "special curry rice"
-                     , "recipe 1"
-                     ]
+    allRecipeNames = sort [ "recipe 1"
+                          , "special curry rice"
+                          , "with ings"
+                          , "with desc"
+                          , "with source"
+                          , "R in ings"
+                          , "R in desc"
+                          , "n_with_bar_underscore"
+                          , "n-with-bar-hyphen"
+                          ]
     specWithStore = do
       describe "getRecipesByQuery" $ do
         specify "empty query should return all" $ \rs -> do
@@ -133,7 +134,7 @@ getRecipesByQuerySpec = beforeWith (loadTestRecipes ["recipe_query_test.yaml"]) 
           rNames got `shouldBe` (False, ["with source"])
         specify "hit by ref url" $ \rs -> do
           got <- getRecipesByQuery rs $ qDef { query = "example.com" }
-          rNames got `shouldBe` (False, ["special curry rice", "recipe 1"])
+          rNames got `shouldBe` (False, ["recipe 1", "special curry rice"])
         specify "hit by name, ings and desc" $ \rs -> do
           got <- getRecipesByQuery rs $ qDef { query = "rice" }
           rNames got `shouldBe` (False, ["R in desc", "R in ings", "special curry rice"])
