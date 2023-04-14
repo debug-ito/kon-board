@@ -82,7 +82,9 @@ recipeStoreSpec = beforeWith loadCommonRecipes $ specWithStore
 getRecipesByQuerySpec :: SpecWith (RecipeStore IO)
 getRecipesByQuerySpec = beforeWith (loadTestRecipes ["recipe_query_test.yaml"]) $ specWithStore
   where
-    allRecipeNames = [ "R in desc"
+    allRecipeNames = [ "n-with-bar-hyphen"
+                     , "n_with_bar_underscore"
+                     , "R in desc"
                      , "R in ings"
                      , "with source"
                      , "with desc"
