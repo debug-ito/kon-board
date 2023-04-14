@@ -208,25 +208,24 @@ getDbRecipesByQuery (QTerms qTerms) count offset = fmap toAnswer $ Beam.runSelec
       r <- Beam.all_ $ getField @"dbRecipes" dbSettings
       mapM_ (containsTerm r) qTerms
       return r
-    containsTerm r t = Beam.guard_ $ Beam.like_ (getField @"rSearchText" r) (infixPattern t)
+    containsTerm r t = Beam.guard_ $ likeEscaped (getField @"rSearchText" r) t
     modifyQuery q = Beam.limit_ (fromIntegral $ count + 1) $ Beam.offset_ (fromIntegral offset) $ Beam.orderBy_ order q
     order r = Beam.desc_ $ getField @"rCreatedAt" r
     toAnswer rs = Answer { items = take (fromIntegral count) rs
                          , hasNext = length rs == (fromIntegral count + 1)
                          }
 
-infixPattern :: Text -> Beam.QGenExpr c Backend s Text
-infixPattern term = convertToQ $ addWildCards $ escape "_" $ escape "%" $ escape escapeChar term
+likeEscaped :: Beam.QGenExpr c Backend s Text -> Text -> Beam.QGenExpr c Backend s Bool
+likeEscaped target rawPattern = likeEscapedOp target $ Beam.val_ $ addWildCards $ escape "_" $ escape "%" $ escape escapeChar rawPattern
   where
     escapeChar :: (Monoid a, IsString a) => a
     escapeChar = "\\"
-    escape target t = T.replace target (escapeChar <> target) t
+    escape c t = T.replace c (escapeChar <> c) t
     addWildCards t = "%" <> t <> "%"
-    convertToQ t =  escapedPatternQ $ Beam.val_ t
-    escapedPatternQ :: Beam.QGenExpr c Backend s Text -> Beam.QGenExpr c Backend s Text
-    escapedPatternQ = customExpr_ escapedPattern
-    escapedPattern :: (Monoid b, IsString b) => b -> b
-    escapedPattern t = t <> " ESCAPE '" <> escapeChar <> "'"
+    likeEscapedOp :: Beam.QGenExpr c Backend s Text -> Beam.QGenExpr c Backend s Text -> Beam.QGenExpr c Backend s Bool
+    likeEscapedOp = customExpr_ likeEscapedStr
+    likeEscapedStr :: (Monoid b, IsString b) => b -> b -> b
+    likeEscapedStr l r = l <> " LIKE " <> r <> " ESCAPE '" <> escapeChar <> "'"
 
 ----------------------------------------------------------------
 
