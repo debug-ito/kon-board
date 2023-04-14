@@ -88,6 +88,7 @@ getRecipesByQuerySpec = beforeWith (loadTestRecipes ["recipe_query_test.yaml"]) 
                           , "with ings"
                           , "with desc"
                           , "with source"
+                          , "with url anchor"
                           , "R in ings"
                           , "R in desc"
                           , "n_with_bar_underscore"
@@ -135,6 +136,9 @@ getRecipesByQuerySpec = beforeWith (loadTestRecipes ["recipe_query_test.yaml"]) 
         specify "hit by ref url" $ \rs -> do
           got <- getRecipesByQuery rs $ qDef { query = "example.com" }
           rNames got `shouldBe` (False, ["recipe 1", "special curry rice"])
+        specify "hit by ref url anchor" $ \rs -> do
+          got <- getRecipesByQuery rs $ qDef { query = "1234" }
+          rNames got `shouldBe` (False, ["with url anchor"])
         specify "hit by name, ings and desc" $ \rs -> do
           got <- getRecipesByQuery rs $ qDef { query = "rice" }
           rNames got `shouldBe` (False, ["R in desc", "R in ings", "special curry rice"])

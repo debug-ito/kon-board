@@ -17,6 +17,10 @@ desc: blah quux blah
 name: with source
 source: blah fuga blah
 ---
+name: with url anchor
+url: http://example.org/3
+source: blah 1234 blah
+---
 name: R in ings
 ings:
   - rice, 1 cup
