@@ -25,7 +25,7 @@ import qualified Database.SQLite.Simple                   as SQLite
 import           KonBoard.Base                            (ByteString, Day, Generic, HasField (..),
                                                            Int32, Int8, IsString, MonadIO (..),
                                                            MonadThrow, Text, UTCTime, fromGregorian,
-                                                           throwString, toGregorian)
+                                                           throwString, toGregorian, toList)
 import           KonBoard.Db.Orphans                      ()
 import           KonBoard.MealPlan                        (MealPhase (..), MealPlan (..),
                                                            MealPlanStore (..))
@@ -135,10 +135,11 @@ makeSearchText r = T.intercalate "\n" elements
     foodItems = selectFoodItem =<< getField @"ingredients" r
     selectFoodItem (IngSingle (Ingredient f _)) = [f]
     selectFoodItem (IngGroup _ ings)            = map (\(Ingredient f _) -> f) ings
-    refs = selectRefSource =<< getField @"references" r
-    selectRefSource (RefSource t) = [t]
-    selectRefSource _             = []
-
+    refs = refTexts =<< getField @"references" r
+    refTexts ref =
+      case ref of
+        RefSource t -> [t]
+        RefUrl u ma -> [u] ++ toList ma
 
 toDbRecipe :: Recipe -> DbRecipeT (QExpr Backend s)
 toDbRecipe r =
