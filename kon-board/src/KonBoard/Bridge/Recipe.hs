@@ -13,12 +13,15 @@ module KonBoard.Bridge.Recipe
     , BIngredient
     , toBIngredient
     , BIngGrouped
+    , BAnswerRecipe
+    , toBAnswerRecipe
     ) where
 
 import           Elm.Derive          (deriveBoth)
 import           Servant.API         (FromHttpApiData)
 
 import           KonBoard.Base       (HasField (..), Text)
+import           KonBoard.Query      (Answer (..))
 import           KonBoard.Recipe     (Id, IngDesc (..), Ingredient (..), Recipe, RecipeStored (..),
                                       Ref (..))
 import           KonBoard.Util.Aeson (dropLabelOptions)
@@ -96,9 +99,22 @@ toBRecipeStored rs =
   where
     r = getField @"recipe" rs
 
+data BAnswerRecipe
+  = BAnswerRecipe
+      { recipes  :: [BRecipeStored]
+      , has_next :: Bool
+      }
+  deriving (Eq, Ord, Show)
+
+toBAnswerRecipe :: Answer RecipeStored -> BAnswerRecipe
+toBAnswerRecipe a = BAnswerRecipe { recipes = map toBRecipeStored $ getField @"items" a
+                                  , has_next = getField @"hasNext" a
+                                  }
+
 $(deriveBoth (dropLabelOptions 0) ''BRecipeStored)
 $(deriveBoth (dropLabelOptions 0) ''BRecipeId)
 $(deriveBoth (dropLabelOptions 0) ''BRef)
 $(deriveBoth (dropLabelOptions 0) ''BIngGrouped)
 $(deriveBoth (dropLabelOptions 0) ''BIngDesc)
 $(deriveBoth (dropLabelOptions 0) ''BIngredient)
+$(deriveBoth (dropLabelOptions 0) ''BAnswerRecipe)
