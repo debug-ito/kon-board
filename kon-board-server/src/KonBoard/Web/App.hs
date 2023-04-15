@@ -33,11 +33,12 @@ import           System.FilePath.Glob           (glob)
 
 import           KonBoard.Bridge.MealPlan       (BMealPlan, toBMealPlan)
 import           KonBoard.Bridge.Recipe         (BAnswerRecipe, BRecipeId, BRecipeStored,
-                                                 fromBRecipeId, toBRecipeStored)
+                                                 fromBRecipeId, toBAnswerRecipe, toBRecipeStored)
 import           KonBoard.Bridge.Time           (BDay, fromBDay)
 import qualified KonBoard.Db                    as Db
 import           KonBoard.MealPlan              (MealPlanStore (..))
 import qualified KonBoard.MealPlan.Yaml         as MealPlanY
+import           KonBoard.Query                 (Query (..))
 import           KonBoard.Recipe                (RecipeStore (..))
 import qualified KonBoard.Recipe.Yaml           as RecipeY
 import           KonBoard.Web.Api               (DataApi)
@@ -77,8 +78,12 @@ handleGetRecipe rstore rid = do
   mr <- getRecipeById rstore $ fromBRecipeId rid
   maybe (throw Sv.err404) (return . toBRecipeStored) mr
 
-handleGetRecipesByQuery :: Monad m => Maybe Text -> Maybe Word -> Maybe Word -> m BAnswerRecipe
-handleGetRecipesByQuery = undefined -- TODO
+handleGetRecipesByQuery :: MonadThrow m => RecipeStore m -> Maybe Text -> Maybe Word -> Maybe Word -> m BAnswerRecipe
+handleGetRecipesByQuery rStore inQ inCount inOffset = fmap toBAnswerRecipe $ getRecipesByQuery rStore (Query { query =  q, count = c, offset = o})
+  where
+    q = maybe "" id inQ
+    c = maybe 20 id inCount
+    o = maybe 0 id inOffset
 
 appToHandler :: AppM a -> Handler a
 appToHandler app = Handler $ ExceptT $ try app
@@ -89,9 +94,10 @@ appWith konApp = application
   where
     application = rewriteRoot $ Sv.serve api $ hoistServer api appToHandler service
     api = Proxy :: Proxy AppApi
+    rStore = getField @"recipeStore" konApp
     service = ( handleGetMealPlans (getField @"mealPlanStore" konApp)
-                :<|> ( handleGetRecipe (getField @"recipeStore" konApp)
-                       :<|> handleGetRecipesByQuery
+                :<|> ( handleGetRecipe rStore
+                       :<|> handleGetRecipesByQuery rStore
                      )
               )
               :<|> Sv.serveDirectoryWebApp (getField @"dirStatic" konApp)
