@@ -19,7 +19,7 @@ import           Control.Monad.Logger           (LoggingT, MonadLogger, logDebug
 import           Control.Monad.Trans            (MonadIO (liftIO))
 import           Data.Monoid                    ((<>))
 import           Data.Proxy                     (Proxy (..))
-import           Data.Text                      (pack)
+import           Data.Text                      (Text, pack)
 import qualified Data.Text.Lazy                 as TL
 import qualified Data.Text.Lazy.Encoding        as TL
 import           GHC.Records                    (HasField (..))
@@ -32,8 +32,8 @@ import           System.Directory               (doesFileExist, removeFile)
 import           System.FilePath.Glob           (glob)
 
 import           KonBoard.Bridge.MealPlan       (BMealPlan, toBMealPlan)
-import           KonBoard.Bridge.Recipe         (BRecipeId, BRecipeStored, fromBRecipeId,
-                                                 toBRecipeStored)
+import           KonBoard.Bridge.Recipe         (BAnswerRecipe, BRecipeId, BRecipeStored,
+                                                 fromBRecipeId, toBRecipeStored)
 import           KonBoard.Bridge.Time           (BDay, fromBDay)
 import qualified KonBoard.Db                    as Db
 import           KonBoard.MealPlan              (MealPlanStore (..))
@@ -77,6 +77,9 @@ handleGetRecipe rstore rid = do
   mr <- getRecipeById rstore $ fromBRecipeId rid
   maybe (throw Sv.err404) (return . toBRecipeStored) mr
 
+handleGetRecipesByQuery :: Monad m => Maybe Text -> Maybe Word -> Maybe Word -> m BAnswerRecipe
+handleGetRecipesByQuery = undefined -- TODO
+
 appToHandler :: AppM a -> Handler a
 appToHandler app = Handler $ ExceptT $ try app
 
@@ -87,7 +90,9 @@ appWith konApp = application
     application = rewriteRoot $ Sv.serve api $ hoistServer api appToHandler service
     api = Proxy :: Proxy AppApi
     service = ( handleGetMealPlans (getField @"mealPlanStore" konApp)
-                :<|> handleGetRecipe (getField @"recipeStore" konApp)
+                :<|> ( handleGetRecipe (getField @"recipeStore" konApp)
+                       :<|> handleGetRecipesByQuery
+                     )
               )
               :<|> Sv.serveDirectoryWebApp (getField @"dirStatic" konApp)
     rewriteRoot = rewritePureWithQueries rewrite
