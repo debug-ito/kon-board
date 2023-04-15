@@ -25,5 +25,5 @@ type Recipes =
   "recipes" :>
   ( ( Capture "recipe-id" BRecipeId :> Get '[JSON] BRecipeStored )
     :<|>
-    ( QueryParam "q" Text :> QueryParam "count" Word :> QueryParam "offset" Word :> Get '[JSON] BAnswerRecipe )
+    ( QueryParam "q" Text :> QueryParam "count" Int :> QueryParam "offset" Int :> Get '[JSON] BAnswerRecipe )
   )

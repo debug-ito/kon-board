@@ -78,12 +78,20 @@ handleGetRecipe rstore rid = do
   mr <- getRecipeById rstore $ fromBRecipeId rid
   maybe (throw Sv.err404) (return . toBRecipeStored) mr
 
-handleGetRecipesByQuery :: MonadThrow m => RecipeStore m -> Maybe Text -> Maybe Word -> Maybe Word -> m BAnswerRecipe
-handleGetRecipesByQuery rStore inQ inCount inOffset = fmap toBAnswerRecipe $ getRecipesByQuery rStore (Query { query =  q, count = c, offset = o})
+handleGetRecipesByQuery :: MonadThrow m => RecipeStore m -> Maybe Text -> Maybe Int -> Maybe Int -> m BAnswerRecipe
+handleGetRecipesByQuery rStore inQ inCount inOffset =
+  case (mCount, mOffset) of
+    (Just c, Just o) -> fmap toBAnswerRecipe $ getRecipesByQuery rStore (Query { query =  q, count = c, offset = o})
+    _ -> throw Sv.err400
   where
     q = maybe "" id inQ
-    c = maybe 20 id inCount
-    o = maybe 0 id inOffset
+    mCount = nonNegative $ maybe 20 id inCount
+    mOffset = nonNegative $ maybe 0 id inOffset
+
+nonNegative :: Int -> Maybe Word
+nonNegative i = if i >= 0
+                then Just $ fromIntegral i
+                else Nothing
 
 appToHandler :: AppM a -> Handler a
 appToHandler app = Handler $ ExceptT $ try app
