@@ -10,8 +10,8 @@ import qualified Servant.Elm              as Elm
 import           System.Environment       (getArgs)
 
 import           KonBoard.Bridge.MealPlan (BMealPlan)
-import           KonBoard.Bridge.Recipe   (BIngDesc, BIngGrouped, BIngredient, BRecipeId,
-                                           BRecipeStored, BRef)
+import           KonBoard.Bridge.Recipe   (BAnswerRecipe, BIngDesc, BIngGrouped, BIngredient,
+                                           BRecipeId, BRecipeStored, BRef)
 import           KonBoard.Bridge.Time     (BDay)
 import           KonBoard.Web.Api         (DataApi)
 
@@ -33,6 +33,7 @@ main = do
       , Elm.DefineElm (Proxy :: Proxy BIngDesc)
       , Elm.DefineElm (Proxy :: Proxy BIngredient)
       , Elm.DefineElm (Proxy :: Proxy BIngGrouped)
+      , Elm.DefineElm (Proxy :: Proxy BAnswerRecipe)
       ]
     api_proxy = Proxy :: Proxy DataApi
     elm_imports = Elm.defElmImports
