@@ -29,6 +29,7 @@ type Page =
     | PageRecipe PRecipeModel
       -- | The day page
     | PageDay PDayModel
+    | PageRecipeSearch PRecipeSearchModel
 
 type alias PTopModel =
     { viewportAdjusted : Coming String ()
@@ -44,6 +45,8 @@ type alias PDayModel =
     { day : Date
     , calEntry : Coming String CalEntry
     }
+
+type alias PRecipeSearchModel = ()
 
 initPage : Page
 initPage = PageTop { viewportAdjusted = NotStarted, currentAnchor = NotStarted }
@@ -73,6 +76,7 @@ parserPage =
     oneOf
     [ P.map initPage P.top
     , P.map initRecipePage (P.s "recipes" </> P.string)
+    , P.map (PageRecipeSearch ()) (P.s "recipes" </> P.top)
     , P.map initDayPage (P.s "days" </> parserDate)
     ]
 
@@ -88,3 +92,4 @@ isLoading p =
         PageTop t -> isPending t.viewportAdjusted || isPending t.currentAnchor
         PageRecipe r -> isPending r.recipe
         PageDay d -> isPending d.calEntry
+        PageRecipeSearch () -> False

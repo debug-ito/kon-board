@@ -230,6 +230,7 @@ appView m =
                         Nothing -> []
                         Just r -> [r.name]
                 PageDay d -> [(.showDateYMDA) (Locale.get m.locale) d.day]
+                PageRecipeSearch () -> [] -- TODO
     in result
 
 appUpdate : Msg -> Model -> (Model, Cmd Msg)
@@ -534,6 +535,7 @@ viewBody model =
                         _ -> []
                 PageRecipe rm -> viewRecipePage model.locale rm
                 PageDay dm -> viewDayPage model.locale dm
+                PageRecipeSearch () -> [] -- TODO
         err_msg =
             let alert_conf =
                     Alert.children [text <| second model.errorMsg]
