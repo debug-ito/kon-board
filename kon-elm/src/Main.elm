@@ -230,7 +230,7 @@ appView m =
                         Nothing -> []
                         Just r -> [r.name]
                 PageDay d -> [(.showDateYMDA) (Locale.get m.locale) d.day]
-                PageRecipeSearch () -> [] -- TODO
+                PageRecipeSearch () -> []
     in result
 
 appUpdate : Msg -> Model -> (Model, Cmd Msg)
@@ -535,7 +535,7 @@ viewBody model =
                         _ -> []
                 PageRecipe rm -> viewRecipePage model.locale rm
                 PageDay dm -> viewDayPage model.locale dm
-                PageRecipeSearch () -> [] -- TODO
+                PageRecipeSearch () -> [Html.p [] [Html.text "this is recipe search page!"]] -- TODO
         err_msg =
             let alert_conf =
                     Alert.children [text <| second model.errorMsg]
@@ -607,10 +607,11 @@ viewNavbar locale page calview (NavbarMenuState menu_state) is_loading =
                   , items = menu_items
                   }
                 ]
-        menu_items =
-            case page of
-                (PageTop _) -> viewMenuCalView locale calview
-                _ -> []
+        menu_items = defaultMenuItems
+                     ++ case page of
+                            (PageTop _) -> viewMenuCalView locale calview
+                            _ -> []
+        defaultMenuItems = [Dropdown.anchorItem [href "/recipes/"] [text "Search recipes"]] -- TODO: i18n
     in result
 
 viewNavbarCenter : Locale -> Page -> List (Html Msg)
