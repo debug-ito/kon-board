@@ -535,7 +535,7 @@ viewBody model =
                         _ -> []
                 PageRecipe rm -> viewRecipePage model.locale rm
                 PageDay dm -> viewDayPage model.locale dm
-                PageRecipeSearch () -> [Html.p [] [Html.text "this is recipe search page!"]] -- TODO
+                PageRecipeSearch () -> viewRecipeSearch model.locale
         err_msg =
             let alert_conf =
                     Alert.children [text <| second model.errorMsg]
@@ -947,3 +947,19 @@ viewDayPageDayMeal locale dm =
                 [Attr.class "cal-meal-plan-item", Attr.class "cal-meal-plan-item-note"]
                 [Html.text n]
     in result
+
+viewRecipeSearch : Locale -> List (Html Msg)
+viewRecipeSearch _ = 
+    let result =
+          [ Html.form []
+            [ Html.div [Attr.class "form-row"]
+              [ Html.div [Attr.class "col"]
+                [ Html.input [Attr.type_ "search", Attr.class "form-control", Attr.id "q", Attr.name "q"] [] ]
+              , Html.div [Attr.class "col"]
+                [ Html.button [Attr.type_ "submit", Attr.class "btn btn-primary"] [FIcons.toHtml [] <| FIcons.withSize 16 <| FIcons.search] ]
+              ]
+            ]
+          ]
+    in result
+                
+
