@@ -953,8 +953,8 @@ viewRecipeSearch _ =
     let result =
           [ Html.form []
             [ Html.div [Attr.class "form-row"]
-              [ Html.div [Attr.class "col"]
-                [ Html.input [Attr.type_ "search", Attr.class "form-control", Attr.id "q", Attr.name "q"] [] ]
+              [ Html.div [Attr.class "col-10"]
+                [ Html.input [Attr.type_ "search", Attr.class "form-control", Attr.id "q", Attr.name "q", Attr.autofocus True, Attr.placeholder "search recipe"] [] ] -- TODO: i18n
               , Html.div [Attr.class "col"]
                 [ Html.button [Attr.type_ "submit", Attr.class "btn btn-primary"] [FIcons.toHtml [] <| FIcons.withSize 16 <| FIcons.search] ]
               ]
