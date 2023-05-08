@@ -3,11 +3,14 @@ module Page exposing
     , PTopModel
     , PRecipeModel
     , PDayModel
+    , PRecipeSearchModel
+    , MsgRecipeSearch(..)
     , initPage
     , parseUrl
     , recipePageLink
     , dayPageLink
     , isLoading
+    , updatePRecipeSearchModel
     )
 
 import Date exposing (Date)
@@ -46,7 +49,12 @@ type alias PDayModel =
     , calEntry : Coming String CalEntry
     }
 
-type alias PRecipeSearchModel = ()
+type alias PRecipeSearchModel =
+     { formQuery : String
+     }
+
+type MsgRecipeSearch =
+     RSUpdateFormQuery String
 
 initPage : Page
 initPage = PageTop { viewportAdjusted = NotStarted, currentAnchor = NotStarted }
@@ -76,7 +84,7 @@ parserPage =
     oneOf
     [ P.map initPage P.top
     , P.map initRecipePage (P.s "recipes" </> P.string)
-    , P.map (PageRecipeSearch ()) (P.s "recipes" </> P.top)
+    , P.map (PageRecipeSearch { formQuery = "" }) (P.s "recipes" </> P.top)
     , P.map initDayPage (P.s "days" </> parserDate)
     ]
 
@@ -92,4 +100,9 @@ isLoading p =
         PageTop t -> isPending t.viewportAdjusted || isPending t.currentAnchor
         PageRecipe r -> isPending r.recipe
         PageDay d -> isPending d.calEntry
-        PageRecipeSearch () -> False
+        PageRecipeSearch _ -> False
+
+updatePRecipeSearchModel : MsgRecipeSearch -> PRecipeSearchModel -> PRecipeSearchModel
+updatePRecipeSearchModel msg model =
+    case msg of
+        RSUpdateFormQuery q -> { model | formQuery = q }

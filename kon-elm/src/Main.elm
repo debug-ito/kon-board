@@ -60,7 +60,7 @@ import MealPhase exposing (MealPhase(..))
 import MealPhase
 import MealPlanLoader exposing (MealPlanLoader)
 import MealPlanLoader
-import Page exposing (Page(..), recipePageLink, PRecipeModel, PDayModel, dayPageLink)
+import Page exposing (Page(..), recipePageLink, PRecipeModel, PDayModel, dayPageLink, PRecipeSearchModel)
 import Page
 
 ---- Ports
@@ -176,6 +176,7 @@ type Msg = NoOp
          | CalLoadMoreDone MealPlanLoader (Result String (List BMealPlan))
          -- | Finish loading meal plans for a day
          | DayMealPlanLoaded (Result String (Date, List BMealPlan))
+         | MsgRecipeSearch Page.MsgRecipeSearch
 
 {- | Type of "loadMore".
 -}
@@ -230,7 +231,7 @@ appView m =
                         Nothing -> []
                         Just r -> [r.name]
                 PageDay d -> [(.showDateYMDA) (Locale.get m.locale) d.day]
-                PageRecipeSearch () -> []
+                PageRecipeSearch _ -> []
     in result
 
 appUpdate : Msg -> Model -> (Model, Cmd Msg)
@@ -353,6 +354,10 @@ appUpdateModel msg model =
                            Ok c -> { model | page = PageDay { dm | calEntry = Success c } }
                            Err e -> { model | errorMsg = (Alert.shown, e), page = PageDay { dm | calEntry = Failure e } }
                    Err e -> { model | errorMsg = (Alert.shown, e) }
+        MsgRecipeSearch m ->
+            case model.page of
+                PageRecipeSearch p -> { model | page = PageRecipeSearch <| Page.updatePRecipeSearchModel m p }
+                _ -> model
 
 
 appUrlChange : Url -> Model -> Model
@@ -535,7 +540,7 @@ viewBody model =
                         _ -> []
                 PageRecipe rm -> viewRecipePage model.locale rm
                 PageDay dm -> viewDayPage model.locale dm
-                PageRecipeSearch () -> viewRecipeSearch model.locale
+                PageRecipeSearch m -> viewRecipeSearch model.locale m
         err_msg =
             let alert_conf =
                     Alert.children [text <| second model.errorMsg]
@@ -948,13 +953,16 @@ viewDayPageDayMeal locale dm =
                 [Html.text n]
     in result
 
-viewRecipeSearch : Locale -> List (Html Msg)
-viewRecipeSearch _ = 
+viewRecipeSearch : Locale -> PRecipeSearchModel -> List (Html Msg)
+viewRecipeSearch _ m = 
     let result =
           [ Html.form []
             [ Html.div [Attr.class "form-row"]
               [ Html.div [Attr.class "col-10"]
-                [ Html.input [Attr.type_ "search", Attr.class "form-control", Attr.id "q", Attr.name "q", Attr.autofocus True, Attr.placeholder "search recipe"] [] ] -- TODO: i18n
+                [ Html.input [ Attr.type_ "search", Attr.class "form-control", Attr.id "q", Attr.name "q", Attr.autofocus True, Attr.placeholder "search recipe"
+                             , Attr.value m.formQuery, Events.onInput (\s -> MsgRecipeSearch <| Page.RSUpdateFormQuery s)
+                             ] []
+                ] -- TODO: i18n
               , Html.div [Attr.class "col"]
                 [ Html.button [Attr.type_ "submit", Attr.class "btn btn-primary"] [FIcons.toHtml [] <| FIcons.withSize 16 <| FIcons.search] ]
               ]
