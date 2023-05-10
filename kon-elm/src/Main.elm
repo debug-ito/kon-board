@@ -285,7 +285,10 @@ appUpdateReact msg model =
                    Err e -> (setErrorToModel e, [])
                    Ok m -> (m, [])
         ErrorMsgVisibility v -> ({ model | errorMsg = (v, second model.errorMsg) }, [])
-        UrlRequestMsg _ -> (model, [])
+        UrlRequestMsg r ->
+            case r of
+                Browser.Internal u -> (model, [Nav.pushUrl model.navKey <| Url.toString u])
+                Browser.External s -> (model, [Nav.load s])
         UrlChangeMsg u -> (appUrlChange u model, [])
         RecipeLoaded ret ->
             let setError e =
@@ -332,7 +335,14 @@ appUpdateReact msg model =
         CalendarScrollEvent -> (model, [])
         NavbarMenuUpdate s -> ({ model | navbarMenuState = s }, [])
         CalViewChanged cv -> ({ model | calendarViewType = cv }, [])
-        CalLoadMore _ -> (model, [])
+        CalLoadMore direction ->
+            case (model.mealPlanLoader, model.calendar) of
+                (Success mploader, Just cal) ->
+                    let extend_width = loadMoreWidth 4 direction
+                        (new_cal, load_start, load_end) = Cal.extend extend_width cal
+                        load_cmd = MealPlanLoader.loadMore load_start load_end mploader CalLoadMoreDone
+                    in ({ model | mealPlanLoader = Pending, calendar = Just new_cal }, [load_cmd])
+                _ -> (model, [])
         CalLoadMoreDone mpl ret_mps ->
             let mpl_model = triggerViewportAdjust <| { model | mealPlanLoader = Success mpl }
                 ret_model = addMealPlansToModel "CalLoadMoreDone" ret_mps mpl_model
@@ -402,9 +412,9 @@ concatCmds cs =
 
 appUpdateCmd : Msg -> Model -> List (Cmd Msg, Model -> Model)
 appUpdateCmd msg model =
-    let result = initTimeCmd ++ initMealPlanCmd ++ urlRequestCmd
+    let result = initTimeCmd ++ initMealPlanCmd
                  ++ loadRecipeCmd ++ viewportAdjustCmd ++ calLayoutObtainCmd
-                 ++ loadMoreMealPlansCmd ++ loadDayMealPlanCmd
+                 ++ loadDayMealPlanCmd
         initTimeCmd =
             case model.clock of
                 Nothing -> [(Task.perform identity <| Task.map2 InitTime Time.now Time.here, identity)]
@@ -420,13 +430,6 @@ appUpdateCmd msg model =
                           , (\m -> { m | mealPlanLoader = Pending })
                           )
                         ]
-        urlRequestCmd =
-            case msg of
-                UrlRequestMsg (Browser.Internal u) ->
-                    [(Nav.pushUrl model.navKey <| Url.toString u, identity)]
-                UrlRequestMsg (Browser.External s) ->
-                    [(Nav.load s, identity)]
-                _ -> []
         loadRecipeCmd =
             case model.page of
                 PageRecipe rp ->
@@ -463,17 +466,6 @@ appUpdateCmd msg model =
                            (ViewportAdjusted _, PageTop _) -> the_cmds
                            (CalViewChanged _, PageTop _) -> the_cmds
                            _ -> []
-                _ -> []
-        loadMoreMealPlansCmd =
-            case (msg, model.mealPlanLoader, model.calendar) of
-                (CalLoadMore direction, Success mploader, Just cal) ->
-                    let extend_width = loadMoreWidth 4 direction
-                        (new_cal, load_start, load_end) = Cal.extend extend_width cal
-                        load_cmd = MealPlanLoader.loadMore load_start load_end mploader CalLoadMoreDone
-                    in [ ( load_cmd
-                         , (\m -> { m | mealPlanLoader = Pending, calendar = Just new_cal })
-                         )
-                       ]
                 _ -> []
         loadDayMealPlanCmd =
             case model.page of
