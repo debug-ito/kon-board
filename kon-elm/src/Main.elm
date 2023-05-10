@@ -236,9 +236,13 @@ appView m =
 
 appUpdate : Msg -> Model -> (Model, Cmd Msg)
 appUpdate msg model =
-    let new_model = appUpdateModel msg model
-        (cmd, modifyModel) = concatCmds <| appUpdateCmd msg new_model
-    in (modifyModel new_model, cmd)
+    let (reactedModel, reactCmds) = appUpdateReact msg model
+        (cmd, modifyModel) = concatCmds <| appUpdateCmd msg reactedModel
+    in (modifyModel reactedModel, Cmd.batch (reactCmds ++ [cmd]))
+
+-- In this program, `appUpdate` is composed of `appUpdateModel : Msg -> Model -> Model` and `appUpdateCmd : Msg -> Model -> List (Cmd Msg, Model -> Model)`.
+-- However, now I think we should use `appUpdateReact : Msg -> Model -> (Cmd Msg, Model)` and `appUpdateAuto : Model -> Maybe (Cmd Msg, Model)`.
+-- We call appUpdateAuto recursively until we get Nothing. All Cmds obtained are combined and sent to the Elm runtime.
 
 addMealPlansToModel : String -> Result String (List BMealPlan) -> Model -> Result String Model
 addMealPlansToModel error_label ret_mps model =
@@ -259,13 +263,13 @@ triggerViewportAdjust model =
         PageTop tm -> { model | page = PageTop { tm | viewportAdjusted = NotStarted } }
         _ -> model
 
-appUpdateModel : Msg -> Model -> Model
-appUpdateModel msg model =
+appUpdateReact : Msg -> Model -> (Model, List (Cmd Msg))
+appUpdateReact msg model = 
     case msg of
-        NoOp -> model
-        InitModel -> model
-        InitTime t z -> initCalendar z t <| setClock z t model
-        TickTime t -> tickClock t model
+        NoOp -> (model, [])
+        InitModel -> (model, [])
+        InitTime t z -> (initCalendar z t <| setClock z t model, [])
+        TickTime t -> (tickClock t model, [])
         InitMealPlanLoader ret ->
             let setErrorToModel e =
                     { model | errorMsg = (Alert.shown, e), mealPlanLoader = Failure e }
@@ -278,57 +282,63 @@ appUpdateModel msg model =
                       )
                     )
             in case final_ret of
-                   Err e -> setErrorToModel e
-                   Ok m -> m
-        ErrorMsgVisibility v -> { model | errorMsg = (v, second model.errorMsg) }
-        UrlRequestMsg _ -> model
-        UrlChangeMsg u -> appUrlChange u model
+                   Err e -> (setErrorToModel e, [])
+                   Ok m -> (m, [])
+        ErrorMsgVisibility v -> ({ model | errorMsg = (v, second model.errorMsg) }, [])
+        UrlRequestMsg _ -> (model, [])
+        UrlChangeMsg u -> (appUrlChange u model, [])
         RecipeLoaded ret ->
             let setError e =
                     case model.page of
                         PageRecipe rm -> { model | errorMsg = (Alert.shown, e), page = PageRecipe <| { rm | recipe = Failure e } }
                         _ -> { model | errorMsg = (Alert.shown, e) }
-            in case ret of
-                   Err e -> setError e
-                   Ok (rid, r) ->
-                       case model.page of
-                           PageRecipe rm ->
-                               if rm.recipeID == rid
-                               then { model | page = PageRecipe <| { rm | recipe = Success r } }
-                               else setError ("Got recipe for " ++ rid ++ ", but expects " ++ rm.recipeID)
-                           _ -> setError ("Got recipe for " ++ rid ++ ", but the page is not PageRecipe.")
+                resultModel =
+                    case ret of
+                        Err e -> setError e
+                        Ok (rid, r) ->
+                            case model.page of
+                                PageRecipe rm ->
+                                    if rm.recipeID == rid
+                                    then { model | page = PageRecipe <| { rm | recipe = Success r } }
+                                    else setError ("Got recipe for " ++ rid ++ ", but expects " ++ rm.recipeID)
+                                _ -> setError ("Got recipe for " ++ rid ++ ", but the page is not PageRecipe.")
+            in (resultModel, [])
         ViewportSet rel_pos ->
             let ad_model = triggerViewportAdjust model
-            in { ad_model | calendarViewport = rel_pos }
+            in ({ ad_model | calendarViewport = rel_pos }, [])
         ViewportAdjusted adjust_ret ->
-            case model.page of
-                PageTop pt ->
-                    case adjust_ret of
-                        Ok () -> { model | page = PageTop { pt | viewportAdjusted = Success () } }
-                        Err e -> { model | errorMsg = (Alert.shown, "ViewportAdjust error: " ++ e)
-                                 , page = PageTop { pt | viewportAdjusted = Failure e }
-                                 }
-                _ -> { model | errorMsg = (Alert.shown, "Unexpected ViewportAdjust msg to non-PageTop page.") }
+            let resultModel = 
+                    case model.page of
+                        PageTop pt ->
+                            case adjust_ret of
+                                Ok () -> { model | page = PageTop { pt | viewportAdjusted = Success () } }
+                                Err e -> { model | errorMsg = (Alert.shown, "ViewportAdjust error: " ++ e)
+                                         , page = PageTop { pt | viewportAdjusted = Failure e }
+                                         }
+                        _ -> { model | errorMsg = (Alert.shown, "Unexpected ViewportAdjust msg to non-PageTop page.") }
+            in (resultModel, [])
         CalLayoutObtained ret_cl ->
-            case ret_cl of
-                Ok cl ->
-                    let new_page =
-                            case model.page of
-                                PageTop pt ->
-                                    PageTop { pt | currentAnchor = Success <| CalSpy.currentMonthAnchor (navbarHeight model) cl }
-                                _ -> model.page
-                    in { model | calendarViewport = relativeCalendarViewportY cl, page = new_page }
-                Err e -> { model | errorMsg = (Alert.shown, "CalLayoutObtained error: " ++ e) }
-        CalendarScrollEvent -> model
-        NavbarMenuUpdate s -> { model | navbarMenuState = s }
-        CalViewChanged cv -> { model | calendarViewType = cv }
-        CalLoadMore _ -> model
+            let resultModel =
+                    case ret_cl of
+                        Ok cl ->
+                            let new_page =
+                                    case model.page of
+                                        PageTop pt ->
+                                            PageTop { pt | currentAnchor = Success <| CalSpy.currentMonthAnchor (navbarHeight model) cl }
+                                        _ -> model.page
+                            in { model | calendarViewport = relativeCalendarViewportY cl, page = new_page }
+                        Err e -> { model | errorMsg = (Alert.shown, "CalLayoutObtained error: " ++ e) }
+            in (resultModel, [])
+        CalendarScrollEvent -> (model, [])
+        NavbarMenuUpdate s -> ({ model | navbarMenuState = s }, [])
+        CalViewChanged cv -> ({ model | calendarViewType = cv }, [])
+        CalLoadMore _ -> (model, [])
         CalLoadMoreDone mpl ret_mps ->
             let mpl_model = triggerViewportAdjust <| { model | mealPlanLoader = Success mpl }
                 ret_model = addMealPlansToModel "CalLoadMoreDone" ret_mps mpl_model
             in case ret_model of
-                   Err e -> { mpl_model | errorMsg = (Alert.shown, e) }
-                   Ok m -> m
+                   Err e -> ({ mpl_model | errorMsg = (Alert.shown, e) }, [])
+                   Ok m -> (m, [])
         DayMealPlanLoaded ret ->
             let ret_pday_model =
                     case model.page of
@@ -348,16 +358,18 @@ appUpdateModel msg model =
                             )
                       )
                     )
-            in case ret_pday_model of
-                   Ok dm ->
-                       case final_ret of
-                           Ok c -> { model | page = PageDay { dm | calEntry = Success c } }
-                           Err e -> { model | errorMsg = (Alert.shown, e), page = PageDay { dm | calEntry = Failure e } }
-                   Err e -> { model | errorMsg = (Alert.shown, e) }
+                resultModel =
+                    case ret_pday_model of
+                        Ok dm ->
+                            case final_ret of
+                                Ok c -> { model | page = PageDay { dm | calEntry = Success c } }
+                                Err e -> { model | errorMsg = (Alert.shown, e), page = PageDay { dm | calEntry = Failure e } }
+                        Err e -> { model | errorMsg = (Alert.shown, e) }
+            in (resultModel, [])
         MsgRecipeSearch m ->
             case model.page of
-                PageRecipeSearch p -> { model | page = PageRecipeSearch <| Page.updatePRecipeSearchModel m p }
-                _ -> model
+                PageRecipeSearch p -> ({ model | page = PageRecipeSearch <| Page.updatePRecipeSearchModel m p }, [])
+                _ -> (model, [])
 
 
 appUrlChange : Url -> Model -> Model
