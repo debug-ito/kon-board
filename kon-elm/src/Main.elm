@@ -319,7 +319,11 @@ appUpdateReact msg model =
                                          , page = PageTop { pt | viewportAdjusted = Failure e }
                                          }
                         _ -> { model | errorMsg = (Alert.shown, "Unexpected ViewportAdjust msg to non-PageTop page.") }
-            in (resultModel, [])
+                resultCmds =
+                    case model.page of
+                        PageTop _ -> cmdCalLayoutObtain model
+                        _ -> []
+            in (resultModel, resultCmds)
         CalLayoutObtained ret_cl ->
             let resultModel =
                     case ret_cl of
@@ -332,9 +336,23 @@ appUpdateReact msg model =
                             in { model | calendarViewport = relativeCalendarViewportY cl, page = new_page }
                         Err e -> { model | errorMsg = (Alert.shown, "CalLayoutObtained error: " ++ e) }
             in (resultModel, [])
-        CalendarScrollEvent -> (model, [])
+        CalendarScrollEvent ->
+            let cmds =
+                    case model.page of
+                        PageTop pt ->
+                            case pt.viewportAdjusted of
+                                Success () -> cmdCalLayoutObtain model
+                                _ -> []
+                        _ -> []
+            in (model, cmds)
         NavbarMenuUpdate s -> ({ model | navbarMenuState = s }, [])
-        CalViewChanged cv -> ({ model | calendarViewType = cv }, [])
+        CalViewChanged cv ->
+            let newModel = { model | calendarViewType = cv }
+                cmds =
+                    case model.page of
+                        PageTop _ -> cmdCalLayoutObtain model
+                        _ -> []
+            in (newModel, cmds)
         CalLoadMore direction ->
             case (model.mealPlanLoader, model.calendar) of
                 (Success mploader, Just cal) ->
@@ -411,9 +429,9 @@ concatCmds cs =
     in result
 
 appUpdateCmd : Msg -> Model -> List (Cmd Msg, Model -> Model)
-appUpdateCmd msg model =
+appUpdateCmd _ model =
     let result = initTimeCmd ++ initMealPlanCmd
-                 ++ loadRecipeCmd ++ viewportAdjustCmd ++ calLayoutObtainCmd
+                 ++ loadRecipeCmd ++ viewportAdjustCmd
                  ++ loadDayMealPlanCmd
         initTimeCmd =
             case model.clock of
@@ -452,21 +470,6 @@ appUpdateCmd msg model =
                             in [(cmd, (\m -> { m | page = new_page }))]
                         _ -> []
                 _ -> []
-        calLayoutObtainCmd =
-            case (model.calendar, modelToday model) of
-                (Just cal, Just today) ->
-                    let the_cmds = [( Task.attempt CalLayoutObtained <| getCalLayoutTask today <| Cal.monthAnchors cal
-                                    , identity
-                                    )]
-                    in case (msg, model.page) of
-                           (CalendarScrollEvent, PageTop pt) ->
-                               case pt.viewportAdjusted of
-                                   Success () -> the_cmds
-                                   _ -> []
-                           (ViewportAdjusted _, PageTop _) -> the_cmds
-                           (CalViewChanged _, PageTop _) -> the_cmds
-                           _ -> []
-                _ -> []
         loadDayMealPlanCmd =
             case model.page of
                 PageDay pm ->
@@ -478,6 +481,12 @@ appUpdateCmd msg model =
                         _ -> []
                 _ -> []
     in result
+
+cmdCalLayoutObtain : Model -> List (Cmd Msg)
+cmdCalLayoutObtain model = 
+    case (model.calendar, modelToday model) of
+        (Just cal, Just today) -> [Task.attempt CalLayoutObtained <| getCalLayoutTask today <| Cal.monthAnchors cal]
+        _ -> []
 
 appSub : Model -> Sub Msg
 appSub model =
