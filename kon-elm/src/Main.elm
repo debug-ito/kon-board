@@ -62,6 +62,7 @@ import MealPlanLoader exposing (MealPlanLoader)
 import MealPlanLoader
 import Page exposing (Page(..), recipePageLink, PRecipeModel, PDayModel, dayPageLink, PRecipeSearchModel)
 import Page
+import UpdateM exposing (UpdateM)
 
 ---- Ports
 
@@ -263,7 +264,7 @@ triggerViewportAdjust model =
         PageTop tm -> { model | page = PageTop { tm | viewportAdjusted = NotStarted } }
         _ -> model
 
-appUpdateReact : Msg -> Model -> (Model, List (Cmd Msg))
+appUpdateReact : Msg -> UpdateM Model Msg
 appUpdateReact msg model = 
     case msg of
         NoOp -> (model, [])
