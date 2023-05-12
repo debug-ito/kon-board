@@ -955,14 +955,17 @@ viewDayPageDayMeal locale dm =
                 [Html.text n]
     in result
 
+-- TODO: maybe we should modularize the whole Model,View,Control of RecipeSearch page into a dedicated module?
+
 viewRecipeSearch : Locale -> PRecipeSearchModel -> List (Html Msg)
 viewRecipeSearch _ m = 
     let result =
-          [ Html.form []
+          [ Html.form [Events.onSubmit <| MsgRecipeSearch Page.RSSubmitQuery]
             [ Html.div [Attr.class "form-row"]
               [ Html.div [Attr.class "col-10"]
                 [ Html.input [ Attr.type_ "search", Attr.class "form-control", Attr.id "q", Attr.name "q", Attr.autofocus True, Attr.placeholder "search recipe"
-                             , Attr.value m.formQuery, Events.onInput (\s -> MsgRecipeSearch <| Page.RSUpdateFormQuery s)
+                             , Attr.value m.formQuery
+                             , Events.onInput (\s -> MsgRecipeSearch <| Page.RSUpdateFormQuery s)
                              ] []
                 ] -- TODO: i18n
               , Html.div [Attr.class "col"]

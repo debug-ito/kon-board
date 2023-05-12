@@ -55,7 +55,8 @@ type alias PRecipeSearchModel =
      }
 
 type MsgRecipeSearch =
-     RSUpdateFormQuery String
+       RSUpdateFormQuery String
+     | RSSubmitQuery
 
 initPage : Page
 initPage = PageTop { viewportAdjusted = NotStarted, currentAnchor = NotStarted }
@@ -107,3 +108,4 @@ updatePRecipeSearchModel : MsgRecipeSearch -> UpdateM PRecipeSearchModel MsgReci
 updatePRecipeSearchModel msg model =
     case msg of
         RSUpdateFormQuery q -> ({ model | formQuery = q }, [])
+        RSSubmitQuery -> (model, []) -- TODO. jump to the query URL.
