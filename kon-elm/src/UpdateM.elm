@@ -1,8 +1,11 @@
 module UpdateM exposing
     ( UpdateM
     , append
+    , concat
     , run
     )
+
+import List exposing (foldr)
 
 {- | The update monoid. This is the basic signature of application's `update` function.
    This is equivalent to `StateT model (Writer [Cmd msg] ())` in Haskell.
@@ -17,6 +20,9 @@ append a b model =
     let (aModel, aCmds) = a model
         (bModel, bCmds) = b aModel
     in (bModel, aCmds ++ bCmds)
+
+concat : List (UpdateM model msg) -> UpdateM model msg
+concat = foldr append empty
 
 run : UpdateM model msg -> model -> (model, Cmd msg)
 run m model =

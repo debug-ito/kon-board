@@ -63,6 +63,7 @@ import MealPlanLoader
 import Page exposing (Page(..), recipePageLink, PRecipeModel, PDayModel, dayPageLink, PRecipeSearchModel)
 import Page
 import UpdateM exposing (UpdateM)
+import UpdateM
 
 ---- Ports
 
@@ -215,9 +216,8 @@ appInit _ url key =
                      , mealPlanLoader = NotStarted
                      , errorMsg = (Alert.closed, "")
                      }
-        model = appUrlChange url model_base
-        (cmd, modifyModel) = concatCmds <| appUpdateCmd InitModel model
-    in (modifyModel model, cmd)
+        (model, cmd) = appUpdate InitModel <| appUrlChange url model_base
+    in (model, cmd)
 
 appView : Model -> Document Msg
 appView m =
@@ -238,8 +238,8 @@ appView m =
 appUpdate : Msg -> Model -> (Model, Cmd Msg)
 appUpdate msg model =
     let (reactedModel, reactCmds) = appUpdateReact msg model
-        (cmd, modifyModel) = concatCmds <| appUpdateCmd msg reactedModel
-    in (modifyModel reactedModel, Cmd.batch (reactCmds ++ [cmd]))
+        (resultModel, autoCmds) = appUpdateAuto reactedModel
+    in (resultModel, Cmd.batch (reactCmds ++ autoCmds))
 
 -- In this program, `appUpdate` is composed of `appUpdateModel : Msg -> Model -> Model` and `appUpdateCmd : Msg -> Model -> List (Cmd Msg, Model -> Model)`.
 -- However, now I think we should use `appUpdateReact : Msg -> Model -> (Cmd Msg, Model)` and `appUpdateAuto : Model -> Maybe (Cmd Msg, Model)`.
@@ -422,65 +422,49 @@ initPageWithModel model page =
                 _ -> page
         _ -> page
 
-concatCmds : List (Cmd m, Model -> Model) -> (Cmd m, Model -> Model)
-concatCmds cs =
-    let result = fstBatch <| List.foldr f ([], identity) cs
-        f (c, m) (acc_cmds, acc_mod) = (c :: acc_cmds, m >> acc_mod)
-        fstBatch (cmds, m) = (Cmd.batch cmds, m)
-    in result
-
-appUpdateCmd : Msg -> Model -> List (Cmd Msg, Model -> Model)
-appUpdateCmd _ model =
-    let result = initTimeCmd ++ initMealPlanCmd
-                 ++ loadRecipeCmd ++ viewportAdjustCmd
-                 ++ loadDayMealPlanCmd
-        initTimeCmd =
+appUpdateAuto : UpdateM Model Msg
+appUpdateAuto =
+    let result = UpdateM.concat
+                 [initTimeUpdate, initMealPlanUpdate, loadRecipeUpdate, viewportAdjustUpdate, loadDayMealPlanUpdate]
+        initTimeUpdate model =
             case model.clock of
-                Nothing -> [(Task.perform identity <| Task.map2 InitTime Time.now Time.here, identity)]
-                Just _ -> []
-        initMealPlanCmd =
+                Nothing -> (model, [Task.perform identity <| Task.map2 InitTime Time.now Time.here])
+                Just _ -> (model, [])
+        initMealPlanUpdate model =
             if Coming.hasStarted model.mealPlanLoader
-            then []
+            then (model, [])
             else
                 case model.calendar of
-                    Nothing -> []
-                    Just cal ->
-                        [ ( MealPlanLoader.loadInit cal InitMealPlanLoader
-                          , (\m -> { m | mealPlanLoader = Pending })
-                          )
-                        ]
-        loadRecipeCmd =
+                    Nothing -> (model, [])
+                    Just cal -> ({ model | mealPlanLoader = Pending }, [MealPlanLoader.loadInit cal InitMealPlanLoader])
+        loadRecipeUpdate model =
             case model.page of
                 PageRecipe rp ->
                     case rp.recipe of
-                        NotStarted ->
-                            [ ( loadRecipeByID rp.recipeID
-                              , (\m -> { m | page = PageRecipe <| { rp | recipe = Pending } } )
-                              )
-                            ]
-                        _ -> []
-                _ -> []
-        viewportAdjustCmd =
+                        NotStarted -> ({ model | page = PageRecipe <| { rp | recipe = Pending } }, [loadRecipeByID rp.recipeID])
+                        _ -> (model, [])
+                _ -> (model, [])
+        viewportAdjustUpdate model =
             case (model.calendar, model.mealPlanLoader, model.page) of
                 (Just _, Success _, PageTop pt) ->
                     case pt.viewportAdjusted of
-                        NotStarted -> 
+                        NotStarted ->
                             let cmd = Task.attempt ViewportAdjusted
                                       <| setCalendarViewportTask model.calendarViewport
                                 new_page = PageTop { pt | viewportAdjusted = Pending }
-                            in [(cmd, (\m -> { m | page = new_page }))]
-                        _ -> []
-                _ -> []
-        loadDayMealPlanCmd =
+                            in ({ model | page = new_page }, [cmd])
+                        _ -> (model, [])
+                _ -> (model, [])
+        loadDayMealPlanUpdate model =
             case model.page of
                 PageDay pm ->
                     case pm.calEntry of
                         NotStarted ->
                             let cmd = MealPlanLoader.loadOneDay pm.day DayMealPlanLoaded
-                                updateM m = { m | page = PageDay { pm | calEntry = Pending } }
-                            in [(cmd, updateM)]
-                        _ -> []
-                _ -> []
+                                newModel = { model | page = PageDay { pm | calEntry = Pending } }
+                            in (newModel, [cmd])
+                        _ ->  (model, [])
+                _ -> (model, [])
     in result
 
 cmdCalLayoutObtain : Model -> List (Cmd Msg)
