@@ -22,6 +22,7 @@ import Url.Builder as B
 import Bridge exposing (BRecipeId, BRecipeStored)
 import Calendar exposing (MonthAnchor, CalEntry)
 import Coming exposing (Coming(..), isPending)
+import UpdateM exposing (UpdateM)
 
 {- | The page associated with URL.
 -}
@@ -102,7 +103,7 @@ isLoading p =
         PageDay d -> isPending d.calEntry
         PageRecipeSearch _ -> False
 
-updatePRecipeSearchModel : MsgRecipeSearch -> PRecipeSearchModel -> PRecipeSearchModel
+updatePRecipeSearchModel : MsgRecipeSearch -> UpdateM PRecipeSearchModel MsgRecipeSearch
 updatePRecipeSearchModel msg model =
     case msg of
-        RSUpdateFormQuery q -> { model | formQuery = q }
+        RSUpdateFormQuery q -> ({ model | formQuery = q }, [])

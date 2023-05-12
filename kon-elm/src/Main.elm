@@ -397,7 +397,11 @@ appUpdateReact msg model =
             in (resultModel, [])
         MsgRecipeSearch m ->
             case model.page of
-                PageRecipeSearch p -> ({ model | page = PageRecipeSearch <| Page.updatePRecipeSearchModel m p }, [])
+                PageRecipeSearch p ->
+                    let (newPage, pageCmds) = Page.updatePRecipeSearchModel m p
+                        newModel = { model | page = PageRecipeSearch newPage }
+                        newCmds = List.map (Cmd.map MsgRecipeSearch) pageCmds
+                    in (newModel, newCmds)
                 _ -> (model, [])
 
 
