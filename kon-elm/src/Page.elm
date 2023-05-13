@@ -21,7 +21,7 @@ import Url.Parser as P
 import Url.Parser.Query as PQ
 import Url.Builder as B
 
-import Bridge exposing (BRecipeId, BRecipeStored)
+import Bridge exposing (BRecipeId, BRecipeStored, BAnswerRecipe)
 import Calendar exposing (MonthAnchor, CalEntry)
 import Coming exposing (Coming(..), isPending)
 import UpdateM exposing (UpdateM)
@@ -55,6 +55,9 @@ type alias PDayModel =
 type alias PRecipeSearchModel =
      { formQuery : String
      , submittedQuery : Maybe String
+     , submittedPage : Maybe Int
+     , answer : Coming String BAnswerRecipe
+     , pageSize : Int
      }
 
 type MsgRecipeSearch =
@@ -72,8 +75,14 @@ initDayPage : Date -> Page
 initDayPage d =
     PageDay { day = d, calEntry = NotStarted }
 
-initRecipeSearchPage : Maybe String -> Page
-initRecipeSearchPage s = PageRecipeSearch { formQuery = Maybe.withDefault "" s, submittedQuery = s }
+initRecipeSearchPage : Maybe String -> Maybe Int -> Page
+initRecipeSearchPage s p = PageRecipeSearch
+                           { formQuery = Maybe.withDefault "" s
+                           , submittedQuery = s
+                           , submittedPage = p
+                           , answer = NotStarted
+                           , pageSize = 10
+                           }
 
 parseUrl : Url -> Maybe Page
 parseUrl = P.parse parserPage
@@ -92,7 +101,7 @@ parserPage =
     oneOf
     [ P.map initPage P.top
     , P.map initRecipePage (P.s "recipes" </> P.string)
-    , P.map initRecipeSearchPage (P.s "recipes" <?> PQ.string "q")
+    , P.map initRecipeSearchPage (P.s "recipes" <?> PQ.string "q" <?> PQ.int "page")
     , P.map initDayPage (P.s "days" </> parserDate)
     ]
 
