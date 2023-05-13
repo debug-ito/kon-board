@@ -398,7 +398,7 @@ appUpdateReact msg model =
         MsgRecipeSearch m ->
             case model.page of
                 PageRecipeSearch p ->
-                    let (newPage, pageCmds) = Page.updatePRecipeSearchModel m p
+                    let (newPage, pageCmds) = Page.updatePRecipeSearchModel model.navKey m p
                         newModel = { model | page = PageRecipeSearch newPage }
                         newCmds = List.map (Cmd.map MsgRecipeSearch) pageCmds
                     in (newModel, newCmds)

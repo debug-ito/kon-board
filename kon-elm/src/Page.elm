@@ -13,10 +13,12 @@ module Page exposing
     , updatePRecipeSearchModel
     )
 
+import Browser.Navigation as Nav
 import Date exposing (Date)
 import Url exposing (Url)
-import Url.Parser exposing (Parser, oneOf, (</>))
+import Url.Parser exposing (Parser, oneOf, (</>), (<?>))
 import Url.Parser as P
+import Url.Parser.Query as PQ
 import Url.Builder as B
 
 import Bridge exposing (BRecipeId, BRecipeStored)
@@ -52,6 +54,7 @@ type alias PDayModel =
 
 type alias PRecipeSearchModel =
      { formQuery : String
+     , submittedQuery : Maybe String
      }
 
 type MsgRecipeSearch =
@@ -68,6 +71,9 @@ initRecipePage rid =
 initDayPage : Date -> Page
 initDayPage d =
     PageDay { day = d, calEntry = NotStarted }
+
+initRecipeSearchPage : Maybe String -> Page
+initRecipeSearchPage s = PageRecipeSearch { formQuery = Maybe.withDefault "" s, submittedQuery = s }
 
 parseUrl : Url -> Maybe Page
 parseUrl = P.parse parserPage
@@ -86,7 +92,7 @@ parserPage =
     oneOf
     [ P.map initPage P.top
     , P.map initRecipePage (P.s "recipes" </> P.string)
-    , P.map (PageRecipeSearch { formQuery = "" }) (P.s "recipes" </> P.top)
+    , P.map initRecipeSearchPage (P.s "recipes" <?> PQ.string "q")
     , P.map initDayPage (P.s "days" </> parserDate)
     ]
 
@@ -104,8 +110,11 @@ isLoading p =
         PageDay d -> isPending d.calEntry
         PageRecipeSearch _ -> False
 
-updatePRecipeSearchModel : MsgRecipeSearch -> UpdateM PRecipeSearchModel MsgRecipeSearch
-updatePRecipeSearchModel msg model =
+updatePRecipeSearchModel : Nav.Key -> MsgRecipeSearch -> UpdateM PRecipeSearchModel MsgRecipeSearch
+updatePRecipeSearchModel key msg model =
     case msg of
         RSUpdateFormQuery q -> ({ model | formQuery = q }, [])
-        RSSubmitQuery -> (model, []) -- TODO. jump to the query URL.
+        RSSubmitQuery ->
+            let result = (model, [Nav.pushUrl key queryUrl])
+                queryUrl = B.relative [] [B.string "q" model.formQuery]
+            in result
