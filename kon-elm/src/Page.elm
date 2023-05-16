@@ -12,7 +12,8 @@ module Page exposing
       -- * RecipeSearch page
     , PRecipeSearchModel
     , MsgRecipeSearch(..)
-    , updatePRecipeSearchModel
+    , updateReactPRecipeSearch
+    , updateAutoPRecipeSearch
     , viewRecipeSearch
     )
 
@@ -28,7 +29,7 @@ import Html.Events as Events
 import Html.Attributes as Attr
 import FeatherIcons as FIcons
 
-import Bridge exposing (BRecipeId, BRecipeStored, BAnswerRecipe)
+import Bridge exposing (BRecipeId, BRecipeStored, BAnswerRecipe, getApiV1Recipes)
 import Calendar exposing (MonthAnchor, CalEntry)
 import Coming exposing (Coming(..), isPending)
 import UpdateM exposing (UpdateM)
@@ -127,14 +128,23 @@ isLoading p =
         PageDay d -> isPending d.calEntry
         PageRecipeSearch _ -> False
 
-updatePRecipeSearchModel : Nav.Key -> MsgRecipeSearch -> UpdateM PRecipeSearchModel MsgRecipeSearch
-updatePRecipeSearchModel key msg model =
+updateReactPRecipeSearch : Nav.Key -> MsgRecipeSearch -> UpdateM PRecipeSearchModel MsgRecipeSearch
+updateReactPRecipeSearch key msg model =
     case msg of
         RSUpdateFormQuery q -> ({ model | formQuery = q }, [])
         RSSubmitQuery ->
             let result = (model, [Nav.pushUrl key queryUrl])
                 queryUrl = B.relative [] [B.string "q" model.formQuery]
             in result
+
+updateAutoPRecipeSearch : UpdateM PRecipeSearchModel
+updateAutoPRecipeSearch =
+    let result = loadRecipeList
+        loadRecipeList model =
+            case (model.submittedQuery, model.answer) of
+                (Just sQuery, NotStarted) -> undefined -- TODO.
+                _ -> (model, [])
+    in result
 
 viewRecipeSearch : Locale -> PRecipeSearchModel -> List (Html MsgRecipeSearch)
 viewRecipeSearch _ m = 
