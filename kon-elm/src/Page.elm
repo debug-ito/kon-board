@@ -138,6 +138,7 @@ updateReactPRecipeSearch key msg model =
             let result = (model, [Nav.pushUrl key queryUrl])
                 queryUrl = B.relative [] [B.string "q" model.formQuery]
             in result
+        RSRecipeListLoaded _ -> (model, []) -- TODO
 
 updateAutoPRecipeSearch : UpdateM PRecipeSearchModel MsgRecipeSearch
 updateAutoPRecipeSearch =

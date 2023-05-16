@@ -471,7 +471,7 @@ appUpdateAuto =
                 _ -> (model, [])
         recipeSearchPage model =
             case model.page of
-                PageRecipeSearch p -> UpdateM.mapBoth (\newP -> { model | page = PageRecipeSearch newP }) (MsgRecipeSearch) <| Page.updateAutoRecipeSearch p
+                PageRecipeSearch p -> UpdateM.mapBoth (\newP -> { model | page = PageRecipeSearch newP }) (MsgRecipeSearch) <| Page.updateAutoPRecipeSearch p
                 _ -> (model, [])
     in result
 

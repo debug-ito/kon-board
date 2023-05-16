@@ -32,4 +32,4 @@ run m model =
     in (newModel, Cmd.batch cmds)
 
 mapBoth : (model1 -> model2) -> (msg1 -> msg2) -> (model1, List (Cmd msg1)) -> (model2, List (Cmd msg2))
-mapBoth fModel fMsg = Tuple.mapBoth fModel (\m -> List.map (Cmd.map fMsg))
+mapBoth fModel fMsg = Tuple.mapBoth fModel (\m -> List.map (Cmd.map fMsg) m)
