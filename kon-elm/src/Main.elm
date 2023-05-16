@@ -542,7 +542,7 @@ viewBody model =
                         _ -> []
                 PageRecipe rm -> viewRecipePage model.locale rm
                 PageDay dm -> viewDayPage model.locale dm
-                PageRecipeSearch m -> viewRecipeSearch model.locale m
+                PageRecipeSearch m -> List.map (Html.map MsgRecipeSearch) <| Page.viewRecipeSearch model.locale m
         err_msg =
             let alert_conf =
                     Alert.children [text <| second model.errorMsg]
@@ -954,25 +954,4 @@ viewDayPageDayMeal locale dm =
                 [Attr.class "cal-meal-plan-item", Attr.class "cal-meal-plan-item-note"]
                 [Html.text n]
     in result
-
--- TODO: maybe we should modularize the whole Model,View,Control of RecipeSearch page into a dedicated module?
-
-viewRecipeSearch : Locale -> PRecipeSearchModel -> List (Html Msg)
-viewRecipeSearch _ m = 
-    let result =
-          [ Html.form [Events.onSubmit <| MsgRecipeSearch Page.RSSubmitQuery]
-            [ Html.div [Attr.class "form-row"]
-              [ Html.div [Attr.class "col-10"]
-                [ Html.input [ Attr.type_ "search", Attr.class "form-control", Attr.id "q", Attr.name "q", Attr.autofocus True, Attr.placeholder "search recipe"
-                             , Attr.value m.formQuery
-                             , Events.onInput (\s -> MsgRecipeSearch <| Page.RSUpdateFormQuery s)
-                             ] []
-                ] -- TODO: i18n
-              , Html.div [Attr.class "col"]
-                [ Html.button [Attr.type_ "submit", Attr.class "btn btn-primary"] [FIcons.toHtml [] <| FIcons.withSize 16 <| FIcons.search] ]
-              ]
-            ]
-          ]
-    in result
-                
 
