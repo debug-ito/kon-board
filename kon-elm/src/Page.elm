@@ -17,6 +17,7 @@ module Page exposing
     , viewRecipeSearch
     )
 
+import Bootstrap.ListGroup as LG
 import Browser.Navigation as Nav
 import Date exposing (Date)
 import Url exposing (Url)
@@ -136,8 +137,9 @@ updateReactPRecipeSearch key msg model =
     case msg of
         RSUpdateFormQuery q -> ({ model | formQuery = q }, [])
         RSSubmitQuery ->
-            let result = (model, [Nav.pushUrl key queryUrl])
+            let result = (newModel, [Nav.pushUrl key queryUrl])
                 queryUrl = B.relative [] [B.string "q" model.formQuery]
+                newModel = { model | answer = NotStarted, submittedQuery = Nothing, submittedPage = Nothing }
             in result
         RSRecipeListLoaded ret ->
             case ret of
@@ -151,14 +153,16 @@ updateAutoPRecipeSearch =
             case (model.submittedQuery, model.answer) of
                 (Just sQuery, NotStarted) ->
                     let newModel = { model | answer = Pending }
-                        cmd = getApiV1Recipes (Just sQuery) (Just 0) (Just model.pageSize) RSRecipeListLoaded
+                        offset = (*) model.pageSize <| Maybe.withDefault 0 model.submittedPage
+                        cmd = getApiV1Recipes (Just sQuery) (Just model.pageSize) (Just offset) RSRecipeListLoaded
                     in (newModel, [cmd])
                 _ -> (model, [])
     in result
 
 viewRecipeSearch : Locale -> PRecipeSearchModel -> List (Html MsgRecipeSearch)
 viewRecipeSearch _ m = 
-    let result =
+    let result = searchForm ++ searchResult
+        searchForm = 
           [ Html.form [Events.onSubmit RSSubmitQuery]
             [ Html.div [Attr.class "form-row"]
               [ Html.div [Attr.class "col-10"]
@@ -172,6 +176,14 @@ viewRecipeSearch _ m =
               ]
             ]
           ]
+        searchResult =
+          case m.answer of
+            Success a ->
+              [ LG.ul <| List.map searchAnswerItem a.recipes
+              ]
+            _ -> []
+        searchAnswerItem r =
+          LG.li [] [Html.text r.name]
     in result
                 
 
