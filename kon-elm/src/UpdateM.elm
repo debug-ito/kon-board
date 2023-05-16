@@ -3,8 +3,10 @@ module UpdateM exposing
     , append
     , concat
     , run
+    , mapBoth
     )
 
+import Tuple
 import List exposing (foldr)
 
 {- | The update monoid. This is the basic signature of application's `update` function.
@@ -28,3 +30,6 @@ run : UpdateM model msg -> model -> (model, Cmd msg)
 run m model =
     let (newModel, cmds) = m model
     in (newModel, Cmd.batch cmds)
+
+mapBoth : (model1 -> model2) -> (msg1 -> msg2) -> (model1, List (Cmd msg1)) -> (model2, List (Cmd msg2))
+mapBoth fModel fMsg = Tuple.mapBoth fModel (\m -> List.map (Cmd.map fMsg))

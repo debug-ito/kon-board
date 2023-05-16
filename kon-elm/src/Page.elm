@@ -27,6 +27,7 @@ import Url.Builder as B
 import Html exposing (Html)
 import Html.Events as Events
 import Html.Attributes as Attr
+import Http
 import FeatherIcons as FIcons
 
 import Bridge exposing (BRecipeId, BRecipeStored, BAnswerRecipe, getApiV1Recipes)
@@ -72,6 +73,7 @@ type alias PRecipeSearchModel =
 type MsgRecipeSearch =
        RSUpdateFormQuery String
      | RSSubmitQuery
+     | RSRecipeListLoaded (Result Http.Error (BAnswerRecipe))
 
 initPage : Page
 initPage = PageTop { viewportAdjusted = NotStarted, currentAnchor = NotStarted }
@@ -137,12 +139,16 @@ updateReactPRecipeSearch key msg model =
                 queryUrl = B.relative [] [B.string "q" model.formQuery]
             in result
 
-updateAutoPRecipeSearch : UpdateM PRecipeSearchModel
+updateAutoPRecipeSearch : UpdateM PRecipeSearchModel MsgRecipeSearch
 updateAutoPRecipeSearch =
     let result = loadRecipeList
         loadRecipeList model =
             case (model.submittedQuery, model.answer) of
-                (Just sQuery, NotStarted) -> undefined -- TODO.
+                (Just sQuery, NotStarted) ->
+                    let newModel = { model | answer = Pending }
+                        pageSize = 100
+                        cmd = getApiV1Recipes (Just sQuery) (Just 0) (Just pageSize) RSRecipeListLoaded
+                    in (newModel, [cmd])
                 _ -> (model, [])
     in result
 

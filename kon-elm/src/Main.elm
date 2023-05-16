@@ -398,7 +398,7 @@ appUpdateReact msg model =
         MsgRecipeSearch m ->
             case model.page of
                 PageRecipeSearch p ->
-                    let (newPage, pageCmds) = Page.updatePRecipeSearchModel model.navKey m p
+                    let (newPage, pageCmds) = Page.updateReactPRecipeSearch model.navKey m p
                         newModel = { model | page = PageRecipeSearch newPage }
                         newCmds = List.map (Cmd.map MsgRecipeSearch) pageCmds
                     in (newModel, newCmds)
@@ -429,7 +429,7 @@ initPageWithModel model page =
 appUpdateAuto : UpdateM Model Msg
 appUpdateAuto =
     let result = UpdateM.concat
-                 [initTimeUpdate, initMealPlanUpdate, loadRecipeUpdate, viewportAdjustUpdate, loadDayMealPlanUpdate]
+                 [initTimeUpdate, initMealPlanUpdate, loadRecipeUpdate, viewportAdjustUpdate, loadDayMealPlanUpdate, recipeSearchPage]
         initTimeUpdate model =
             case model.clock of
                 Nothing -> (model, [Task.perform identity <| Task.map2 InitTime Time.now Time.here])
@@ -468,6 +468,10 @@ appUpdateAuto =
                                 newModel = { model | page = PageDay { pm | calEntry = Pending } }
                             in (newModel, [cmd])
                         _ ->  (model, [])
+                _ -> (model, [])
+        recipeSearchPage model =
+            case model.page of
+                PageRecipeSearch p -> UpdateM.mapBoth (\newP -> { model | page = PageRecipeSearch newP }) (MsgRecipeSearch) <| Page.updateAutoRecipeSearch p
                 _ -> (model, [])
     in result
 
