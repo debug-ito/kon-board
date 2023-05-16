@@ -151,8 +151,7 @@ updateAutoPRecipeSearch =
             case (model.submittedQuery, model.answer) of
                 (Just sQuery, NotStarted) ->
                     let newModel = { model | answer = Pending }
-                        pageSize = 100
-                        cmd = getApiV1Recipes (Just sQuery) (Just 0) (Just pageSize) RSRecipeListLoaded
+                        cmd = getApiV1Recipes (Just sQuery) (Just 0) (Just model.pageSize) RSRecipeListLoaded
                     in (newModel, [cmd])
                 _ -> (model, [])
     in result
