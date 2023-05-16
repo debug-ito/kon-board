@@ -35,6 +35,7 @@ import Calendar exposing (MonthAnchor, CalEntry)
 import Coming exposing (Coming(..), isPending)
 import UpdateM exposing (UpdateM)
 import Locale exposing (Locale)
+import HttpUtil exposing (showHttpError)
 
 {- | The page associated with URL.
 -}
@@ -73,7 +74,7 @@ type alias PRecipeSearchModel =
 type MsgRecipeSearch =
        RSUpdateFormQuery String
      | RSSubmitQuery
-     | RSRecipeListLoaded (Result Http.Error (BAnswerRecipe))
+     | RSRecipeListLoaded (Result Http.Error BAnswerRecipe)
 
 initPage : Page
 initPage = PageTop { viewportAdjusted = NotStarted, currentAnchor = NotStarted }
@@ -138,7 +139,10 @@ updateReactPRecipeSearch key msg model =
             let result = (model, [Nav.pushUrl key queryUrl])
                 queryUrl = B.relative [] [B.string "q" model.formQuery]
             in result
-        RSRecipeListLoaded _ -> (model, []) -- TODO
+        RSRecipeListLoaded ret ->
+            case ret of
+                Ok a -> ({ model | answer = Success a }, [])
+                Err e -> ({ model | answer = Failure <| showHttpError e }, [])
 
 updateAutoPRecipeSearch : UpdateM PRecipeSearchModel MsgRecipeSearch
 updateAutoPRecipeSearch =
