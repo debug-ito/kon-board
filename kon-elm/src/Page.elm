@@ -130,7 +130,7 @@ isLoading p =
         PageTop t -> isPending t.viewportAdjusted || isPending t.currentAnchor
         PageRecipe r -> isPending r.recipe
         PageDay d -> isPending d.calEntry
-        PageRecipeSearch _ -> False
+        PageRecipeSearch r -> isPending r.answer
 
 updateReactPRecipeSearch : Nav.Key -> MsgRecipeSearch -> UpdateM PRecipeSearchModel MsgRecipeSearch
 updateReactPRecipeSearch key msg model =
@@ -183,7 +183,7 @@ viewRecipeSearch _ m =
               ]
             _ -> []
         searchAnswerItem r =
-          LG.li [] [Html.text r.name]
+          LG.li [] [Html.a [Attr.href <| recipePageLink r.id] [Html.text r.name]]
     in result
                 
 
