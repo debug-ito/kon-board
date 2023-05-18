@@ -161,25 +161,29 @@ updateAutoPRecipeSearch =
 
 viewRecipeSearch : Locale -> PRecipeSearchModel -> List (Html MsgRecipeSearch)
 viewRecipeSearch _ m = 
-    let result = searchForm ++ searchResult
-        searchForm = 
-          [ Html.form [Events.onSubmit RSSubmitQuery]
-            [ Html.div [Attr.class "form-row"]
-              [ Html.div [Attr.class "col-10"]
-                [ Html.input [ Attr.type_ "search", Attr.class "form-control", Attr.id "q", Attr.name "q", Attr.autofocus True, Attr.placeholder "search recipe"
-                             , Attr.value m.formQuery
-                             , Events.onInput (\s -> RSUpdateFormQuery s)
-                             ] []
-                ] -- TODO: i18n
-              , Html.div [Attr.class "col"]
-                [ Html.button [Attr.type_ "submit", Attr.class "btn btn-primary"] [FIcons.toHtml [] <| FIcons.withSize 16 <| FIcons.search] ]
+    let result = [Html.div [Attr.class "container"] (searchForm ++ searchResult)]
+        searchForm =
+          [ Html.div [Attr.class "row"] [Html.div [Attr.class "col"]
+            [ Html.form [Events.onSubmit RSSubmitQuery]
+              [ Html.div [Attr.class "form-row"]
+                [ Html.div [Attr.class "col-10"]
+                  [ Html.input [ Attr.type_ "search", Attr.class "form-control", Attr.id "q", Attr.name "q", Attr.autofocus True, Attr.placeholder "search recipe"
+                               , Attr.value m.formQuery
+                               , Events.onInput (\s -> RSUpdateFormQuery s)
+                               ] []
+                  ] -- TODO: i18n
+                , Html.div [Attr.class "col"]
+                  [ Html.button [Attr.type_ "submit", Attr.class "btn btn-primary"] [FIcons.toHtml [] <| FIcons.withSize 16 <| FIcons.search] ]
+                ]
               ]
-            ]
+            ]]
           ]
         searchResult =
           case m.answer of
             Success a ->
-              [ LG.ul <| List.map searchAnswerItem a.recipes
+              [ Html.div [Attr.class "row"] [Html.div [Attr.class "col"]
+                [ LG.ul <| List.map searchAnswerItem a.recipes
+                ]]
               ]
             _ -> []
         searchAnswerItem r =
