@@ -3,7 +3,8 @@ module UpdateM exposing
     , append
     , concat
     , run
-    , mapBoth
+    , mapModel
+    , mapMsg
     )
 
 import Tuple
@@ -31,5 +32,11 @@ run m model =
     let (newModel, cmds) = m model
     in (newModel, Cmd.batch cmds)
 
-mapBoth : (model1 -> model2) -> (msg1 -> msg2) -> (model1, List (Cmd msg1)) -> (model2, List (Cmd msg2))
-mapBoth fModel fMsg = Tuple.mapBoth fModel (\m -> List.map (Cmd.map fMsg) m)
+mapModel : (model1 -> model2) -> (model2 -> Maybe model1) -> UpdateM model1 msg -> UpdateM model2 msg
+mapModel f g orig model2 =
+    case g model2 of
+        Nothing -> (model2, [])
+        Just model1 -> Tuple.mapFirst f <| orig model1
+
+mapMsg : (msg1 -> msg2) -> UpdateM model msg1 -> UpdateM model msg2
+mapMsg f orig model = Tuple.mapSecond (List.map (Cmd.map f)) <| orig model

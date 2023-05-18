@@ -396,14 +396,13 @@ appUpdateReact msg model =
                         Err e -> { model | errorMsg = (Alert.shown, e) }
             in (resultModel, [])
         MsgRecipeSearch m ->
-            case model.page of
-                PageRecipeSearch p ->
-                    let (newPage, pageCmds) = Page.updateReactPRecipeSearch model.navKey m p
-                        newModel = { model | page = PageRecipeSearch newPage }
-                        newCmds = List.map (Cmd.map MsgRecipeSearch) pageCmds
-                    in (newModel, newCmds)
-                _ -> (model, [])
-
+            let focusModel md =
+                    case md.page of
+                        PageRecipeSearch p -> Just p
+                        _ -> Nothing
+                extendModel p = { model | page = PageRecipeSearch p }
+                extendedUpdate = UpdateM.mapMsg MsgRecipeSearch <| UpdateM.mapModel extendModel focusModel <| Page.updateReactPRecipeSearch model.navKey m
+            in extendedUpdate model
 
 appUrlChange : Url -> Model -> Model
 appUrlChange u model =
@@ -470,9 +469,13 @@ appUpdateAuto =
                         _ ->  (model, [])
                 _ -> (model, [])
         recipeSearchPage model =
-            case model.page of
-                PageRecipeSearch p -> UpdateM.mapBoth (\newP -> { model | page = PageRecipeSearch newP }) (MsgRecipeSearch) <| Page.updateAutoPRecipeSearch p
-                _ -> (model, [])
+            let focusModel m =
+                    case m.page of
+                        PageRecipeSearch p -> Just p
+                        _ -> Nothing
+                extendModel p = { model | page = PageRecipeSearch p }
+                extendedUpdate = UpdateM.mapMsg MsgRecipeSearch <| UpdateM.mapModel extendModel focusModel <| Page.updateAutoPRecipeSearch
+            in  extendedUpdate model
     in result
 
 cmdCalLayoutObtain : Model -> List (Cmd Msg)
