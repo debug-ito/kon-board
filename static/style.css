@@ -279,3 +279,9 @@ body > .alert-danger {
     list-style: none;
     padding-left: 10px;
 }
+
+/******* recipe search page *******/
+
+.form-search-recipes {
+    padding: 5px 0 5px 0;
+}

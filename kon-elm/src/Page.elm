@@ -164,7 +164,7 @@ viewRecipeSearch _ m =
     let result = [Html.div [Attr.class "container"] (searchForm ++ searchResult)]
         searchForm =
           [ Html.div [Attr.class "row"] [Html.div [Attr.class "col"]
-            [ Html.form [Events.onSubmit RSSubmitQuery]
+            [ Html.form [Events.onSubmit RSSubmitQuery, Attr.class "form-search-recipes"]
               [ Html.div [Attr.class "form-row"]
                 [ Html.div [Attr.class "col-10"]
                   [ Html.input [ Attr.type_ "search", Attr.class "form-control", Attr.id "q", Attr.name "q", Attr.autofocus True, Attr.placeholder "search recipe"
