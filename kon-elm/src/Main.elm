@@ -584,20 +584,20 @@ navbarHeight m =
         _ -> 40
 
 viewNavbar : Locale -> Page -> CalendarView -> NavbarMenuState -> Bool -> List (Html Msg)
-viewNavbar locale page calview (NavbarMenuState menu_state) is_loading =
+viewNavbar locale page calview (NavbarMenuState menuState) enableSpin =
     let result = [ Html.nav
                        (List.map Attr.class ["navbar", "fixed-top", "navbar-light", "bg-light"])
-                       navbar_content
+                       navbarContent
                  ]
-        navbar_content =
-            [ Html.form [Attr.class "form-inline"] dropdown_menu ]
+        navbarContent =
+            [ Html.form [Attr.class "form-inline"] dropdownMenu ]
             ++ viewNavbarCenter locale page
             ++ [ Html.form [Attr.class "form-inline"] [] ]
-        kon_spinner =
+        konSpinner =
             Spinner.spinner
                 [Spinner.attrs [Attr.class "navbar-spinner"]]
                 [Spinner.srMessage "Loading"]
-        kon_icon =
+        konIcon =
             Html.img
                 [ Attr.src <| iconPath "d/kon.svg"
                 , Attr.alt "Home"
@@ -605,27 +605,30 @@ viewNavbar locale page calview (NavbarMenuState menu_state) is_loading =
                 , Attr.height 22
                 ]
                 []
-        dropdown_menu =
-            if List.length menu_items == 0
+        dropdownMenu =
+            if List.length menuItems == 0
             then []
             else
                 [ Dropdown.dropdown
-                  menu_state
+                  menuState
                   { toggleMsg = (\s -> NavbarMenuUpdate <| NavbarMenuState s)
                   , toggleButton = Dropdown.toggle [Button.small] dropdownButtonHtml
                   , options = [Dropdown.menuAttrs [Attr.class "kon-navbar-menu"]]
-                  , items = menu_items
+                  , items = menuItems
                   }
                 ]
-        dropdownButtonHtml = [ if is_loading then kon_spinner else kon_icon
+        dropdownButtonHtml = [ if enableSpin then konSpinner else konIcon
                              , Html.text "\u{00a0}"
                              , FIcons.toHtml [] <| FIcons.withSize 22 <| FIcons.menu
                              ]
-        menu_items = defaultMenuItems
+        menuItems = defaultMenuItems
                      ++ case page of
-                            (PageTop _) -> viewMenuCalView locale calview
+                            (PageTop _) -> [Dropdown.divider] ++ viewMenuCalView locale calview
                             _ -> []
-        defaultMenuItems = [Dropdown.anchorItem [href "/recipes/"] [text "Search recipes"]] -- TODO: i18n
+        defaultMenuItems = -- TODO: i18n and icons
+            [ Dropdown.anchorItem [href "/"] [text "Calendar"]
+            , Dropdown.anchorItem [href "/recipes/"] [text "Search recipes"]
+            ] 
     in result
 
 viewNavbarCenter : Locale -> Page -> List (Html Msg)
