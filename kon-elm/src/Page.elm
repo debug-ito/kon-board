@@ -161,9 +161,9 @@ updateAutoPRecipeSearch =
 
 viewRecipeSearch : Locale -> PRecipeSearchModel -> List (Html MsgRecipeSearch)
 viewRecipeSearch _ m = 
-    let result = [Html.div [Attr.class "container"] (searchForm ++ searchResult)]
+    let result = searchForm ++ searchResult
         searchForm =
-          [ Html.div [Attr.class "row"] [Html.div [Attr.class "col"]
+          [ Html.div [Attr.class "row"] [Html.div [Attr.class "col", Attr.class "px-0"]
             [ Html.form [Events.onSubmit RSSubmitQuery, Attr.class "form-search-recipes"]
               [ Html.div [Attr.class "form-row"]
                 [ Html.div [Attr.class "col-10"]
@@ -181,7 +181,7 @@ viewRecipeSearch _ m =
         searchResult =
           case m.answer of
             Success a ->
-              [ Html.div [Attr.class "row"] [Html.div [Attr.class "col"]
+              [ Html.div [Attr.class "row"] [Html.div [Attr.class "col", Attr.class "px-0"]
                 [ LG.ul <| List.map searchAnswerItem a.recipes
                 ]]
               ]
