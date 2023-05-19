@@ -43,6 +43,8 @@ type alias LocaleImpl msg =
     , showRecipeReference : String
     , showNavMenuCalList : String
     , showNavMenuCalTable : String
+    , showNavMenuCalendar : String
+    , showNavMenuSearchRecipes : String
     }
 
 get : Locale -> LocaleImpl msg
@@ -68,6 +70,8 @@ localeJaJP =
             , showRecipeReference = "参考"
             , showNavMenuCalList = "リスト"
             , showNavMenuCalTable = "表"
+            , showNavMenuCalendar = "カレンダー"
+            , showNavMenuSearchRecipes = "レシピ検索"
             }
         jaViewIngredient ing = [text (ing.food ++ ": " ++ ing.qtty)]
         jaShowMealPhase mp =
@@ -169,6 +173,8 @@ localeEnUS =
             , showRecipeReference = "Reference"
             , showNavMenuCalList = "List"
             , showNavMenuCalTable = "Table"
+            , showNavMenuCalendar = "Calendar"
+            , showNavMenuSearchRecipes = "Search recipes"
             }
         enViewIngredient ing = [text (ing.qtty ++ ", " ++ ing.food)]
         enShowMealPhase mp =

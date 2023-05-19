@@ -629,12 +629,12 @@ viewNavbar locale page calview (NavbarMenuState menuState) enableSpin =
             [ Dropdown.anchorItem ([href "/"] ++ if isCalendarActive then [Attr.class "active"] else [])
                   [ FIcons.toHtml [] <| FIcons.withSize navbarMenuIconSize <| FIcons.calendar
                   , text " "
-                  , text "Calendar"
+                  , text <| (.showNavMenuCalendar) <| Locale.get locale
                   ]
             , Dropdown.anchorItem ([href "/recipes/"] ++ if isRecipeSearchActive then [Attr.class "active"] else [])
                   [ FIcons.toHtml [] <| FIcons.withSize navbarMenuIconSize <| FIcons.search
                   , text " "
-                  , text "Search recipes"
+                  , text <| (.showNavMenuSearchRecipes) <| Locale.get locale
                   ]
             ]
         (isCalendarActive, isRecipeSearchActive) =
