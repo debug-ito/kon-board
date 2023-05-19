@@ -613,14 +613,15 @@ viewNavbar locale page calview (NavbarMenuState menu_state) is_loading =
                 [ Dropdown.dropdown
                   menu_state
                   { toggleMsg = (\s -> NavbarMenuUpdate <| NavbarMenuState s)
-                  , toggleButton =
-                      Dropdown.toggle [Button.small]
-                          [ FIcons.toHtml [] <| FIcons.withSize 18 <| FIcons.menu
-                          ]
+                  , toggleButton = Dropdown.toggle [Button.small] dropdownButtonHtml
                   , options = [Dropdown.menuAttrs [Attr.class "kon-navbar-menu"]]
                   , items = menu_items
                   }
                 ]
+        dropdownButtonHtml = [ if is_loading then kon_spinner else kon_icon
+                             , Html.text "\u{00a0}"
+                             , FIcons.toHtml [] <| FIcons.withSize 22 <| FIcons.menu
+                             ]
         menu_items = defaultMenuItems
                      ++ case page of
                             (PageTop _) -> viewMenuCalView locale calview
