@@ -618,7 +618,7 @@ viewNavbar locale page calview (NavbarMenuState menuState) enableSpin =
                   }
                 ]
         dropdownButtonHtml = [ if enableSpin then konSpinner else konIcon
-                             , Html.text "\u{00a0}"
+                             , Html.text " "
                              , FIcons.toHtml [] <| FIcons.withSize 22 <| FIcons.menu
                              ]
         menuItems = defaultMenuItems
@@ -626,8 +626,16 @@ viewNavbar locale page calview (NavbarMenuState menuState) enableSpin =
                             (PageTop _) -> [Dropdown.divider] ++ viewMenuCalView locale calview
                             _ -> []
         defaultMenuItems = -- TODO: i18n and icons
-            [ Dropdown.anchorItem ([href "/"] ++ if isCalendarActive then [Attr.class "active"] else []) [text "Calendar"]
-            , Dropdown.anchorItem ([href "/recipes/"] ++ if isRecipeSearchActive then [Attr.class "active"] else []) [text "Search recipes"]
+            [ Dropdown.anchorItem ([href "/"] ++ if isCalendarActive then [Attr.class "active"] else [])
+                  [ FIcons.toHtml [] <| FIcons.withSize navbarMenuIconSize <| FIcons.calendar
+                  , text " "
+                  , text "Calendar"
+                  ]
+            , Dropdown.anchorItem ([href "/recipes/"] ++ if isRecipeSearchActive then [Attr.class "active"] else [])
+                  [ FIcons.toHtml [] <| FIcons.withSize navbarMenuIconSize <| FIcons.search
+                  , text " "
+                  , text "Search recipes"
+                  ]
             ]
         (isCalendarActive, isRecipeSearchActive) =
             case page of
