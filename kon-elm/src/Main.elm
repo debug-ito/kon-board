@@ -626,9 +626,14 @@ viewNavbar locale page calview (NavbarMenuState menuState) enableSpin =
                             (PageTop _) -> [Dropdown.divider] ++ viewMenuCalView locale calview
                             _ -> []
         defaultMenuItems = -- TODO: i18n and icons
-            [ Dropdown.anchorItem [href "/"] [text "Calendar"]
-            , Dropdown.anchorItem [href "/recipes/"] [text "Search recipes"]
-            ] 
+            [ Dropdown.anchorItem ([href "/"] ++ if isCalendarActive then [Attr.class "active"] else []) [text "Calendar"]
+            , Dropdown.anchorItem ([href "/recipes/"] ++ if isRecipeSearchActive then [Attr.class "active"] else []) [text "Search recipes"]
+            ]
+        (isCalendarActive, isRecipeSearchActive) =
+            case page of
+                PageTop _ -> (True, False)
+                PageRecipeSearch _ -> (False, True)
+                _ -> (False, False)
     in result
 
 viewNavbarCenter : Locale -> Page -> List (Html Msg)
