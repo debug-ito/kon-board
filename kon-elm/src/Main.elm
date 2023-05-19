@@ -592,8 +592,7 @@ viewNavbar locale page calview (NavbarMenuState menu_state) is_loading =
         navbar_content =
             [ Html.form [Attr.class "form-inline"] dropdown_menu ]
             ++ viewNavbarCenter locale page
-            ++ [ Html.form [Attr.class "form-inline"] [kon_main_button] ]
-        kon_main_button = Html.a [href <| UrlB.absolute [] []] [if is_loading then kon_spinner else kon_icon]
+            ++ [ Html.form [Attr.class "form-inline"] [] ]
         kon_spinner =
             Spinner.spinner
                 [Spinner.attrs [Attr.class "navbar-spinner"]]
