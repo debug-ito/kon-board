@@ -4,6 +4,7 @@ module KonBoard.Recipe.TestStore
     , loadCommonRecipes
     ) where
 
+import qualified Control.Concurrent.Async      as Async
 import           Control.Monad                 (forM_, void)
 import           Control.Monad.Trans           (MonadIO (..))
 import           Data.Foldable                 (traverse_)
@@ -79,6 +80,13 @@ recipeStoreSpec = beforeWith loadCommonRecipes $ specWithStore
         gotByName `shouldBe` Just newStored
         gotById <- getRecipeById store oldId
         gotById `shouldBe` Just newStored
+      specify "parallel query should be ok" $ \store -> do
+        let loadCount :: Int
+            loadCount = 30
+            getMulti = fmap (fmap (fmap $ getField @"name" . getField @"recipe")) $ mapM (\_ -> getRecipeByName store "recipe 1") [1 .. loadCount]
+            expected = map (\_ -> Just "recipe 1" ) [1 .. loadCount]
+        got <- Async.concurrently getMulti getMulti
+        got `shouldBe` (expected, expected)
 
 getRecipesByQuerySpec :: SpecWith (RecipeStore IO)
 getRecipesByQuerySpec = beforeWith (loadTestRecipes ["recipe_query_test.yaml"]) $ specWithStore

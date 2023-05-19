@@ -95,7 +95,8 @@ test-suite spec
   build-tool-depends:   hspec-discover:hspec-discover
   build-depends:        base, kon-board, bytestring, text, time, monad-logger, mtl, servant, string-interpolate, safe-exceptions,
                         hspec,
-                        directory
+                        directory,
+                        async
                         
 
 source-repository head
