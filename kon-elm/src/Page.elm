@@ -17,7 +17,6 @@ module Page exposing
     , viewRecipeSearch
     )
 
-import Bootstrap.ListGroup as LG
 import Browser.Navigation as Nav
 import Date exposing (Date)
 import Url exposing (Url)
@@ -182,12 +181,12 @@ viewRecipeSearch _ m =
           case m.answer of
             Success a ->
               [ Html.div [Attr.class "row"] [Html.div [Attr.class "col", Attr.class "px-0"]
-                [ LG.ul <| List.map searchAnswerItem a.recipes
+                [ Html.div [Attr.class "list-group"] <| List.map searchAnswerItem a.recipes
                 ]]
               ]
-            _ -> []
+            _ -> [] -- TODO: handle Failure
         searchAnswerItem r =
-          LG.li [] [Html.a [Attr.href <| recipePageLink r.id] [Html.text r.name]]
+          Html.a [Attr.href <| recipePageLink r.id, Attr.class "list-group-item", Attr.class "list-group-item-action", Attr.class "text-primary"] [Html.text r.name]
     in result
                 
 
