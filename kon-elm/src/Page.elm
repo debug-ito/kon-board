@@ -35,6 +35,7 @@ import Calendar exposing (MonthAnchor, CalEntry)
 import Coming exposing (Coming(..), isPending)
 import UpdateM exposing (UpdateM)
 import Locale exposing (Locale)
+import Locale
 import HttpUtil exposing (showHttpError)
 
 {- | The page associated with URL.
@@ -159,18 +160,19 @@ updateAutoPRecipeSearch =
     in result
 
 viewRecipeSearch : Locale -> PRecipeSearchModel -> List (Html MsgRecipeSearch)
-viewRecipeSearch _ m = 
+viewRecipeSearch locale m = 
     let result = searchForm ++ searchResult
         searchForm =
           [ Html.div [Attr.class "row"] [Html.div [Attr.class "col", Attr.class "px-0"]
             [ Html.form [Events.onSubmit RSSubmitQuery, Attr.class "form-search-recipes"]
               [ Html.div [Attr.class "form-row"]
                 [ Html.div [Attr.class "col-10"]
-                  [ Html.input [ Attr.type_ "search", Attr.class "form-control", Attr.id "q", Attr.name "q", Attr.autofocus True, Attr.placeholder "search recipe"
+                  [ Html.input [ Attr.type_ "search", Attr.class "form-control", Attr.id "q", Attr.name "q", Attr.autofocus True
+                               , Attr.placeholder <| (.showNavMenuSearchRecipes) <| Locale.get locale
                                , Attr.value m.formQuery
                                , Events.onInput (\s -> RSUpdateFormQuery s)
                                ] []
-                  ] -- TODO: i18n
+                  ]
                 , Html.div [Attr.class "col"]
                   [ Html.button [Attr.type_ "submit", Attr.class "btn btn-primary"] [FIcons.toHtml [] <| FIcons.withSize 16 <| FIcons.search] ]
                 ]
