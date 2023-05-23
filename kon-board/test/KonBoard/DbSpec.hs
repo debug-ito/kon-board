@@ -3,8 +3,11 @@ module KonBoard.DbSpec
     , spec
     ) where
 
-import           Control.Exception.Safe      (throwString)
+import qualified Control.Concurrent.Async    as Async
+import           Control.Exception.Safe      (bracket, throwString)
+import           Control.Monad               (void)
 import           Control.Monad.Logger        (LoggingT)
+import           Data.Pool                   (defaultPoolConfig, newPool, withResource)
 import           GHC.Records                 (HasField (..))
 import           System.Directory            (removeFile)
 import           System.IO                   (hClose, openTempFile)
@@ -49,6 +52,20 @@ specRecipeStore = do
           gotForNewName `shouldBe` Just newInput
           gotForOldId <- getRecipeById store $ getField @"id" old
           gotForOldId `shouldBe` Just newInput
+  before openTempFileForDb $ after removeFile $ do
+    specify "parallel query on the same Db file from different threads" $ \dbFile -> do
+      bracket (Db.newSqliteConn dbFile) Db.close $ \c -> do
+        void $ loadCommonRecipes $ Db.recipeStoreDb c
+      let poolConf = defaultPoolConfig (Db.newSqliteConn dbFile) Db.close 5.0 10
+      pool <- newPool poolConf
+      let loadCount :: Int
+          loadCount = 30
+          getMulti = withResource pool $ \conn -> do
+            fmap (fmap (fmap $ getField @"name" . getField @"recipe")) $ mapM (\_ -> getRecipeByName (Db.recipeStoreDb conn) "recipe 1") [1 .. loadCount]
+          expected = map (\_ -> Just "recipe 1" ) [1 .. loadCount]
+      got <- Async.concurrently getMulti getMulti
+      got `shouldBe` (expected, expected)
+
 
 specMealPlanStore :: Spec
 specMealPlanStore = do
@@ -56,10 +73,15 @@ specMealPlanStore = do
     beforeWith getStores $ describe "mealPlanStoreDb" $ do
       mealPlanStoreSpec
 
-openDbOnTempFile :: IO (Conn, FilePath)
-openDbOnTempFile = do
+openTempFileForDb :: IO FilePath
+openTempFileForDb = do
   (path, h) <- openTempFile "test" "recipe.sqlite3"
   hClose h
+  return path
+
+openDbOnTempFile :: IO (Conn, FilePath)
+openDbOnTempFile = do
+  path <- openTempFileForDb
   c <- Db.newSqliteConn path
   return (c, path)
 
