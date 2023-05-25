@@ -18,6 +18,8 @@ import           Control.Monad.Logger           (LoggingT, MonadLogger, logDebug
                                                  runStderrLoggingT)
 import           Control.Monad.Trans            (MonadIO (liftIO))
 import           Data.Monoid                    ((<>))
+import           Data.Pool                      (Pool, defaultPoolConfig, destroyAllResources,
+                                                 newPool, withResource)
 import           Data.Proxy                     (Proxy (..))
 import           Data.Text                      (Text, pack)
 import qualified Data.Text.Lazy                 as TL
@@ -47,12 +49,10 @@ type AppApi = DataApi
               :<|> "static" :> Raw
 
 -- | KonBoard Web application
-data KonApp m
+data KonApp
   = KonApp
-      { mealPlanStore :: MealPlanStore m
-      , recipeStore   :: RecipeStore m
-      , dirStatic     :: FilePath
-      , dbConn        :: Db.Conn
+      { dirStatic :: FilePath
+      , dbPool    :: Pool Db.Conn
       }
 
 -- | The application monad
@@ -61,29 +61,35 @@ type AppM = IO
 serverErrorOnLeft :: MonadThrow m => ServerError -> Either e a -> m a
 serverErrorOnLeft err = either (const $ throw err) return
 
-handleGetMealPlans :: MonadThrow m
-                   => MealPlanStore m
+handleGetMealPlans :: Pool Db.Conn
                    -> BDay -- ^ start
                    -> BDay -- ^ end
-                   -> m [BMealPlan]
-handleGetMealPlans store bs be = do
-  (start, end) <- serverErrorOnLeft Sv.err400 $ (,) <$> (fromBDay bs) <*> (fromBDay be)
-  fmap (map toBMealPlan)$ getMealPlans store start end
-
-handleGetRecipe :: MonadThrow m
-                => RecipeStore m
-                -> BRecipeId
-                -> m BRecipeStored
-handleGetRecipe rstore rid = do
-  mr <- getRecipeById rstore $ fromBRecipeId rid
-  maybe (throw Sv.err404) (return . toBRecipeStored) mr
-
-handleGetRecipesByQuery :: MonadThrow m => RecipeStore m -> Maybe Text -> Maybe Int -> Maybe Int -> m BAnswerRecipe
-handleGetRecipesByQuery rStore inQ inCount inOffset =
-  case (mCount, mOffset) of
-    (Just c, Just o) -> fmap toBAnswerRecipe $ getRecipesByQuery rStore (Query { query =  q, count = c, offset = o})
-    _ -> throw Sv.err400
+                   -> IO [BMealPlan]
+handleGetMealPlans pool bs be = withResource go
   where
+    go conn = do
+      let store = Db.mealPlanStoreDb conn
+      (start, end) <- serverErrorOnLeft Sv.err400 $ (,) <$> (fromBDay bs) <*> (fromBDay be)
+      fmap (map toBMealPlan)$ getMealPlans store start end
+
+handleGetRecipe :: Pool Db.Conn
+                -> BRecipeId
+                -> IO BRecipeStored
+handleGetRecipe pool rid = withResource go
+  where
+    go conn = do
+      let store = Db.recipeStoreDb conn
+      mr <- getRecipeById store $ fromBRecipeId rid
+      maybe (throw Sv.err404) (return . toBRecipeStored) mr
+
+handleGetRecipesByQuery :: Pool Db.Conn -> Maybe Text -> Maybe Int -> Maybe Int -> IO BAnswerRecipe
+handleGetRecipesByQuery pool inQ inCount inOffset = withResource go
+  where
+    go conn = do
+      let rStore = Db.recipeStoreDb rStore
+      case (mCount, mOffset) of
+        (Just c, Just o) -> fmap toBAnswerRecipe $ getRecipesByQuery rStore (Query { query =  q, count = c, offset = o})
+        _ -> throw Sv.err400
     q = maybe "" id inQ
     mCount = nonNegative $ maybe 20 id inCount
     mOffset = nonNegative $ maybe 0 id inOffset
@@ -97,13 +103,13 @@ appToHandler :: AppM a -> Handler a
 appToHandler app = Handler $ ExceptT $ try app
 
 -- | Make 'Application' from 'Server'.
-appWith :: KonApp AppM -> Application
+appWith :: KonApp -> Application
 appWith konApp = application
   where
     application = rewriteRoot $ Sv.serve api $ hoistServer api appToHandler service
     api = Proxy :: Proxy AppApi
     rStore = getField @"recipeStore" konApp
-    service = ( handleGetMealPlans (getField @"mealPlanStore" konApp)
+    service = ( handleGetMealPlans (getField @"mealPlanStore" konApp) -- TODO: use dbPool
                 :<|> ( handleGetRecipe rStore
                        :<|> handleGetRecipesByQuery rStore
                      )
@@ -120,18 +126,19 @@ appWith konApp = application
 dbFile :: FilePath
 dbFile = "kon-board.sqlite3"
 
-newKonApp :: LoggingT IO (KonApp AppM)
+newKonApp :: LoggingT IO KonApp
 newKonApp =  do
-  logDebugN ("open " <> pack dbFile)
-  conn <- Db.newSqliteConn dbFile
-  return $ KonApp { mealPlanStore = Db.mealPlanStoreDb conn
-                  , recipeStore = Db.recipeStoreDb conn
-                  , dirStatic = "static"
-                  , dbConn = conn
+  logDebugN ("Use the DB at " <> pack dbFile)
+  let poolConf = defaultPoolConfig (Db.newSqliteConn dbFile) Db.close openTimeSec maxConnNum
+      openTimeSec = 5.0
+      maxConnNum = 10
+  p <- liftIO $ newPool poolConf
+  return $ KonApp { dirStatic = "static"
+                  , dbPool = p
                   }
 
-closeKonApp :: MonadIO m1 => KonApp m2 -> m1 ()
-closeKonApp app = liftIO $ Db.close $ getField @"dbConn" app
+closeKonApp :: MonadIO m => KonApp -> m ()
+closeKonApp app = liftIO $ destroyAllResources $ getField @"dbPonn" app
 
 initDb :: (MonadLogger m, MonadIO m, MonadMask m) => m ()
 initDb = do

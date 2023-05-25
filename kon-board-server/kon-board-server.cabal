@@ -36,7 +36,8 @@ library
                         Glob,
                         warp,
                         safe-exceptions,
-                        directory
+                        directory,
+                        resource-pool
 
 flag static
   description: Static link
