@@ -15,18 +15,24 @@ import           System.Environment       (lookupEnv)
 
 import           KonBoard.Web.App         (appWith, closeKonApp, initDb, newKonApp)
 
+getDbFile :: IO FilePath
+getDbFile = fmap (maybe "kon-board.sqlite3" id) $ lookupEnv "KON_BOARD_DB_FILE"
+
 main :: IO ()
 main = runStderrLoggingT $ do
+  dbFile <- liftIO $ getDbFile
+  logInfoN ("use the DB file " <> pack dbFile)
   let noInitEnvName = "KON_BOARD_NO_INIT_DB_AT_START"
   noInitAtStart <- liftIO $ fmap (maybe "" id) $ lookupEnv noInitEnvName
   if (noInitAtStart == "")
-    then initDb
+    then initDb dbFile
     else logInfoN ("environment variable " <> pack noInitEnvName <> " is set. Skip initializing the DB...")
-  bracket newKonApp closeKonApp $ \server -> do
+  bracket (newKonApp dbFile) closeKonApp $ \server -> do
     let port = 8888 :: Int
     logInfoN ("Listen on port " <> (pack $ show port))
     liftIO $ run port $ appWith server
 
 initDbMain :: IO ()
-initDbMain = runStderrLoggingT initDb
-
+initDbMain = do
+  dbFile <- getDbFile
+  runStderrLoggingT $ initDb dbFile

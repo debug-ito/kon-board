@@ -123,11 +123,8 @@ appWith konApp = application
         rewrite (("days" : _), q) _        = (index_page, q)
         rewrite pq _                       = pq
 
-dbFile :: FilePath
-dbFile = "kon-board.sqlite3"
-
-newKonApp :: LoggingT IO KonApp
-newKonApp =  do
+newKonApp :: FilePath -> LoggingT IO KonApp
+newKonApp dbFile =  do
   logDebugN ("Use the DB at " <> pack dbFile)
   let poolConf = defaultPoolConfig (Db.newSqliteConn dbFile) Db.close openTimeSec maxConnNum
       openTimeSec = 3600.0
@@ -140,8 +137,8 @@ newKonApp =  do
 closeKonApp :: MonadIO m => KonApp -> m ()
 closeKonApp app = liftIO $ destroyAllResources $ getField @"dbPool" app
 
-initDb :: (MonadLogger m, MonadIO m, MonadMask m) => m ()
-initDb = do
+initDb :: (MonadLogger m, MonadIO m, MonadMask m) => FilePath -> m ()
+initDb dbFile = do
   clearDb
   bracket (Db.newSqliteConn dbFile) Db.close $ \conn -> do
     let recipeS = Db.recipeStoreDb conn
