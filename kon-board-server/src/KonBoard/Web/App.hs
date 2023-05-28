@@ -65,7 +65,7 @@ handleGetMealPlans :: Pool Db.Conn
                    -> BDay -- ^ start
                    -> BDay -- ^ end
                    -> IO [BMealPlan]
-handleGetMealPlans pool bs be = withResource go
+handleGetMealPlans pool bs be = withResource pool go
   where
     go conn = do
       let store = Db.mealPlanStoreDb conn
@@ -75,7 +75,7 @@ handleGetMealPlans pool bs be = withResource go
 handleGetRecipe :: Pool Db.Conn
                 -> BRecipeId
                 -> IO BRecipeStored
-handleGetRecipe pool rid = withResource go
+handleGetRecipe pool rid = withResource pool go
   where
     go conn = do
       let store = Db.recipeStoreDb conn
@@ -83,10 +83,10 @@ handleGetRecipe pool rid = withResource go
       maybe (throw Sv.err404) (return . toBRecipeStored) mr
 
 handleGetRecipesByQuery :: Pool Db.Conn -> Maybe Text -> Maybe Int -> Maybe Int -> IO BAnswerRecipe
-handleGetRecipesByQuery pool inQ inCount inOffset = withResource go
+handleGetRecipesByQuery pool inQ inCount inOffset = withResource pool go
   where
     go conn = do
-      let rStore = Db.recipeStoreDb rStore
+      let rStore = Db.recipeStoreDb conn
       case (mCount, mOffset) of
         (Just c, Just o) -> fmap toBAnswerRecipe $ getRecipesByQuery rStore (Query { query =  q, count = c, offset = o})
         _ -> throw Sv.err400
@@ -108,10 +108,10 @@ appWith konApp = application
   where
     application = rewriteRoot $ Sv.serve api $ hoistServer api appToHandler service
     api = Proxy :: Proxy AppApi
-    rStore = getField @"recipeStore" konApp
-    service = ( handleGetMealPlans (getField @"mealPlanStore" konApp) -- TODO: use dbPool
-                :<|> ( handleGetRecipe rStore
-                       :<|> handleGetRecipesByQuery rStore
+    dbP = getField @"dbPool" konApp
+    service = ( handleGetMealPlans dbP
+                :<|> ( handleGetRecipe dbP
+                       :<|> handleGetRecipesByQuery dbP
                      )
               )
               :<|> Sv.serveDirectoryWebApp (getField @"dirStatic" konApp)
@@ -130,7 +130,7 @@ newKonApp :: LoggingT IO KonApp
 newKonApp =  do
   logDebugN ("Use the DB at " <> pack dbFile)
   let poolConf = defaultPoolConfig (Db.newSqliteConn dbFile) Db.close openTimeSec maxConnNum
-      openTimeSec = 5.0
+      openTimeSec = 3600.0
       maxConnNum = 10
   p <- liftIO $ newPool poolConf
   return $ KonApp { dirStatic = "static"
@@ -138,7 +138,7 @@ newKonApp =  do
                   }
 
 closeKonApp :: MonadIO m => KonApp -> m ()
-closeKonApp app = liftIO $ destroyAllResources $ getField @"dbPonn" app
+closeKonApp app = liftIO $ destroyAllResources $ getField @"dbPool" app
 
 initDb :: (MonadLogger m, MonadIO m, MonadMask m) => m ()
 initDb = do
