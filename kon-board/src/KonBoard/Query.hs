@@ -22,8 +22,9 @@ data Query
 
 data Answer a
   = Answer
-      { items   :: [a]
-      , hasNext :: Bool
+      { items      :: [a]
+      , offset     :: Word
+      , totalCount :: Word
       }
   deriving (Eq, Foldable, Functor, Generic, Ord, Show, Traversable)
 

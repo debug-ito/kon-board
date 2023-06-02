@@ -101,14 +101,16 @@ toBRecipeStored rs =
 
 data BAnswerRecipe
   = BAnswerRecipe
-      { recipes  :: [BRecipeStored]
-      , has_next :: Bool
+      { recipes     :: [BRecipeStored]
+      , offset      :: Word
+      , total_count :: Word
       }
   deriving (Eq, Ord, Show)
 
 toBAnswerRecipe :: Answer RecipeStored -> BAnswerRecipe
 toBAnswerRecipe a = BAnswerRecipe { recipes = map toBRecipeStored $ getField @"items" a
-                                  , has_next = getField @"hasNext" a
+                                  , offset = getField @"offset" a
+                                  , total_count = getField @"totalCount" a
                                   }
 
 $(deriveBoth (dropLabelOptions 0) ''BRecipeStored)

@@ -98,57 +98,56 @@ getRecipesByQuerySpec = beforeWith (loadTestRecipes ["recipe_query_test.yaml"]) 
       describe "getRecipesByQuery" $ do
         specify "empty query should return all" $ \rs -> do
           got <- getRecipesByQuery rs $ qDef { query = "" }
-          rNames got `shouldBe` (False, allRecipeNames)
+          rNames got `shouldBe` Answer { items = allRecipeNames, offset = 0, totalCount = length' allRecipeNames }
         specify "count" $ \rs -> do
           got <- getRecipesByQuery rs $ qDef { query = "", count = 3 }
-          rNames got `shouldBe` (True, take 3 allRecipeNames)
+          rNames got `shouldBe` Answer { items = take 3 allRecipeNames, offset = 0, totalCount = length' allRecipeNames }
         specify "offset" $ \rs -> do
           got <- getRecipesByQuery rs $ qDef { query = "", offset = 3 }
-          rNames got `shouldBe` (False, drop 3 allRecipeNames)
+          rNames got `shouldBe` Answer { items = drop 3 allRecipeNames, offset = 3, totalCount = length' allRecipeNames }
         specify "count and offset" $ \rs -> do
           got <- getRecipesByQuery rs $ qDef { query = "", count = 3, offset = 3 }
-          rNames got `shouldBe` (True, take 3 $ drop 3 allRecipeNames)
+          rNames got `shouldBe` Answer { items = take 3 $ drop 3 allRecipeNames, offset = 3, totalCount = length' allRecipeNames }
         specify "count = length" $ \rs -> do
           got <- getRecipesByQuery rs $ qDef { query = "", count = fromIntegral $ length allRecipeNames }
-          rNames got `shouldBe` (False, allRecipeNames)
+          rNames got `shouldBe` Answer { items = allRecipeNames, offset = 0, totalCount = length' allRecipeNames }
         specify "count = length with offset" $ \rs -> do
           let os = 2
           got <- getRecipesByQuery rs $ qDef { query = "", count = fromIntegral (length allRecipeNames - os), offset = fromIntegral os }
-          rNames got `shouldBe` (False, drop os allRecipeNames)
+          rNames got `shouldBe` Answer { items = drop os allRecipeNames, offset = fromIntegral os, totalCount = length' allRecipeNames }
         specify "too big offset" $ \rs -> do
           got <- getRecipesByQuery rs $ qDef { query = "", offset = fromIntegral $ length allRecipeNames }
-          rNames got `shouldBe` (False, [])
+          rNames got `shouldBe` Answer { items = [], offset = length' allRecipeNames, totalCount = length' allRecipeNames }
         specify "zero hit" $ \rs -> do
           got <- getRecipesByQuery rs $ qDef { query = "xxxx" }
-          rNames got `shouldBe` (False, [])
+          rNames got `shouldBe` Answer { items = [], offset = 0, totalCount = 0 }
         specify "hit by name" $ \rs -> do
           got <- getRecipesByQuery rs $ qDef { query = "curry" }
-          rNames got `shouldBe` (False, ["special curry rice"])
+          rNames got `shouldBe` Answer { items = ["special curry rice"], offset = 0, totalCount = 1 }
         specify "hit by ing" $ \rs -> do
           got <- getRecipesByQuery rs $ qDef { query = "onion" }
-          rNames got `shouldBe` (False, ["with ings"])
+          rNames got `shouldBe` Answer { items = ["with ings"], offset = 0, totalCount = 1 }
         specify "hit by desc" $ \rs -> do
           got <- getRecipesByQuery rs $ qDef { query = "quux" }
-          rNames got `shouldBe` (False, ["with desc"])
+          rNames got `shouldBe` Answer { items = ["with desc"], offset = 0, totalCount = 1 }
         specify "hit by ref source" $ \rs -> do
           got <- getRecipesByQuery rs $ qDef { query = "fuga" }
-          rNames got `shouldBe` (False, ["with source"])
+          rNames got `shouldBe` Answer { items = ["with source"], offset = 0, totalCount = 1 }
         specify "hit by ref url" $ \rs -> do
           got <- getRecipesByQuery rs $ qDef { query = "example.com" }
-          rNames got `shouldBe` (False, ["recipe 1", "special curry rice"])
+          rNames got `shouldBe` Answer { items = ["recipe 1", "special curry rice"], offset = 0, totalCount = 2 }
         specify "hit by ref url anchor" $ \rs -> do
           got <- getRecipesByQuery rs $ qDef { query = "1234" }
-          rNames got `shouldBe` (False, ["with url anchor"])
+          rNames got `shouldBe` Answer { items = ["with url anchor"], offset = 0, totalCount = 1 }
         specify "hit by name, ings and desc" $ \rs -> do
           got <- getRecipesByQuery rs $ qDef { query = "rice" }
-          rNames got `shouldBe` (False, ["R in desc", "R in ings", "special curry rice"])
+          rNames got `shouldBe` Answer { items = ["R in desc", "R in ings", "special curry rice"], offset = 0, totalCount  3 }
         specify "two query terms (AND condition)" $ \rs -> do
           got <- getRecipesByQuery rs $ qDef { query = "rice example.com" }
-          rNames got `shouldBe` (False, ["special curry rice"])
+          rNames got `shouldBe` Answer { items = ["special curry rice"], offset = 0, totalCount = 1 }
         specify "query term with underscore" $ \rs -> do
           got <- getRecipesByQuery rs $ qDef { query = "n_with_bar" }
-          rNames got `shouldBe` (False, ["n_with_bar_underscore"])
-    rNames ans = ( getField @"hasNext" ans
-                 , map (getField @"name" . getField @"recipe") $ getField @"items" ans
-                 )
+          rNames got `shouldBe` Answer { items = ["n_with_bar_underscore"], offset = 0, totalCount = 1 }
+    rNames ans = fmap (getField @"name" . getField @"recipe") ans
     qDef = Query { query = "", count = 100, offset = 0 }
+    length' = fromIntegral . length
