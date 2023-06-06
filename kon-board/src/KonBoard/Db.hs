@@ -203,17 +203,18 @@ getDbRecipeByName recipeName = Beam.runSelectReturningOne $ Beam.select query
       return r
 
 getDbRecipesByQuery :: (MonadBeam Backend m) => QTerms -> Word -> Word -> m (Answer (DbRecipeT Identity))
-getDbRecipesByQuery (QTerms qTerms) count offset = fmap toAnswer $ Beam.runSelectReturningList $ Beam.select $ modifyQuery $ selectQuery
+getDbRecipesByQuery (QTerms qTerms) count ofs = fmap toAnswer $ Beam.runSelectReturningList $ Beam.select $ modifyQuery $ selectQuery
   where
     selectQuery = do
       r <- Beam.all_ $ getField @"dbRecipes" dbSettings
       mapM_ (containsTerm r) qTerms
       return r
     containsTerm r t = Beam.guard_ $ likeEscaped (getField @"rSearchText" r) t
-    modifyQuery q = Beam.limit_ (fromIntegral $ count + 1) $ Beam.offset_ (fromIntegral offset) $ Beam.orderBy_ order q
+    modifyQuery q = Beam.limit_ (fromIntegral $ count + 1) $ Beam.offset_ (fromIntegral ofs) $ Beam.orderBy_ order q
     order r = Beam.asc_ $ getField @"rName" r
     toAnswer rs = Answer { items = take (fromIntegral count) rs
-                         , hasNext = length rs == (fromIntegral count + 1)
+                         , offset = ofs
+                         , totalCount = 0 -- TODO
                          }
 
 likeEscaped :: Beam.QGenExpr c Backend s Text -> Text -> Beam.QGenExpr c Backend s Bool

@@ -141,7 +141,7 @@ getRecipesByQuerySpec = beforeWith (loadTestRecipes ["recipe_query_test.yaml"]) 
           rNames got `shouldBe` Answer { items = ["with url anchor"], offset = 0, totalCount = 1 }
         specify "hit by name, ings and desc" $ \rs -> do
           got <- getRecipesByQuery rs $ qDef { query = "rice" }
-          rNames got `shouldBe` Answer { items = ["R in desc", "R in ings", "special curry rice"], offset = 0, totalCount  3 }
+          rNames got `shouldBe` Answer { items = ["R in desc", "R in ings", "special curry rice"], offset = 0, totalCount = 3 }
         specify "two query terms (AND condition)" $ \rs -> do
           got <- getRecipesByQuery rs $ qDef { query = "rice example.com" }
           rNames got `shouldBe` Answer { items = ["special curry rice"], offset = 0, totalCount = 1 }
