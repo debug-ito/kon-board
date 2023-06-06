@@ -3,7 +3,7 @@ module KonBoard.Base
     ) where
 
 import           Control.Exception.Safe as X (MonadThrow, throw, throwString)
-import           Control.Monad          as X (when)
+import           Control.Monad          as X (void, when)
 import           Control.Monad.Logger   as X (MonadLogger)
 import           Control.Monad.Trans    as X (MonadIO (..))
 import           Data.Aeson             as X (FromJSON (..), ToJSON (..), genericParseJSON,
@@ -20,5 +20,6 @@ import           Data.Text              as X (Text)
 import           Data.Time              as X (Day, UTCTime, fromGregorian, getCurrentTime,
                                               toGregorian)
 import           Data.Traversable       as X (Traversable (..))
+import           Data.Word              as X (Word32)
 import           GHC.Generics           as X (Generic)
 import           GHC.Records            as X (HasField (..))

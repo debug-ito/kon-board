@@ -1,4 +1,5 @@
-{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE QuasiQuotes         #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 module KonBoard.Db
     ( Conn
     , newSqliteConn
@@ -24,8 +25,9 @@ import qualified Database.SQLite.Simple                   as SQLite
 
 import           KonBoard.Base                            (ByteString, Day, Generic, HasField (..),
                                                            Int32, Int8, IsString, MonadIO (..),
-                                                           MonadThrow, Text, UTCTime, fromGregorian,
-                                                           throwString, toGregorian, toList)
+                                                           MonadThrow, Text, UTCTime, Word32,
+                                                           fromGregorian, throwString, toGregorian,
+                                                           toList, void)
 import           KonBoard.Db.Orphans                      ()
 import           KonBoard.MealPlan                        (MealPhase (..), MealPlan (..),
                                                            MealPlanStore (..))
@@ -202,20 +204,26 @@ getDbRecipeByName recipeName = Beam.runSelectReturningOne $ Beam.select query
       Beam.guard_ $ getField @"rName" r ==. Beam.val_ recipeName
       return r
 
-getDbRecipesByQuery :: (MonadBeam Backend m) => QTerms -> Word -> Word -> m (Answer (DbRecipeT Identity))
-getDbRecipesByQuery (QTerms qTerms) count ofs = fmap toAnswer $ Beam.runSelectReturningList $ Beam.select $ modifyQuery $ selectQuery
+getDbRecipesByQuery :: (MonadBeam Backend m, MonadThrow m) => QTerms -> Word -> Word -> m (Answer (DbRecipeT Identity))
+getDbRecipesByQuery (QTerms qTerms) count ofs = do
+  (tCount :: Word32) <- takeFirst "Something is terribly wrong. Got no row from count() function."
+                        =<< (Beam.runSelectReturningList $ Beam.select $ selectTotalCount)
+  rs <- Beam.runSelectReturningList $ Beam.select $ modifyQuery $ selectRecipes
+  return $ Answer { items = rs
+                  , offset = ofs
+                  , totalCount = fromIntegral tCount
+                  }
   where
-    selectQuery = do
+    selectRecipes = do
       r <- Beam.all_ $ getField @"dbRecipes" dbSettings
       mapM_ (containsTerm r) qTerms
       return r
+    selectTotalCount = do
+      void $ selectRecipes
+      return $ Beam.countAll_
     containsTerm r t = Beam.guard_ $ likeEscaped (getField @"rSearchText" r) t
-    modifyQuery q = Beam.limit_ (fromIntegral $ count + 1) $ Beam.offset_ (fromIntegral ofs) $ Beam.orderBy_ order q
+    modifyQuery q = Beam.limit_ (fromIntegral count) $ Beam.offset_ (fromIntegral ofs) $ Beam.orderBy_ order q
     order r = Beam.asc_ $ getField @"rName" r
-    toAnswer rs = Answer { items = take (fromIntegral count) rs
-                         , offset = ofs
-                         , totalCount = 0 -- TODO
-                         }
 
 likeEscaped :: Beam.QGenExpr c Backend s Text -> Text -> Beam.QGenExpr c Backend s Bool
 likeEscaped target rawPattern = likeEscapedOp target $ Beam.val_ $ addWildCards $ escape "_" $ escape "%" $ escape escapeChar rawPattern

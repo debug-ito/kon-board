@@ -26,7 +26,7 @@ library
                         FlexibleContexts, FlexibleInstances,
                         RankNTypes, TypeApplications, TypeOperators, DataKinds, DuplicateRecordFields,
                         TypeFamilies, MultiParamTypeClasses, StandaloneDeriving
-  other-extensions:     TemplateHaskell, GADTs, QuasiQuotes
+  other-extensions:     TemplateHaskell, GADTs, QuasiQuotes, ScopedTypeVariables
   exposed-modules:      KonBoard.Recipe,
                         KonBoard.Recipe.Memory,
                         KonBoard.Recipe.Yaml
