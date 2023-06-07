@@ -214,6 +214,7 @@ getDbRecipesByQuery (QTerms qTerms) count ofs = do
                   , totalCount = fromIntegral tCount
                   }
   where
+    selectRecipes :: Beam.Q Backend Db s (DbRecipeT (QExpr Backend s))
     selectRecipes = do
       r <- Beam.all_ $ getField @"dbRecipes" dbSettings
       mapM_ (containsTerm r) qTerms
