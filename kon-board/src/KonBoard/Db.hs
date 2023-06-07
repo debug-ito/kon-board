@@ -208,11 +208,14 @@ getDbRecipesByQuery :: (MonadBeam Backend m, MonadThrow m) => QTerms -> Word -> 
 getDbRecipesByQuery (QTerms qTerms) count ofs = do
   (tCount :: Word32) <- takeFirst "Something is terribly wrong. Got no row from count() function."
                         =<< (Beam.runSelectReturningList $ Beam.select $ selectTotalCount)
-  rs <- Beam.runSelectReturningList $ Beam.select $ modifyQuery $ selectRecipes
-  return $ Answer { items = rs
-                  , offset = ofs
-                  , totalCount = fromIntegral tCount
-                  }
+  if tCount == 0
+    then return $ Answer { items = [], offset = ofs, totalCount = fromIntegral tCount }
+    else do
+    rs <- Beam.runSelectReturningList $ Beam.select $ modifyQuery $ selectRecipes
+    return $ Answer { items = rs
+                    , offset = ofs
+                    , totalCount = fromIntegral tCount
+                    }
   where
     selectRecipes :: Beam.Q Backend Db s (DbRecipeT (QExpr Backend s))
     selectRecipes = do
