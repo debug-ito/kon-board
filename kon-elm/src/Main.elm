@@ -625,7 +625,7 @@ viewNavbar locale page calview (NavbarMenuState menuState) enableSpin =
                      ++ case page of
                             (PageTop _) -> [Dropdown.divider] ++ viewMenuCalView locale calview
                             _ -> []
-        defaultMenuItems = -- TODO: i18n and icons
+        defaultMenuItems =
             [ Dropdown.anchorItem ([href "/"] ++ if isCalendarActive then [Attr.class "active"] else [])
                   [ FIcons.toHtml [] <| FIcons.withSize navbarMenuIconSize <| FIcons.calendar
                   , text " "

@@ -19,6 +19,7 @@ module Page exposing
 
 import Browser.Navigation as Nav
 import Date exposing (Date)
+import List
 import Url exposing (Url)
 import Url.Parser exposing (Parser, oneOf, (</>), (<?>))
 import Url.Parser as P
@@ -29,6 +30,7 @@ import Html.Events as Events
 import Html.Attributes as Attr
 import Http
 import FeatherIcons as FIcons
+import String
 
 import Bridge exposing (BRecipeId, BRecipeStored, BAnswerRecipe, getApiV1Recipes)
 import Calendar exposing (MonthAnchor, CalEntry)
@@ -183,7 +185,8 @@ viewRecipeSearch locale m =
           case m.answer of
             Success a ->
               [ Html.div [Attr.class "row"] [Html.div [Attr.class "col", Attr.class "px-0"]
-                [ Html.div [Attr.class "list-group"] <| List.map searchAnswerItem a.recipes
+                [ paginationForAnswer m.pageSize a
+                , Html.div [Attr.class "list-group"] <| List.map searchAnswerItem a.recipes
                 ]]
               ]
             _ -> [] -- TODO: handle Failure
@@ -191,5 +194,26 @@ viewRecipeSearch locale m =
           Html.a [Attr.href <| recipePageLink r.id, Attr.class "list-group-item", Attr.class "list-group-item-action", Attr.class "text-primary"] [Html.text r.name]
     in result
                 
-
-
+paginationForAnswer : Int -> BAnswerRecipe -> Html msg
+paginationForAnswer pageSize a =
+  let result =
+        Html.nav [] [Html.ul [Attr.class "pagination"] (prevItem ++ numbers ++ nextItem)]
+      totalPageNum =
+        if a.total_count == 0
+        then 1
+        else
+          if remainderBy pageSize a.total_count == 0
+          then a.total_count // pageSize
+          else a.total_count // pageSize + 1
+      curPage = a.offset // pageSize
+      item l t = Html.li [Attr.class "page-item"] [Html.a [Attr.class "page-link", Attr.href l] [Html.text t]]
+      prevItem =
+        if totalPageNum == 0
+        then []
+        else [item "#" "<<"] -- TODO: set href, control enable/disable
+      nextItem =
+        if totalPageNum == 0
+        then []
+        else [item "#" ">>"]
+      numbers = List.map (\i -> item "#" <| String.fromInt i) (List.range 1 totalPageNum) -- TODO: what if totalPageNum is too large?
+  in result
