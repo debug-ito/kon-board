@@ -102,15 +102,15 @@ toBRecipeStored rs =
 data BAnswerRecipe
   = BAnswerRecipe
       { recipes     :: [BRecipeStored]
-      , offset      :: Word
-      , total_count :: Word
+      , offset      :: Int
+      , total_count :: Int
       }
   deriving (Eq, Ord, Show)
 
 toBAnswerRecipe :: Answer RecipeStored -> BAnswerRecipe
 toBAnswerRecipe a = BAnswerRecipe { recipes = map toBRecipeStored $ getField @"items" a
-                                  , offset = getField @"offset" a
-                                  , total_count = getField @"totalCount" a
+                                  , offset = fromIntegral $ getField @"offset" a
+                                  , total_count = fromIntegral $ getField @"totalCount" a
                                   }
 
 $(deriveBoth (dropLabelOptions 0) ''BRecipeStored)
