@@ -96,7 +96,7 @@ initRecipeSearchPage s p = PageRecipeSearch
                            , submittedQuery = s
                            , submittedPage = p
                            , answer = NotStarted
-                           , pageSize = 10
+                           , pageSize = 5 -- TODO: make this big enough
                            }
 
 parseUrl : Url -> Maybe Page
@@ -185,7 +185,7 @@ viewRecipeSearch locale m =
           case m.answer of
             Success a ->
               [ Html.div [Attr.class "row"] [Html.div [Attr.class "col", Attr.class "px-0"]
-                [ paginationForAnswer m.pageSize a
+                [ paginationForAnswer m a
                 , Html.div [Attr.class "list-group"] <| List.map searchAnswerItem a.recipes
                 ]]
               ]
@@ -194,26 +194,43 @@ viewRecipeSearch locale m =
           Html.a [Attr.href <| recipePageLink r.id, Attr.class "list-group-item", Attr.class "list-group-item-action", Attr.class "text-primary"] [Html.text r.name]
     in result
                 
-paginationForAnswer : Int -> BAnswerRecipe -> Html msg
-paginationForAnswer pageSize a =
+paginationForAnswer : PRecipeSearchModel -> BAnswerRecipe -> Html msg
+paginationForAnswer model a =
   let result =
         Html.nav [] [Html.ul [Attr.class "pagination"] (prevItem ++ numbers ++ nextItem)]
       totalPageNum =
         if a.total_count == 0
         then 1
         else
-          if remainderBy pageSize a.total_count == 0
-          then a.total_count // pageSize
-          else a.total_count // pageSize + 1
-      curPage = a.offset // pageSize
-      item l t = Html.li [Attr.class "page-item"] [Html.a [Attr.class "page-link", Attr.href l] [Html.text t]]
+          if remainderBy model.pageSize a.total_count == 0
+          then a.total_count // model.pageSize
+          else a.total_count // model.pageSize + 1
+      curPage = a.offset // model.pageSize
+      urlForPage p = B.relative [] <| paramQ ++ [B.int "page" p]
+      paramQ = case model.submittedQuery of
+                 Nothing -> []
+                 Just q -> [B.string "q" q]
+      item mp t =
+        let (attrsA, attrsLi) =
+              case mp of
+                Nothing -> ([], [Attr.class "disabled"])
+                Just p ->
+                  let active = if p == curPage
+                               then [Attr.class "active"]
+                               else []
+                  in ([Attr.href <| urlForPage p], active)
+        in Html.li ([Attr.class "page-item"] ++ attrsLi) [Html.a ([Attr.class "page-link"] ++ attrsA) [Html.text t]]
       prevItem =
         if totalPageNum == 0
         then []
-        else [item "#" "<<"] -- TODO: set href, control enable/disable
+        else if curPage <= 0
+             then [item Nothing "<<"]
+             else [item (Just <| curPage - 1) "<<"]
       nextItem =
         if totalPageNum == 0
         then []
-        else [item "#" ">>"]
-      numbers = List.map (\i -> item "#" <| String.fromInt i) (List.range 1 totalPageNum) -- TODO: what if totalPageNum is too large?
+        else if curPage >= (totalPageNum - 1)
+             then [item Nothing ">>"]
+             else [item (Just <| curPage + 1) ">>"]
+      numbers = List.map (\i -> item (Just i) <| String.fromInt (i + 1)) (List.range 0 (totalPageNum - 1)) -- TODO: what if totalPageNum is too large?
   in result
