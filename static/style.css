@@ -285,3 +285,8 @@ body > .alert-danger {
 .form-search-recipes {
     padding: 5px 0 5px 0;
 }
+
+.pagination {
+    /* See https://github.com/twbs/bootstrap/issues/23504#issuecomment-980281229 */
+    flex-wrap: wrap;
+}
