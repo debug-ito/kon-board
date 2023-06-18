@@ -183,6 +183,7 @@ viewRecipeSearch locale m =
           ]
         searchResult =
           case m.answer of
+            -- TODO: show the total number of items with i18n.
             Success a ->
               [ Html.div [Attr.class "row"] [Html.div [Attr.class "col", Attr.class "px-0"]
                 [ paginationForAnswer m a
@@ -193,7 +194,8 @@ viewRecipeSearch locale m =
         searchAnswerItem r =
           Html.a [Attr.href <| recipePageLink r.id, Attr.class "list-group-item", Attr.class "list-group-item-action", Attr.class "text-primary"] [Html.text r.name]
     in result
-                
+
+-- TODO: skip some page items when the totalPageNum is too big.
 paginationForAnswer : PRecipeSearchModel -> BAnswerRecipe -> Html msg
 paginationForAnswer model a =
   let result =
