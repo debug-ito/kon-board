@@ -16,6 +16,7 @@ import           Test.Hspec
 import           KonBoard.Db                 (Conn)
 import qualified KonBoard.Db                 as Db
 import           KonBoard.MealPlan           (MealPlanStore)
+import           KonBoard.Query              (Answer (..), Query (..))
 import           KonBoard.Recipe             (RecipeStore (..), RecipeStored (..), parseRecipe)
 
 import           KonBoard.MealPlan.TestStore (mealPlanStoreSpec)
@@ -60,11 +61,20 @@ specRecipeStore = do
       pool <- newPool poolConf
       let loadCount :: Int
           loadCount = 30
+          q = Query { query = "miso"
+                    , count = 100
+                    , offset = 0
+                    }
+          expectedTotalCount = 1
           getMulti = withResource pool $ \conn -> do
-            fmap (fmap (fmap $ getField @"name" . getField @"recipe")) $ mapM (\_ -> getRecipeByName (Db.recipeStoreDb conn) "recipe 1") [1 .. loadCount]
-          expected = map (\_ -> Just "recipe 1" ) [1 .. loadCount]
+            fmap (fmap (getField @"totalCount")) $ mapM (\_ -> getRecipesByQuery (Db.recipeStoreDb conn) q) [1 .. loadCount]
+          expected = map (\_ -> expectedTotalCount) [1 .. loadCount]
       got <- Async.concurrently getMulti getMulti
       got `shouldBe` (expected, expected)
+    -- specify "parallel open of the same Db file from different threads" $ \dbFile -> do
+    --   let openClose = Db.close =<< Db.newSqliteConn dbFile
+    --       manyOpenClose = mapM_ (const openClose) [1 .. 30]
+    --   void $ Async.concurrently manyOpenClose manyOpenClose
 
 
 specMealPlanStore :: Spec
