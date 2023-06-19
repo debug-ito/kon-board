@@ -71,10 +71,15 @@ specRecipeStore = do
           expected = map (\_ -> expectedTotalCount) [1 .. loadCount]
       got <- Async.concurrently getMulti getMulti
       got `shouldBe` (expected, expected)
-    -- specify "parallel open of the same Db file from different threads" $ \dbFile -> do
-    --   let openClose = Db.close =<< Db.newSqliteConn dbFile
-    --       manyOpenClose = mapM_ (const openClose) [1 .. 30]
-    --   void $ Async.concurrently manyOpenClose manyOpenClose
+    specify "parallel query on the same Db file from many new connections" $ \dbFile -> do
+      bracket (Db.newSqliteConn dbFile) Db.close $ \c -> do
+        void $ loadCommonRecipes $ Db.recipeStoreDb c
+      let action = bracket (Db.newSqliteConn dbFile) Db.close $ \conn -> do
+            fmap (fmap (getField @"name" . getField @"recipe")) $ getRecipeByName (Db.recipeStoreDb conn) "recipe 1"
+          expected = Just "recipe 1"
+          numThreads = 10
+      got <- Async.replicateConcurrently numThreads action
+      got `shouldBe` replicate numThreads expected
 
 
 specMealPlanStore :: Spec
