@@ -56,6 +56,7 @@ specRecipeStore = do
   before openTempFileForDb $ after removeFile $ do
     specify "parallel query on the same Db file from different threads" $ \dbFile -> do
       bracket (Db.newSqliteConn dbFile) Db.close $ \c -> do
+        Db.initDb c
         void $ loadCommonRecipes $ Db.recipeStoreDb c
       let poolConf = defaultPoolConfig (Db.newSqliteConn dbFile) Db.close 5.0 10
       pool <- newPool poolConf
@@ -73,6 +74,7 @@ specRecipeStore = do
       got `shouldBe` (expected, expected)
     specify "parallel query on the same Db file from many new connections" $ \dbFile -> do
       bracket (Db.newSqliteConn dbFile) Db.close $ \c -> do
+        Db.initDb c
         void $ loadCommonRecipes $ Db.recipeStoreDb c
       let action = bracket (Db.newSqliteConn dbFile) Db.close $ \conn -> do
             fmap (fmap (getField @"name" . getField @"recipe")) $ getRecipeByName (Db.recipeStoreDb conn) "recipe 1"
@@ -98,6 +100,7 @@ openDbOnTempFile :: IO (Conn, FilePath)
 openDbOnTempFile = do
   path <- openTempFileForDb
   c <- Db.newSqliteConn path
+  Db.initDb c
   return (c, path)
 
 closeDbOnTempFile :: (Conn, FilePath) -> IO ()

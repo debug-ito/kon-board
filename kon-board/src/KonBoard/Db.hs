@@ -4,6 +4,7 @@ module KonBoard.Db
     ( Conn
     , newSqliteConn
     , close
+    , initDb
     , recipeStoreDb
     , mealPlanStoreDb
     ) where
@@ -82,9 +83,9 @@ data Conn
 
 newSqliteConn :: MonadIO m => FilePath -> m Conn
 newSqliteConn f = liftIO $ do
-  conn <- fmap Conn $ SQLite.open f
-  initDb conn
-  return conn
+  sqC <- SQLite.open f
+  SQLite.execute_ sqC "PRAGMA foreign_keys = true;\n"
+  return $ Conn sqC
 
 close :: MonadIO m => Conn -> m ()
 close (Conn c) = liftIO $ SQLite.close c
@@ -109,21 +110,15 @@ recipeStoreDb c =
       traverse fromDbRecipe dbRs
   }
 
-initDb :: Conn -> IO ()
+-- | You should call this function once in the process before doing anything on the database.
+initDb :: MonadIO m => Conn -> m ()
 initDb (Conn c) =
-  mapM_ (SQLite.execute_ c)
-  [ sqlPragmas
-  , sqlCreateDbRecipeT
+  liftIO $ mapM_ (SQLite.execute_ c)
+  [ sqlCreateDbRecipeT
   , sqlCreateDbMealPlanHeaderT
   , sqlCreateDbMealPlanRecipeT
   , sqlCreateDbMealPlanNoteT
   ]
-
-sqlPragmas :: SQLite.Query
-sqlPragmas = [I.i|
-PRAGMA auto_vacuum = FULL;
-PRAGMA foreign_keys = true;
-|]
 
 type Backend = Sqlite
 

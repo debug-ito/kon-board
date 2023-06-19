@@ -126,6 +126,7 @@ appWith konApp = application
 newKonApp :: FilePath -> LoggingT IO KonApp
 newKonApp dbFile =  do
   logDebugN ("Use the DB at " <> pack dbFile)
+  liftIO $ bracket (Db.newSqliteConn dbFile) Db.close Db.initDb
   let poolConf = defaultPoolConfig (Db.newSqliteConn dbFile) Db.close openTimeSec maxConnNum
       openTimeSec = 3600.0
       maxConnNum = 10
@@ -141,6 +142,7 @@ initDb :: (MonadLogger m, MonadIO m, MonadMask m) => FilePath -> m ()
 initDb dbFile = do
   clearDb
   bracket (Db.newSqliteConn dbFile) Db.close $ \conn -> do
+    Db.initDb conn
     let recipeS = Db.recipeStoreDb conn
     loadRecipes recipeS
     loadMealPlans recipeS $ Db.mealPlanStoreDb conn
