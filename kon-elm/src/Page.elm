@@ -96,7 +96,7 @@ initRecipeSearchPage s p = PageRecipeSearch
                            , submittedQuery = s
                            , submittedPage = p
                            , answer = NotStarted
-                           , pageSize = 5 -- TODO: make this big enough
+                           , pageSize = 50
                            }
 
 parseUrl : Url -> Maybe Page
@@ -184,15 +184,16 @@ viewRecipeSearch locale m =
         searchResult =
           case m.answer of
             -- TODO: show the total number of items with i18n.
-            Success a ->
-              [ Html.div [Attr.class "row"] [Html.div [Attr.class "col", Attr.class "px-0"]
-                [ paginationForAnswer m a
-                , Html.div [Attr.class "list-group"] <| List.map searchAnswerItem a.recipes
-                ]]
-              ]
-            _ -> [] -- TODO: handle Failure
+            Success a -> searchResultContainer
+                           [ paginationForAnswer m a
+                           , Html.div [Attr.class "list-group"] <| List.map searchAnswerItem a.recipes
+                           ]
+            Failure _ -> searchResultContainer [] -- TODO: handle Failure
+            _ -> []
         searchAnswerItem r =
           Html.a [Attr.href <| recipePageLink r.id, Attr.class "list-group-item", Attr.class "list-group-item-action", Attr.class "text-primary"] [Html.text r.name]
+        searchResultContainer e =
+          [ Html.div [Attr.class "row"] [Html.div [Attr.class "col", Attr.class "px-0"] e] ]
     in result
 
 -- TODO: skip some page items when the totalPageNum is too big.
@@ -234,5 +235,5 @@ paginationForAnswer model a =
         else if curPage >= (totalPageNum - 1)
              then [item Nothing ">>"]
              else [item (Just <| curPage + 1) ">>"]
-      numbers = List.map (\i -> item (Just i) <| String.fromInt (i + 1)) (List.range 0 (totalPageNum - 1)) -- TODO: what if totalPageNum is too large?
+      numbers = List.map (\i -> item (Just i) <| String.fromInt (i + 1)) (List.range 0 (totalPageNum - 1))
   in result
