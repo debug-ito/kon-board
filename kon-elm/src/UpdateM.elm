@@ -5,6 +5,7 @@ module UpdateM exposing
     , run
     , mapModel
     , mapMsg
+    , postMapModel
     )
 
 import Tuple
@@ -40,3 +41,10 @@ mapModel f g orig model2 =
 
 mapMsg : (msg1 -> msg2) -> UpdateM model msg1 -> UpdateM model msg2
 mapMsg f orig model = Tuple.mapSecond (List.map (Cmd.map f)) <| orig model
+
+{- | Transform the model after update. -}
+postMapModel : (model -> model) -> UpdateM model msg -> UpdateM model msg
+postMapModel f orig model =
+  let (newModel, cmds) = orig model
+      resultModel = f newModel
+  in (resultModel, cmds)
