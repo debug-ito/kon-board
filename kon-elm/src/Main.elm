@@ -60,7 +60,10 @@ import MealPhase exposing (MealPhase(..))
 import MealPhase
 import MealPlanLoader exposing (MealPlanLoader)
 import MealPlanLoader
-import Page exposing (Page(..), recipePageLink, PRecipeModel, PDayModel, dayPageLink, PRecipeSearchModel)
+import Page exposing
+  ( Page(..), recipePageLink, PRecipeModel, PDayModel, dayPageLink
+  , PRecipeSearchModel, errorMsgRecipeSearch
+  )
 import Page
 import UpdateM exposing (UpdateM)
 import UpdateM
@@ -402,7 +405,11 @@ appUpdateReact msg model =
                         _ -> Nothing
                 extendModel p = { model | page = PageRecipeSearch p }
                 extendedUpdate = UpdateM.mapMsg MsgRecipeSearch <| UpdateM.mapModel extendModel focusModel <| Page.updateReactPRecipeSearch model.navKey m
-            in extendedUpdate model
+                baseModel =
+                  case errorMsgRecipeSearch m of
+                    Nothing -> model
+                    Just e -> { model | errorMsg = (Alert.shown, e) }
+            in extendedUpdate baseModel
 
 appUrlChange : Url -> Model -> Model
 appUrlChange u model =

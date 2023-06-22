@@ -14,6 +14,7 @@ module Page exposing
     , MsgRecipeSearch(..)
     , updateReactPRecipeSearch
     , updateAutoPRecipeSearch
+    , errorMsgRecipeSearch
     , viewRecipeSearch
     )
 
@@ -148,6 +149,12 @@ updateReactPRecipeSearch key msg model =
                 Ok a -> ({ model | answer = Success a }, [])
                 Err e -> ({ model | answer = Failure <| showHttpError e }, [])
 
+errorMsgRecipeSearch : MsgRecipeSearch -> Maybe String
+errorMsgRecipeSearch m =
+  case m of
+     RSRecipeListLoaded (Err e) -> Just <| showHttpError e
+     _ -> Nothing
+
 updateAutoPRecipeSearch : UpdateM PRecipeSearchModel MsgRecipeSearch
 updateAutoPRecipeSearch =
     let result = loadRecipeList
@@ -188,8 +195,8 @@ viewRecipeSearch locale m =
                            [ paginationForAnswer m a
                            , Html.div [Attr.class "list-group"] <| List.map searchAnswerItem a.recipes
                            ]
-            Failure _ -> searchResultContainer [] -- TODO: handle Failure
             _ -> []
+            -- On Failure, error message is shown by Main.
         searchAnswerItem r =
           Html.a [Attr.href <| recipePageLink r.id, Attr.class "list-group-item", Attr.class "list-group-item-action", Attr.class "text-primary"] [Html.text r.name]
         searchResultContainer e =
@@ -197,6 +204,8 @@ viewRecipeSearch locale m =
     in result
 
 -- TODO: skip some page items when the totalPageNum is too big.
+-- TODO: don't show pagination if there is only one page.
+-- TODO: add pagination at both top and bottom.
 paginationForAnswer : PRecipeSearchModel -> BAnswerRecipe -> Html msg
 paginationForAnswer model a =
   let result =
