@@ -192,9 +192,8 @@ viewRecipeSearch locale m =
           case m.answer of
             -- TODO: show the total number of items with i18n.
             Success a -> searchResultContainer
-                           [ paginationForAnswer m a
-                           , Html.div [Attr.class "list-group"] <| List.map searchAnswerItem a.recipes
-                           ]
+                           <| paginationForAnswer m a
+                              ++ [Html.div [Attr.class "list-group"] <| List.map searchAnswerItem a.recipes]
             _ -> []
             -- On Failure, error message is shown by Main.
         searchAnswerItem r =
@@ -204,12 +203,13 @@ viewRecipeSearch locale m =
     in result
 
 -- TODO: skip some page items when the totalPageNum is too big.
--- TODO: don't show pagination if there is only one page.
 -- TODO: add pagination at both top and bottom.
-paginationForAnswer : PRecipeSearchModel -> BAnswerRecipe -> Html msg
+paginationForAnswer : PRecipeSearchModel -> BAnswerRecipe -> List (Html msg)
 paginationForAnswer model a =
   let result =
-        Html.nav [] [Html.ul [Attr.class "pagination"] (prevItem ++ numbers ++ nextItem)]
+        if totalPageNum <= 1
+        then []
+        else [Html.nav [] [Html.ul [Attr.class "pagination"] (prevItem ++ numbers ++ nextItem)]]
       totalPageNum =
         if a.total_count == 0
         then 1
