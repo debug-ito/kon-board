@@ -405,11 +405,11 @@ appUpdateReact msg model =
                         _ -> Nothing
                 extendModel p = { model | page = PageRecipeSearch p }
                 extendedUpdate = UpdateM.mapMsg MsgRecipeSearch <| UpdateM.mapModel extendModel focusModel <| Page.updateReactPRecipeSearch model.navKey m
-                baseModel =
+                setErrorMsg mdl =
                   case errorMsgRecipeSearch m of
-                    Nothing -> model
-                    Just e -> { model | errorMsg = (Alert.shown, e) }
-            in extendedUpdate baseModel
+                    Nothing -> mdl
+                    Just e -> { mdl | errorMsg = (Alert.shown, e) }
+            in Tuple.mapFirst setErrorMsg <| extendedUpdate model
 
 appUrlChange : Url -> Model -> Model
 appUrlChange u model =
