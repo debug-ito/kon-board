@@ -194,6 +194,7 @@ viewRecipeSearch locale m =
             Success a -> searchResultContainer
                            <| paginationForAnswer m a
                               ++ [Html.div [Attr.class "list-group"] <| List.map searchAnswerItem a.recipes]
+                              ++ paginationForAnswer m a
             _ -> []
             -- On Failure, error message is shown by Main.
         searchAnswerItem r =
