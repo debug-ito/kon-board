@@ -45,6 +45,7 @@ type alias LocaleImpl msg =
     , showNavMenuCalTable : String
     , showNavMenuCalendar : String
     , showNavMenuSearchRecipes : String
+    , showTotalNumOfRecipes : Int -> String
     }
 
 get : Locale -> LocaleImpl msg
@@ -72,6 +73,7 @@ localeJaJP =
             , showNavMenuCalTable = "表"
             , showNavMenuCalendar = "カレンダー"
             , showNavMenuSearchRecipes = "レシピ検索"
+            , showTotalNumOfRecipes = jaShowTotalNumOfRecipes
             }
         jaViewIngredient ing = [text (ing.food ++ ": " ++ ing.qtty)]
         jaShowMealPhase mp =
@@ -154,6 +156,9 @@ jaShowDateYMDA d =
         wday = jaFormatWeekday <| Date.weekday d
     in result
 
+jaShowTotalNumOfRecipes : Int -> String
+jaShowTotalNumOfRecipes n = String.fromInt n ++ "件のレシピ"
+
 ---------------
 
 localeEnUS : LocaleImpl msg
@@ -175,6 +180,7 @@ localeEnUS =
             , showNavMenuCalTable = "Table"
             , showNavMenuCalendar = "Calendar"
             , showNavMenuSearchRecipes = "Search recipes"
+            , showTotalNumOfRecipes = enShowTotalNumOfRecipes
             }
         enViewIngredient ing = [text (ing.qtty ++ ", " ++ ing.food)]
         enShowMealPhase mp =
@@ -274,3 +280,6 @@ enShowDateYMDA d =
         month = enFormatMonthLong <| Date.month d
         year = String.fromInt <| Date.year d
     in result
+
+enShowTotalNumOfRecipes : Int -> String
+enShowTotalNumOfRecipes n = String.fromInt n ++ " recipes in total."

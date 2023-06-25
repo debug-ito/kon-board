@@ -204,7 +204,6 @@ viewRecipeSearch locale m =
     in result
 
 -- TODO: skip some page items when the totalPageNum is too big.
--- TODO: add pagination at both top and bottom.
 paginationForAnswer : PRecipeSearchModel -> BAnswerRecipe -> List (Html msg)
 paginationForAnswer model a =
   let result =
