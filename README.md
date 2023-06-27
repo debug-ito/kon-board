@@ -59,6 +59,20 @@ For now, kon-board doesn't support editing meal plans on the Web interface.
 
 See [the example of meal plan YAML](kon-board/test/meal-plans/plan_example.yaml) for detail.
 
+## Environment variables
+
+You can customize the behavior of kon-board server by the following environment variables.
+
+- `KON_BOARD_DB_FILE` (default: `kon-board.sqlite3`):
+  kon-board stores recipes and meal plans in a SQLite3 database file.
+  This variable specifies the path to the database file.
+
+- `KON_BOARD_NO_INIT_DB_AT_START` (default: empty)
+  By default, when kon-board server starts up, it clears the database file and initializes its content by reading the YAML files.
+  This behavior is because of backward-compatibility.
+  However, if this variable is set to non-empty string, the kon-board server skips the initialization and just uses the database as-is.
+  To initialize the database file, you can also use `make initdb` command.
+
 ## Development
 
 ### Content
