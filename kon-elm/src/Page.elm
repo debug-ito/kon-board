@@ -190,9 +190,9 @@ viewRecipeSearch locale m =
           ]
         searchResult =
           case m.answer of
-            -- TODO: show the total number of items with i18n.
             Success a -> searchResultContainer
-                           <| paginationForAnswer m a
+                           <| searchResultTotalNum a
+                              ++ paginationForAnswer m a
                               ++ [Html.div [Attr.class "list-group"] <| List.map searchAnswerItem a.recipes]
                               ++ paginationForAnswer m a
             _ -> []
@@ -201,6 +201,8 @@ viewRecipeSearch locale m =
           Html.a [Attr.href <| recipePageLink r.id, Attr.class "list-group-item", Attr.class "list-group-item-action", Attr.class "text-primary"] [Html.text r.name]
         searchResultContainer e =
           [ Html.div [Attr.class "row"] [Html.div [Attr.class "col", Attr.class "px-0"] e] ]
+        searchResultTotalNum a =
+          [ Html.div [] [Html.text <| (.showTotalNumOfRecipes) (Locale.get locale) a.total_count] ]
     in result
 
 -- TODO: skip some page items when the totalPageNum is too big.
