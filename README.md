@@ -21,6 +21,7 @@ You can see the recipes for meals in the calendar.
 - [Run](#run)
 - [Add recipes](#add-recipes)
 - [Add meal plans](#add-meal-plans)
+- [Environment variables](#environment-variables)
 - [Development](#development)
 - [Recent changes](#recent-changes)
 
