@@ -23,5 +23,8 @@ test: $(ELM_SRC)/Bridge.elm
 run: static/main-$(VERSION).js static/index.html
 	cabal v2-run kon-board-server:kon-board-server
 
+initdb:
+	cabal v2-run kon-board-server:kon-board-init-db
+
 clean:
 	rm -rf $(ELM_SRC)/Bridge.elm static/main*.js static/index.html; cabal v2-clean
