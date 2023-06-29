@@ -2,6 +2,22 @@
 
 ## 0.7.2.0  -- ?
 
+### Backend
+
+- Add `make initdb` target.
+- Add `KON_BOARD_DB_FILE` environment variable.
+- Fix bugs about accessing the DB from multiple threads.
+  - Now `auto_vacuum` option for SQLite3 is removed.
+- Add `getRecipesByQuery` method to `RecipeStore`.
+  - Add `KonBoard.Query` module.
+- Add `GET /recipes` API endpoint.
+
+### Frontend
+
+- Add a page to search recipes.
+- Now the kon-board icon is at the top-left corner.
+
+
 ## 0.7.1.0  -- 2023-03-31
 
 - Now kon-board-server uses `KonBoard.Db` for the storage backend.
