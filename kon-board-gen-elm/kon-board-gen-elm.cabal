@@ -7,7 +7,7 @@ license-file:           LICENSE
 synopsis:               Generator of Elm front-end of kon-board
 description:            Generator of Elm front-end of kon-board.
 category:               Web
-cabal-version:          >= 1.10
+cabal-version:          2.0
 build-type:             Simple
 extra-source-files:     README.md
 homepage:               https://github.com/debug-ito/kon-board
@@ -21,10 +21,10 @@ library
   -- other-extensions:     
   exposed-modules:      KonBoard.Exec.GenElm
   -- other-modules:        
-  build-depends:        base >=4.13.0.0 && <4.14,
-                        kon-board ==0.7.2.0,
-                        elm-bridge,
-                        servant-elm
+  build-depends:        base ^>=4.13.0.0,
+                        kon-board ^>=0.7.2.0,
+                        elm-bridge ^>=0.6.1,
+                        servant-elm ^>=0.7.3
 
 flag static
   description: Static link
@@ -40,7 +40,8 @@ executable kon-board-gen-elm
   -- other-modules:        
   default-extensions:   OverloadedStrings, StrictData
   -- other-extensions:     
-  build-depends:        base, kon-board-gen-elm
+  build-depends:        base ^>=4.13.0.0,
+                        kon-board-gen-elm
 
 -- test-suite spec
 --   type:                 exitcode-stdio-1.0
