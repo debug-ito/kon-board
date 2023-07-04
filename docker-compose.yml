@@ -8,6 +8,11 @@ services:
       - ./recipes:/server/recipes
       - ./meal-plans:/server/meal-plans
 
+####If you want to use a DB file prepared in advance, uncomment this block
+##      - ./kon-board.sqlite3:/server/kon-board.sqlite3
+##    environment:
+##      - KON_BOARD_NO_INIT_DB_AT_START=yes
+
 volumes:
   recipes:
   meal-plans:  
