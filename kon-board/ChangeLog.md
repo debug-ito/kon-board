@@ -1,5 +1,7 @@
 # Revision history for kon-board
 
+## 0.7.3.0  -- ?
+
 ## 0.7.2.0  -- 2023-07-04
 
 ### Backend
