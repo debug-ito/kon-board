@@ -8,6 +8,7 @@ module Page exposing
     , recipePageLink
     , dayPageLink
     , isLoading
+    , linkHashtagsMarkdown
     
       -- * RecipeSearch page
     , PRecipeSearchModel
@@ -248,3 +249,9 @@ paginationForAnswer model a =
              else [item (Just <| curPage + 1) ">>"]
       numbers = List.map (\i -> item (Just i) <| String.fromInt (i + 1)) (List.range 0 (totalPageNum - 1))
   in result
+
+-- | The input should be a Markdown text. This function adds hyperlinks to hashtags found in the input text.
+linkHashtagsMarkdown : (String -> String) -- ^ the input is the hashtag value (without the "#" symbol), the output should be the link URL.
+                     -> String -- ^ the input Markdown text
+                     -> String
+linkHashtagsMarkdown _ input = input -- TODO.

@@ -17,6 +17,9 @@ parseUrl_ s = Url.fromString s |> Maybe.andThen
               ( \url -> Page.parseUrl url
               )
 
+linkHashtags_ : String -> String
+linkHashtags_ = Page.linkHashtagsMarkdown (\t -> "/q=#" ++ t)
+
 suite : Test
 suite =
     describe "Page"
@@ -34,4 +37,10 @@ suite =
                             expected = Just <| PageDay { day = fromCalendarDate 2020 Jul 12, calEntry = NotStarted }
                         in Exp.equal got expected
               ]
+        , describe "linkHashtagsMarkdown"
+             [ test "empty" <|
+                 \_ -> Exp.equal (linkHashtags_ "") ""
+             , test "a hashtag" <|
+                 \_ -> Exp.equal (linkHashtags_ "#hoge") "/q=#hoge"
+             ]
         ]
