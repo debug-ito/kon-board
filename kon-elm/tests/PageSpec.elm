@@ -41,6 +41,14 @@ suite =
              [ test "empty" <|
                  \_ -> Exp.equal (linkHashtags_ "") ""
              , test "a hashtag" <|
-                 \_ -> Exp.equal (linkHashtags_ "#hoge") "/q=#hoge"
+                 \_ -> Exp.equal (linkHashtags_ "#hoge") "[#hoge](/q=#hoge)"
+             , test "multiple hashtags" <|
+                 \_ -> Exp.equal (linkHashtags_ "#foo bar buzz #quux #hoge") "[#foo](/q=#foo) bar buzz [#quux](/q=#quux) [#hoge](/q=#hoge)"
+             , test "markdown headings" <|
+                 \_ -> let input = "# heading 1\n\n## heading 2\n\n### heading 3"
+                       in Exp.equal (linkHashtags_ input) input
+             , test "fragments in links" <|
+                 \_ -> let input = "https://example.com/hoge#foobar\n[external link](http://example.net/#quux)\n[relative fragment link](#hoge)"
+                       in Exp.equal (linkHashtags_ input) input
              ]
         ]
