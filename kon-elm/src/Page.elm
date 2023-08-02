@@ -250,8 +250,24 @@ paginationForAnswer model a =
       numbers = List.map (\i -> item (Just i) <| String.fromInt (i + 1)) (List.range 0 (totalPageNum - 1))
   in result
 
+type FoldContext = InBlank | InNonBlank | InHashtag
+
+type alias FoldState =
+     { result : String
+     , context : FoldContext
+     }
+
 -- | The input should be a Markdown text. This function adds hyperlinks to hashtags found in the input text.
 linkHashtagsMarkdown : (String -> String) -- ^ the input is the hashtag value (without the "#" symbol), the output should be the link URL.
                      -> String -- ^ the input Markdown text
                      -> String
-linkHashtagsMarkdown _ input = input -- TODO.
+linkHashtagsMarkdown _ input =
+  let result = (.result) <| String.foldl f { result = "", context = InBlank } input
+      f c inState =
+          case (inState.context, isBlank c) of
+              (InBlank, True) -> { result = inState.result ++ String.fromChar c, context = InBlank }
+              (_, _) -> inState -- TODO
+      isBlank c = c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == '　'
+  in result
+
+  
