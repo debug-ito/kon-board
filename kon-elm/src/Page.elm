@@ -250,24 +250,44 @@ paginationForAnswer model a =
       numbers = List.map (\i -> item (Just i) <| String.fromInt (i + 1)) (List.range 0 (totalPageNum - 1))
   in result
 
-type FoldContext = InBlank | InNonBlank | InHashtag
+type FoldContext = InBlank | InNonBlank | InHashtag String
 
 type alias FoldState =
      { result : String
      , context : FoldContext
      }
 
+type CharClass = CCBlank | CCHashtagStart | CCOther
+
 -- | The input should be a Markdown text. This function adds hyperlinks to hashtags found in the input text.
 linkHashtagsMarkdown : (String -> String) -- ^ the input is the hashtag value (without the "#" symbol), the output should be the link URL.
                      -> String -- ^ the input Markdown text
                      -> String
-linkHashtagsMarkdown _ input =
-  let result = (.result) <| String.foldl f { result = "", context = InBlank } input
+linkHashtagsMarkdown makeLinkUrl input =
+  let result = finalize <| String.foldl f { result = "", context = InBlank } input
       f c inState =
-          case (inState.context, isBlank c) of
-              (InBlank, True) -> { result = inState.result ++ String.fromChar c, context = InBlank }
-              (_, _) -> inState -- TODO
+          case (inState.context, charClass c) of
+              (InBlank, CCBlank) -> readChar c InBlank inState
+              (InBlank, CCHashtagStart) -> { inState | context = InHashtag ""}
+              (InBlank, CCOther) -> readChar c InNonBlank inState
+              (InNonBlank, CCBlank) -> readChar c InBlank inState
+              (InNonBlank, _) -> readChar c InNonBlank inState
+              (InHashtag t, CCBlank) -> readChar c InBlank <| flushInHashtag inState
+              (InHashtag t, _) -> { inState | context = InHashtag <| t ++ String.fromChar c }
       isBlank c = c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == '　'
+      isHashtagStart c = c == '#'
+      charClass c = if isBlank c
+                    then CCBlank
+                    else if isHashtagStart c
+                      then CCHashtagStart
+                      else CCOther
+      readChar c ctx state = { result = state.result ++ String.fromChar c, context = ctx }
+      convertHashtag t = "[#" ++ t ++ "](" ++ makeLinkUrl t ++ ")"
+      flushInHashtag state =
+          case state.context of
+            InHashtag t -> { state | result = state.result ++ convertHashtag t }
+            _ -> state
+      finalize state = (.result) <| flushInHashtag state
   in result
 
   
