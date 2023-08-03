@@ -45,7 +45,7 @@ suite =
              , test "multiple hashtags" <|
                  \_ -> Exp.equal (linkHashtags_ "#foo bar buzz #quux #hoge") "[#foo](/?q=#foo) bar buzz [#quux](/?q=#quux) [#hoge](/?q=#hoge)"
              , test "hashtag at the start of line" <|
-                 \_ -> Exp.equal (linkHashtags_ "quux\n#foobar\n#buzz") "quux\n[#foobar](/?q=foobar)\n[#buzz](/?q=buzz)"
+                 \_ -> Exp.equal (linkHashtags_ "quux\n#foobar\n#buzz") "quux\n[#foobar](/?q=#foobar)\n[#buzz](/?q=#buzz)"
              , test "Japanese hashtag" <|
                  \_ -> Exp.equal (linkHashtags_ "  #日本語okハッシュタグ ") "  [#日本語okハッシュタグ](/?q=%E6%97%A5%E6%9C%AC%E8%AA%9Eok%E3%83%8F%E3%83%83%E3%82%B7%E3%83%A5%E3%82%BF%E3%82%B0) "
              , test "hash in hashtag" <|
