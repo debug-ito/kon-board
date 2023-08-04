@@ -46,6 +46,8 @@ suite =
                  \_ -> Exp.equal (replaceHashtags_ "#foo bar buzz #quux #hoge") "**foo** bar buzz **quux** **hoge**"
              , test "hashtag at the start of line" <|
                  \_ -> Exp.equal (replaceHashtags_ "quux\n#foobar\n#buzz") "quux\n**foobar**\n**buzz**"
+             , test "empty hashtag tags" <|
+                 \_ -> Exp.equal (replaceHashtags_ "foo # # # #b #") "foo # # # **b** #"
              , test "Japanese hashtag" <|
                  \_ -> Exp.equal (replaceHashtags_ "  #日本語okハッシュタグ ") "  **日本語okハッシュタグ** "
              , test "hash in hashtag" <|

@@ -285,7 +285,9 @@ replaceHashtags transformHashtag input =
       readChar c ctx state = { result = state.result ++ String.fromChar c, context = ctx }
       flushInHashtag state =
           case state.context of
-            InHashtag t -> { state | result = state.result ++ transformHashtag t }
+            InHashtag t -> if t == ""
+                           then { state | result = state.result ++ "#" }
+                           else { state | result = state.result ++ transformHashtag t }
             _ -> state
       finalize state = (.result) <| flushInHashtag state
   in result
