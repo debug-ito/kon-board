@@ -8,7 +8,7 @@ module Page exposing
     , recipePageLink
     , dayPageLink
     , isLoading
-    , linkHashtagsMarkdown
+    , replaceHashtags
     
       -- * RecipeSearch page
     , PRecipeSearchModel
@@ -259,11 +259,11 @@ type alias FoldState =
 
 type CharClass = CCBlank | CCHashtagStart | CCOther
 
--- | The input should be a Markdown text. This function adds hyperlinks to hashtags found in the input text.
-linkHashtagsMarkdown : (String -> String) -- ^ the input is the hashtag value (without the "#" symbol), the output should be the link URL.
-                     -> String -- ^ the input Markdown text
-                     -> String
-linkHashtagsMarkdown makeLinkUrl input =
+-- | Replace all occurrences of hashtags in the input text with the string got by the given transformation.
+replaceHashtags : (String -> String) -- ^ the input is the hashtag value (without the "#" symbol), the output should be the text to be put in the result.
+                -> String -- ^ the input text
+                -> String
+replaceHashtags transformHashtag input =
   let result = finalize <| String.foldl f { result = "", context = InBlank } input
       f c inState =
           case (inState.context, charClass c) of
@@ -282,10 +282,9 @@ linkHashtagsMarkdown makeLinkUrl input =
                       then CCHashtagStart
                       else CCOther
       readChar c ctx state = { result = state.result ++ String.fromChar c, context = ctx }
-      convertHashtag t = "[#" ++ t ++ "](" ++ makeLinkUrl t ++ ")"
       flushInHashtag state =
           case state.context of
-            InHashtag t -> { state | result = state.result ++ convertHashtag t }
+            InHashtag t -> { state | result = state.result ++ transformHashtag t }
             _ -> state
       finalize state = (.result) <| flushInHashtag state
   in result

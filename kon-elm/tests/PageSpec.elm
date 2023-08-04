@@ -17,8 +17,8 @@ parseUrl_ s = Url.fromString s |> Maybe.andThen
               ( \url -> Page.parseUrl url
               )
 
-linkHashtags_ : String -> String
-linkHashtags_ = Page.linkHashtagsMarkdown (\t -> "/?q=#" ++ t)
+replaceHashtags_ : String -> String
+replaceHashtags_ = Page.replaceHashtags (\t -> "**" ++ t ++ "**")
 
 suite : Test
 suite =
@@ -37,24 +37,24 @@ suite =
                             expected = Just <| PageDay { day = fromCalendarDate 2020 Jul 12, calEntry = NotStarted }
                         in Exp.equal got expected
               ]
-        , describe "linkHashtagsMarkdown"
+        , describe "replaceHashtags"
              [ test "empty" <|
-                 \_ -> Exp.equal (linkHashtags_ "") ""
+                 \_ -> Exp.equal (replaceHashtags_ "") ""
              , test "a hashtag" <|
-                 \_ -> Exp.equal (linkHashtags_ "#hoge") "[#hoge](/?q=#hoge)"
+                 \_ -> Exp.equal (replaceHashtags_ "#hoge") "**hoge**"
              , test "multiple hashtags" <|
-                 \_ -> Exp.equal (linkHashtags_ "#foo bar buzz #quux #hoge") "[#foo](/?q=#foo) bar buzz [#quux](/?q=#quux) [#hoge](/?q=#hoge)"
+                 \_ -> Exp.equal (replaceHashtags_ "#foo bar buzz #quux #hoge") "**foo** bar buzz **quux** **hoge**"
              , test "hashtag at the start of line" <|
-                 \_ -> Exp.equal (linkHashtags_ "quux\n#foobar\n#buzz") "quux\n[#foobar](/?q=#foobar)\n[#buzz](/?q=#buzz)"
+                 \_ -> Exp.equal (replaceHashtags_ "quux\n#foobar\n#buzz") "quux\n**foobar**\n**buzz**"
              , test "Japanese hashtag" <|
-                 \_ -> Exp.equal (linkHashtags_ "  #日本語okハッシュタグ ") "  [#日本語okハッシュタグ](/?q=#日本語okハッシュタグ) "
+                 \_ -> Exp.equal (replaceHashtags_ "  #日本語okハッシュタグ ") "  **日本語okハッシュタグ** "
              , test "hash in hashtag" <|
-                 \_ -> Exp.equal (linkHashtags_ " #hoge#fuga") " #hoge#fuga"
+                 \_ -> Exp.equal (replaceHashtags_ " #hoge#fuga") " #hoge#fuga"
              , test "markdown headings" <|
                  \_ -> let input = "# heading 1\n\n## heading 2\n\n### heading 3"
-                       in Exp.equal (linkHashtags_ input) input
+                       in Exp.equal (replaceHashtags_ input) input
              , test "fragments in links" <|
                  \_ -> let input = "https://example.com/hoge#foobar\n[external link](http://example.net/#quux)\n[relative fragment link](#hoge)"
-                       in Exp.equal (linkHashtags_ input) input
+                       in Exp.equal (replaceHashtags_ input) input
              ]
         ]
