@@ -273,7 +273,8 @@ replaceHashtags transformHashtag input =
               (InNonBlank, CCBlank) -> readChar c InBlank inState
               (InNonBlank, _) -> readChar c InNonBlank inState
               (InHashtag t, CCBlank) -> readChar c InBlank <| flushInHashtag inState
-              (InHashtag t, _) -> { inState | context = InHashtag <| t ++ String.fromChar c }
+              (InHashtag t, CCHashtagStart) -> readChar c InNonBlank <| { inState | result = inState.result ++ "#" ++ t }
+              (InHashtag t, CCOther) -> { inState | context = InHashtag <| t ++ String.fromChar c }
       isBlank c = c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == '　'
       isHashtagStart c = c == '#'
       charClass c = if isBlank c
