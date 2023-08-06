@@ -916,10 +916,11 @@ viewRecipe locale br =
                                   ]
                 BIngSingle ing -> [viewIng ing]
         viewIng ing = li [] <| (.viewIngredient) (Locale.get locale) ing
+        linkHashtags = Page.replaceHashtags (\t -> "[#" ++ t ++ "](/recipes/?q=#" ++ t ++ ")")
         viewDesc desc =
             if desc == ""
             then []
-            else [h2 [] [text <| (.showRecipeSteps) <| Locale.get locale]] ++ Markdown.toHtml Nothing desc
+            else [h2 [] [text <| (.showRecipeSteps) <| Locale.get locale]] ++ Markdown.toHtml Nothing (linkHashtags desc)
         viewRefs refs =
             if List.isEmpty refs
             then []
