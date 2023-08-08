@@ -916,7 +916,8 @@ viewRecipe locale br =
                                   ]
                 BIngSingle ing -> [viewIng ing]
         viewIng ing = li [] <| (.viewIngredient) (Locale.get locale) ing
-        linkHashtags = Page.replaceHashtags (\t -> "[#" ++ t ++ "](/recipes/?q=#" ++ t ++ ")")
+        linkHashtags = Page.replaceHashtags (\t -> "[#" ++ t ++ "](" ++ linkUrlForHashtag t ++ ")")
+        linkUrlForHashtag tag = UrlB.absolute ["recipes"] [UrlB.string "q" <| "#" ++ tag]
         viewDesc desc =
             if desc == ""
             then []
