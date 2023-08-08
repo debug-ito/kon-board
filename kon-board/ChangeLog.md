@@ -2,6 +2,10 @@
 
 ## 0.7.3.0  -- ?
 
+### Frontend
+
+- Now hashtags in recipe descriptions are automatically linked to the recipe search page.
+
 ## 0.7.2.0  -- 2023-07-04
 
 ### Backend
