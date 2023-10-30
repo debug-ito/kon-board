@@ -199,7 +199,13 @@ viewRecipeSearch locale m =
             _ -> []
             -- On Failure, error message is shown by Main.
         searchAnswerItem r =
-          Html.a [Attr.href <| recipePageLink r.id, Attr.class "list-group-item", Attr.class "list-group-item-action", Attr.class "text-primary"] [Html.text r.name]
+          Html.a
+          [Attr.href <| recipePageLink r.id, Attr.class "list-group-item", Attr.class "list-group-item-action", Attr.class "text-primary"]
+          [Html.text (r.name ++ " "), searchAnswerItemCopyButton]
+        searchAnswerItemCopyButton =
+          Html.button
+          [Attr.type_ "button", Attr.class "btn", Attr.class "btn-outline-secondary", Attr.class "btn-sm", Attr.class "float-right"]
+          [FIcons.toHtml [] <| FIcons.withSize 16 <| FIcons.clipboard]
         searchResultContainer e =
           [ Html.div [Attr.class "row"] [Html.div [Attr.class "col", Attr.class "px-0"] e] ]
         searchResultTotalNum a =
