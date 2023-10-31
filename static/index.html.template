@@ -11,8 +11,21 @@
 </head>
 <body>
   <script>
-    var app = Elm.Main.init();
+    const app = Elm.Main.init();
     window.onscroll = function() { app.ports.portOnScroll.send(); };
+    app.ports.portSelectElement.subscribe(function(elemId) {
+        const target = document.getElementById(elemId);
+        if (target === null) {
+            return;
+        }
+        const sel = window.getSelection();
+        if (sel.rangeCount > 0) {
+            sel.removeAllRanges();
+        }
+        const r = document.createRange();
+        r.selectNode(target);
+        sel.addRange(r);
+    });
   </script>
 </body>
 </html>
