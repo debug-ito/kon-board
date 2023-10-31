@@ -1,4 +1,4 @@
-port module Main exposing
+module Main exposing
    (..)
 
 {- | The application main. -}
@@ -23,7 +23,6 @@ import Html
 import Html.Attributes exposing (href)
 import Html.Attributes as Attr
 import Html.Events as Events
-import Json.Decode exposing (Value)
 import List
 import Markdown
 import Maybe.Extra exposing (isNothing)
@@ -65,12 +64,9 @@ import Page exposing
   , PRecipeSearchModel, errorMsgRecipeSearch
   )
 import Page
+import Ports exposing (portOnScroll)
 import UpdateM exposing (UpdateM)
 import UpdateM
-
----- Ports
-
-port portOnScroll : (Value -> msg) -> Sub msg
 
 ---- Model Types
 
