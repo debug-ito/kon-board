@@ -194,14 +194,14 @@ viewRecipeSearch locale m =
             Success a -> searchResultContainer
                            <| searchResultTotalNum a
                               ++ paginationForAnswer m a
-                              ++ [Html.div [Attr.class "list-group"] <| List.map searchAnswerItem a.recipes]
+                              ++ [Html.div [Attr.class "list-group"] <| List.map2 searchAnswerItem (List.range 0 (List.length a.recipes - 1)) a.recipes]
                               ++ paginationForAnswer m a
             _ -> []
             -- On Failure, error message is shown by Main.
-        searchAnswerItem r =
+        searchAnswerItem index r =
           Html.a
           [Attr.href <| recipePageLink r.id, Attr.class "list-group-item", Attr.class "list-group-item-action", Attr.class "text-primary"]
-          [Html.text (r.name ++ " "), searchAnswerItemCopyButton]
+          [Html.span [Attr.id ("search-answer-item-" ++ String.fromInt index)] [Html.text r.name], searchAnswerItemCopyButton]
         searchAnswerItemCopyButton =
           Html.button
           [Attr.type_ "button", Attr.class "btn", Attr.class "btn-outline-secondary", Attr.class "btn-sm", Attr.class "float-right"]
