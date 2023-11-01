@@ -41,6 +41,7 @@ import UpdateM exposing (UpdateM)
 import Locale exposing (Locale)
 import Locale
 import HttpUtil exposing (showHttpError)
+import Ports exposing (portSelectElement)
 
 {- | The page associated with URL.
 -}
@@ -80,6 +81,7 @@ type MsgRecipeSearch =
        RSUpdateFormQuery String
      | RSSubmitQuery
      | RSRecipeListLoaded (Result Http.Error BAnswerRecipe)
+     | RSSelectElem String
 
 initPage : Page
 initPage = PageTop { viewportAdjusted = NotStarted, currentAnchor = NotStarted }
@@ -149,6 +151,7 @@ updateReactPRecipeSearch key msg model =
             case ret of
                 Ok a -> ({ model | answer = Success a }, [])
                 Err e -> ({ model | answer = Failure <| showHttpError e }, [])
+        RSSelectElem elemId -> (model, [portSelectElement elemId])
 
 errorMsgRecipeSearch : MsgRecipeSearch -> Maybe String
 errorMsgRecipeSearch m =
@@ -199,12 +202,15 @@ viewRecipeSearch locale m =
             _ -> []
             -- On Failure, error message is shown by Main.
         searchAnswerItem index r =
-          Html.a
-          [Attr.href <| recipePageLink r.id, Attr.class "list-group-item", Attr.class "list-group-item-action", Attr.class "text-primary"]
-          [Html.span [Attr.id ("search-answer-item-" ++ String.fromInt index)] [Html.text r.name], searchAnswerItemCopyButton]
-        searchAnswerItemCopyButton =
+          let itemId = "search-answer-item-" ++ String.fromInt index
+          in Html.a
+             [Attr.href <| recipePageLink r.id, Attr.class "list-group-item", Attr.class "list-group-item-action", Attr.class "text-primary"]
+             [Html.span [Attr.id itemId] [Html.text r.name], searchAnswerItemCopyButton itemId]
+        searchAnswerItemCopyButton itemId =
           Html.button
-          [Attr.type_ "button", Attr.class "btn", Attr.class "btn-outline-secondary", Attr.class "btn-sm", Attr.class "float-right"]
+          [ Attr.type_ "button", Attr.class "btn", Attr.class "btn-outline-secondary", Attr.class "btn-sm", Attr.class "float-right"
+          , Events.onClick <| RSSelectElem itemId
+          ]
           [FIcons.toHtml [] <| FIcons.withSize 16 <| FIcons.clipboard]
         searchResultContainer e =
           [ Html.div [Attr.class "row"] [Html.div [Attr.class "col", Attr.class "px-0"] e] ]
