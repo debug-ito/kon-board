@@ -5,6 +5,7 @@
 ### Frontend
 
 - Now hashtags in recipe descriptions are automatically linked to the recipe search page.
+- Now the recipe search page has buttons to select recipe names.
 
 ## 0.7.2.0  -- 2023-07-04
 
