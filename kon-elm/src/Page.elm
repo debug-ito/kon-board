@@ -33,6 +33,7 @@ import Html.Attributes as Attr
 import Http
 import FeatherIcons as FIcons
 import String
+import Json.Decode as Decode
 
 import Bridge exposing (BRecipeId, BRecipeStored, BAnswerRecipe, getApiV1Recipes)
 import Calendar exposing (MonthAnchor, CalEntry)
@@ -209,7 +210,7 @@ viewRecipeSearch locale m =
         searchAnswerItemCopyButton itemId =
           Html.button
           [ Attr.type_ "button", Attr.class "btn", Attr.class "btn-outline-secondary", Attr.class "btn-sm", Attr.class "float-right"
-          , Events.onClick <| RSSelectElem itemId
+          , Events.custom "click" <| Decode.succeed { message = RSSelectElem itemId, stopPropagation  = True, preventDefault = True }
           ]
           [FIcons.toHtml [] <| FIcons.withSize 16 <| FIcons.clipboard]
         searchResultContainer e =
