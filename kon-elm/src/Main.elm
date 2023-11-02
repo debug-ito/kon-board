@@ -24,7 +24,6 @@ import Html.Attributes exposing (href)
 import Html.Attributes as Attr
 import Html.Events as Events
 import List
-import Markdown
 import Maybe.Extra exposing (isNothing)
 import Process
 import Result
@@ -38,7 +37,7 @@ import Url
 import Url.Builder as UrlB
 
 import Bridge exposing
-    (BRecipeStored, BMealPlan, BRecipeId, BIngDesc(..))
+    (BRecipeStored, BMealPlan, BRecipeId)
 import Bridge
 import CalSpy exposing
     ( CalLayout
@@ -550,7 +549,7 @@ viewBody model =
                         (Just today, Just cal) ->
                             viewCalendar model.locale model.mealPlanLoader today model.calendarViewType cal
                         _ -> []
-                PageRecipe rm -> viewRecipePage model.locale rm
+                PageRecipe rm -> Page.viewRecipePage model.locale rm
                 PageDay dm -> viewDayPage model.locale dm
                 PageRecipeSearch m -> List.map (Html.map MsgRecipeSearch) <| Page.viewRecipeSearch model.locale m
         err_msg =
@@ -882,56 +881,6 @@ viewLinkRecipe : BRecipeId -> List (Html a) -> List (Html a)
 viewLinkRecipe rid content =
     let result = [Html.a attrs content]
         attrs = [href <| recipePageLink rid]
-    in result
-
-viewRecipePage : Locale -> PRecipeModel -> List (Html Msg)
-viewRecipePage locale rmodel =
-    let result = recipe_body
-                 ++ [div [Attr.class "recipe-id-box"] [text ("Recipe ID: " ++ rmodel.recipeID)]]
-        recipe_body =
-            case Coming.success rmodel.recipe of
-                Nothing -> []
-                Just r -> viewRecipe locale r
-    in result
-
-viewRecipe : Locale -> BRecipeStored -> List (Html Msg)
-viewRecipe locale br =
-    let result = [div [Attr.class "recipe-box"] recipeContent]
-        recipeContent = viewName br.name ++ viewIngDescs br.ings ++ viewDesc br.desc ++ viewRefs br.ref
-        viewName n = [h1 [] [text n]]
-        viewIngDescs ings =
-            if List.isEmpty ings
-            then []
-            else [ h2 [] [text <| (.showIngredients) <| Locale.get locale]
-                 , ul [] <| List.concatMap viewIngDesc ings
-                 ]
-        viewIngDesc ingDesc =
-            case ingDesc of
-                BIngGroup ingG -> [ li [] [text ingG.g]
-                                  , ul [] <| List.map viewIng ingG.ings
-                                  ]
-                BIngSingle ing -> [viewIng ing]
-        viewIng ing = li [] <| (.viewIngredient) (Locale.get locale) ing
-        linkHashtags = Page.replaceHashtags (\t -> "[#" ++ t ++ "](" ++ linkUrlForHashtag t ++ ")")
-        linkUrlForHashtag tag = UrlB.absolute ["recipes"] [UrlB.string "q" <| "#" ++ tag]
-        viewDesc desc =
-            if desc == ""
-            then []
-            else [h2 [] [text <| (.showRecipeSteps) <| Locale.get locale]] ++ Markdown.toHtml Nothing (linkHashtags desc)
-        viewRefs refs =
-            if List.isEmpty refs
-            then []
-            else [ h2 [] [text <| (.showRecipeReference) <| Locale.get locale]
-                 , ul [] <| List.concatMap viewRef refs
-                 ]
-        viewRefLi content = li [Attr.class "recipe-ref"] content
-        viewExtLink url t = [Html.a [href url, Attr.target "_blank"] [text t]]
-        viewRef ref =
-            case (ref.source, ref.url) of
-                (Nothing, Nothing) -> []
-                (Just s, Nothing)  -> [viewRefLi <| [text s]]
-                (Nothing, Just u)  -> [viewRefLi <| viewExtLink u u]
-                (Just s, Just u)   -> [viewRefLi <| viewExtLink u s]
     in result
 
 iconPath : String -> String

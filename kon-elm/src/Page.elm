@@ -1,7 +1,6 @@
 module Page exposing
     ( Page(..)
     , PTopModel
-    , PRecipeModel
     , PDayModel
     , initPage
     , parseUrl
@@ -9,6 +8,10 @@ module Page exposing
     , dayPageLink
     , isLoading
     , replaceHashtags
+
+    -- * Recipe page
+    , PRecipeModel
+    , viewRecipePage
     
       -- * RecipeSearch page
     , PRecipeSearchModel
@@ -34,8 +37,9 @@ import Http
 import FeatherIcons as FIcons
 import String
 import Json.Decode as Decode
+import Markdown
 
-import Bridge exposing (BRecipeId, BRecipeStored, BAnswerRecipe, getApiV1Recipes)
+import Bridge exposing (BRecipeId, BRecipeStored, BAnswerRecipe, getApiV1Recipes, BIngDesc(..))
 import Calendar exposing (MonthAnchor, CalEntry)
 import Coming exposing (Coming(..), isPending)
 import UpdateM exposing (UpdateM)
@@ -138,6 +142,56 @@ isLoading p =
         PageRecipe r -> isPending r.recipe
         PageDay d -> isPending d.calEntry
         PageRecipeSearch r -> isPending r.answer
+
+viewRecipePage : Locale -> PRecipeModel -> List (Html msg)
+viewRecipePage locale rmodel =
+    let result = recipe_body
+                 ++ [Html.div [Attr.class "recipe-id-box"] [Html.text ("Recipe ID: " ++ rmodel.recipeID)]]
+        recipe_body =
+            case Coming.success rmodel.recipe of
+                Nothing -> []
+                Just r -> viewRecipe locale r
+    in result
+
+viewRecipe : Locale -> BRecipeStored -> List (Html msg)
+viewRecipe locale br =
+    let result = [Html.div [Attr.class "recipe-box"] recipeContent]
+        recipeContent = viewName br.name ++ viewIngDescs br.ings ++ viewDesc br.desc ++ viewRefs br.ref
+        viewName n = [Html.h1 [] [Html.text n]]
+        viewIngDescs ings =
+            if List.isEmpty ings
+            then []
+            else [ Html.h2 [] [Html.text <| (.showIngredients) <| Locale.get locale]
+                 , Html.ul [] <| List.concatMap viewIngDesc ings
+                 ]
+        viewIngDesc ingDesc =
+            case ingDesc of
+                BIngGroup ingG -> [ Html.li [] [Html.text ingG.g]
+                                  , Html.ul [] <| List.map viewIng ingG.ings
+                                  ]
+                BIngSingle ing -> [viewIng ing]
+        viewIng ing = Html.li [] <| (.viewIngredient) (Locale.get locale) ing
+        linkHashtags = replaceHashtags (\t -> "[#" ++ t ++ "](" ++ linkUrlForHashtag t ++ ")")
+        linkUrlForHashtag tag = B.absolute ["recipes"] [B.string "q" <| "#" ++ tag]
+        viewDesc desc =
+            if desc == ""
+            then []
+            else [Html.h2 [] [Html.text <| (.showRecipeSteps) <| Locale.get locale]] ++ Markdown.toHtml Nothing (linkHashtags desc)
+        viewRefs refs =
+            if List.isEmpty refs
+            then []
+            else [ Html.h2 [] [Html.text <| (.showRecipeReference) <| Locale.get locale]
+                 , Html.ul [] <| List.concatMap viewRef refs
+                 ]
+        viewRefLi content = Html.li [Attr.class "recipe-ref"] content
+        viewExtLink url t = [Html.a [Attr.href url, Attr.target "_blank"] [Html.text t]]
+        viewRef ref =
+            case (ref.source, ref.url) of
+                (Nothing, Nothing) -> []
+                (Just s, Nothing)  -> [viewRefLi <| [Html.text s]]
+                (Nothing, Just u)  -> [viewRefLi <| viewExtLink u u]
+                (Just s, Just u)   -> [viewRefLi <| viewExtLink u s]
+    in result
 
 updateReactPRecipeSearch : Nav.Key -> MsgRecipeSearch -> UpdateM PRecipeSearchModel MsgRecipeSearch
 updateReactPRecipeSearch key msg model =
