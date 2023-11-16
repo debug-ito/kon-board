@@ -11,7 +11,10 @@ module Page exposing
 
     -- * Recipe page
     , PRecipeModel
+    , MsgRecipe(..)
     , viewRecipePage
+    , updateAutoRecipe
+    , updateReactRecipe
     
       -- * RecipeSearch page
     , PRecipeSearchModel
@@ -68,6 +71,9 @@ type alias PRecipeModel =
     { recipeID : BRecipeId
     , recipe : Coming String BRecipeStored
     }
+
+type MsgRecipe =
+       RecipeLoaded (Result String (BRecipeId, BRecipeStored))
 
 type alias PDayModel =
     { day : Date
@@ -148,7 +154,7 @@ viewRecipePage locale rmodel =
     let result = recipe_body
                  ++ [Html.div [Attr.class "recipe-id-box"] [Html.text ("Recipe ID: " ++ rmodel.recipeID)]]
         recipe_body =
-            case Coming.success rmodel.recipe of
+            case Coming.success rmodel.recipe of -- TODO: handle Failure case and render error message.
                 Nothing -> []
                 Just r -> viewRecipe locale r
     in result
@@ -192,6 +198,37 @@ viewRecipe locale br =
                 (Nothing, Just u)  -> [viewRefLi <| viewExtLink u u]
                 (Just s, Just u)   -> [viewRefLi <| viewExtLink u s]
     in result
+
+updateAutoPRecipe : UpdateM PRecipeModel MsgRecipe
+updateAutoPRecipe rp =
+    case rp.recipe of
+        NotStarted -> ({ rp | recipe = Pending }, [loadRecipeByID rp.recipeID])
+        _ -> (rp, [])
+
+loadRecipeByID : BRecipeId -> Cmd MsgRecipe
+loadRecipeByID rid =
+    let result = Bridge.getApiV1RecipesByRecipeid rid handle
+        handle ret =
+            let content =
+                    case ret of
+                        Ok r -> Ok (rid, r)
+                        Err err -> Err <| "Error in loadRecipeByID: " ++ showHttpError err
+            in RecipeLoaded content
+    in result
+
+updateReactPRecipe : MsgRecipe -> UpdateM PRecipeModel MsgRecipe
+updateReactPRecipe msg rp =
+    case msg of
+        RecipeLoaded ret ->
+            let setError e = { rp | recipe = Failure e }
+                resultModel =
+                    case ret of
+                        Err e -> setError e
+                        Ok (rid, r) ->
+                                if rp.recipeID == rid
+                                then { rp | recipe = Success r }
+                                else setError ("Got recipe for " ++ rid ++ ", but expects " ++ rp.recipeID)
+            in (resultModel, [])
 
 updateReactPRecipeSearch : Nav.Key -> MsgRecipeSearch -> UpdateM PRecipeSearchModel MsgRecipeSearch
 updateReactPRecipeSearch key msg model =

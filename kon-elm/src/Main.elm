@@ -239,10 +239,6 @@ appUpdate msg model =
         (resultModel, autoCmds) = appUpdateAuto reactedModel
     in (resultModel, Cmd.batch (reactCmds ++ autoCmds))
 
--- In this program, `appUpdate` is composed of `appUpdateModel : Msg -> Model -> Model` and `appUpdateCmd : Msg -> Model -> List (Cmd Msg, Model -> Model)`.
--- However, now I think we should use `appUpdateReact : Msg -> Model -> (Cmd Msg, Model)` and `appUpdateAuto : Model -> Maybe (Cmd Msg, Model)`.
--- We call appUpdateAuto recursively until we get Nothing. All Cmds obtained are combined and sent to the Elm runtime.
-
 addMealPlansToModel : String -> Result String (List BMealPlan) -> Model -> Result String Model
 addMealPlansToModel error_label ret_mps model =
     let result = 
@@ -503,17 +499,6 @@ appOnUrlRequest = UrlRequestMsg
 
 appOnUrlChange : Url -> Msg
 appOnUrlChange = UrlChangeMsg
-
-loadRecipeByID : BRecipeId -> Cmd Msg
-loadRecipeByID rid =
-    let result = Bridge.getApiV1RecipesByRecipeid rid handle
-        handle ret =
-            let content = 
-                    case ret of
-                        Ok r -> Ok (rid, r)
-                        Err err -> Err <| "Error in loadRecipeByID: " ++ showHttpError err
-            in RecipeLoaded content
-    in result
 
 ---- View
 
