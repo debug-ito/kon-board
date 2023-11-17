@@ -13,8 +13,8 @@ module Page exposing
     , PRecipeModel
     , MsgRecipe(..)
     , viewRecipePage
-    , updateAutoRecipe
-    , updateReactRecipe
+    , updateAutoPRecipe
+    , updateReactPRecipe
     
       -- * RecipeSearch page
     , PRecipeSearchModel

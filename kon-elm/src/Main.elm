@@ -156,8 +156,6 @@ type Msg = NoOp
          | UrlRequestMsg UrlRequest
          -- | UrlChange browser event
          | UrlChangeMsg Url
-         -- | Got result of loading a Recipe from backend.
-         | RecipeLoaded (Result String (BRecipeId, BRecipeStored))
          -- | Set viewport of calendar relative to the "today" element.
          | ViewportSet Float
          -- | Got result of adjusting viewport.
@@ -176,6 +174,7 @@ type Msg = NoOp
          | CalLoadMoreDone MealPlanLoader (Result String (List BMealPlan))
          -- | Finish loading meal plans for a day
          | DayMealPlanLoaded (Result String (Date, List BMealPlan))
+         | MsgRecipe Page.MsgRecipe
          | MsgRecipeSearch Page.MsgRecipeSearch
 
 {- | Type of "loadMore".
@@ -285,22 +284,6 @@ appUpdateReact msg model =
                 Browser.Internal u -> (model, [Nav.pushUrl model.navKey <| Url.toString u])
                 Browser.External s -> (model, [Nav.load s])
         UrlChangeMsg u -> (appUrlChange u model, [])
-        RecipeLoaded ret ->
-            let setError e =
-                    case model.page of
-                        PageRecipe rm -> { model | errorMsg = (Alert.shown, e), page = PageRecipe <| { rm | recipe = Failure e } }
-                        _ -> { model | errorMsg = (Alert.shown, e) }
-                resultModel =
-                    case ret of
-                        Err e -> setError e
-                        Ok (rid, r) ->
-                            case model.page of
-                                PageRecipe rm ->
-                                    if rm.recipeID == rid
-                                    then { model | page = PageRecipe <| { rm | recipe = Success r } }
-                                    else setError ("Got recipe for " ++ rid ++ ", but expects " ++ rm.recipeID)
-                                _ -> setError ("Got recipe for " ++ rid ++ ", but the page is not PageRecipe.")
-            in (resultModel, [])
         ViewportSet rel_pos ->
             let ad_model = triggerViewportAdjust model
             in ({ ad_model | calendarViewport = rel_pos }, [])
@@ -389,6 +372,14 @@ appUpdateReact msg model =
                                 Err e -> { model | errorMsg = (Alert.shown, e), page = PageDay { dm | calEntry = Failure e } }
                         Err e -> { model | errorMsg = (Alert.shown, e) }
             in (resultModel, [])
+        MsgRecipe m ->
+            let focusModel md =
+                    case md.page of
+                        PageRecipe p -> Just p
+                        _ -> Nothing
+                extendModel p = { model | page = PageRecipe p }
+                extendedUpdate = UpdateM.mapMsg MsgRecipe <| UpdateM.mapModel extendModel focusModel <| Page.updateReactPRecipe m
+            in extendedUpdate model
         MsgRecipeSearch m ->
             let focusModel md =
                     case md.page of
@@ -426,7 +417,7 @@ initPageWithModel model page =
 appUpdateAuto : UpdateM Model Msg
 appUpdateAuto =
     let result = UpdateM.concat
-                 [initTimeUpdate, initMealPlanUpdate, loadRecipeUpdate, viewportAdjustUpdate, loadDayMealPlanUpdate, recipeSearchPage]
+                 [initTimeUpdate, initMealPlanUpdate, viewportAdjustUpdate, loadDayMealPlanUpdate, recipePage, recipeSearchPage]
         initTimeUpdate model =
             case model.clock of
                 Nothing -> (model, [Task.perform identity <| Task.map2 InitTime Time.now Time.here])
@@ -438,13 +429,6 @@ appUpdateAuto =
                 case model.calendar of
                     Nothing -> (model, [])
                     Just cal -> ({ model | mealPlanLoader = Pending }, [MealPlanLoader.loadInit cal InitMealPlanLoader])
-        loadRecipeUpdate model =
-            case model.page of
-                PageRecipe rp ->
-                    case rp.recipe of
-                        NotStarted -> ({ model | page = PageRecipe <| { rp | recipe = Pending } }, [loadRecipeByID rp.recipeID])
-                        _ -> (model, [])
-                _ -> (model, [])
         viewportAdjustUpdate model =
             case (model.calendar, model.mealPlanLoader, model.page) of
                 (Just _, Success _, PageTop pt) ->
@@ -466,6 +450,14 @@ appUpdateAuto =
                             in (newModel, [cmd])
                         _ ->  (model, [])
                 _ -> (model, [])
+        recipePage model =
+            let focusModel m =
+                    case m.page of
+                        PageRecipe p -> Just p
+                        _ -> Nothing
+                extendModel p = { model | page = PageRecipe p }
+                extendedUpdate = UpdateM.mapMsg MsgRecipe <| UpdateM.mapModel extendModel focusModel <| Page.updateAutoPRecipe
+            in extendedUpdate model
         recipeSearchPage model =
             let focusModel m =
                     case m.page of
