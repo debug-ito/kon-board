@@ -15,6 +15,7 @@ module Page exposing
     , viewRecipePage
     , updateAutoPRecipe
     , updateReactPRecipe
+    , errorMsgRecipe
     
       -- * RecipeSearch page
     , PRecipeSearchModel
@@ -204,6 +205,12 @@ updateAutoPRecipe rp =
     case rp.recipe of
         NotStarted -> ({ rp | recipe = Pending }, [loadRecipeByID rp.recipeID])
         _ -> (rp, [])
+
+errorMsgRecipe : MsgRecipe -> Maybe String
+errorMsgRecipe m =
+    case m of
+        RecipeLoaded (Err e) -> Just e
+        _ -> Nothing
 
 loadRecipeByID : BRecipeId -> Cmd MsgRecipe
 loadRecipeByID rid =

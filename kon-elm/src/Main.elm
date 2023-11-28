@@ -60,7 +60,7 @@ import MealPlanLoader exposing (MealPlanLoader)
 import MealPlanLoader
 import Page exposing
   ( Page(..), recipePageLink, PRecipeModel, PDayModel, dayPageLink
-  , PRecipeSearchModel, errorMsgRecipeSearch
+  , PRecipeSearchModel, errorMsgRecipeSearch, errorMsgRecipe
   )
 import Page
 import Ports exposing (portOnScroll)
@@ -379,7 +379,11 @@ appUpdateReact msg model =
                         _ -> Nothing
                 extendModel p = { model | page = PageRecipe p }
                 extendedUpdate = UpdateM.mapMsg MsgRecipe <| UpdateM.mapModel extendModel focusModel <| Page.updateReactPRecipe m
-            in extendedUpdate model
+                setErrorMsg mdl =
+                    case errorMsgRecipe m of
+                      Nothing -> mdl
+                      Just e -> { mdl | errorMsg = (Alert.shown, e) }
+            in Tuple.mapFirst setErrorMsg <| extendedUpdate model
         MsgRecipeSearch m ->
             let focusModel md =
                     case md.page of
