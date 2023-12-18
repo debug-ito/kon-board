@@ -530,7 +530,7 @@ viewBody model =
                         (Just today, Just cal) ->
                             viewCalendar model.locale model.mealPlanLoader today model.calendarViewType cal
                         _ -> []
-                PageRecipe rm -> Page.viewRecipePage model.locale rm
+                PageRecipe rm -> List.map (Html.map MsgRecipe) <| Page.viewRecipePage model.locale rm
                 PageDay dm -> viewDayPage model.locale dm
                 PageRecipeSearch m -> List.map (Html.map MsgRecipeSearch) <| Page.viewRecipeSearch model.locale m
         err_msg =
