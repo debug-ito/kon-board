@@ -35,6 +35,7 @@ import Url.Parser as P
 import Url.Parser.Query as PQ
 import Url.Builder as B
 import Html exposing (Html)
+import Html
 import Html.Events as Events
 import Html.Attributes as Attr
 import Http
@@ -305,17 +306,20 @@ viewRecipeSearch locale m =
           in Html.a
              [Attr.href <| recipePageLink r.id, Attr.class "list-group-item", Attr.class "list-group-item-action", Attr.class "text-primary"]
              [Html.span [Attr.id itemId] [Html.text r.name], searchAnswerItemCopyButton itemId]
-        searchAnswerItemCopyButton itemId =
-          Html.button
-          [ Attr.type_ "button", Attr.class "btn", Attr.class "btn-outline-secondary", Attr.class "btn-sm", Attr.class "float-right"
-          , Events.custom "click" <| Decode.succeed { message = RSSelectElem itemId, stopPropagation  = True, preventDefault = True }
-          ]
-          [FIcons.toHtml [] <| FIcons.withSize 16 <| FIcons.clipboard]
+        searchAnswerItemCopyButton itemId = copyButton (RSSelectElem itemId) [Attr.class "float-right"]
         searchResultContainer e =
           [ Html.div [Attr.class "row"] [Html.div [Attr.class "col", Attr.class "px-0"] e] ]
         searchResultTotalNum a =
           [ Html.div [] [Html.text <| (.showTotalNumOfRecipes) (Locale.get locale) a.total_count] ]
     in result
+
+copyButton : msg -> List (Html.Attribute msg) -> Html msg
+copyButton m extraAttrs =
+    let attrs = [ Attr.type_ "button", Attr.class "btn", Attr.class "btn-outline-secondary", Attr.class "btn-sm"
+                , Events.custom "click" <| Decode.succeed { message = m, stopPropagation  = True, preventDefault = True }
+                ]
+                ++ extraAttrs
+    in Html.button attrs [FIcons.toHtml [] <| FIcons.withSize 16 <| FIcons.clipboard]
 
 -- TODO: skip some page items when the totalPageNum is too big.
 paginationForAnswer : PRecipeSearchModel -> BAnswerRecipe -> List (Html msg)
