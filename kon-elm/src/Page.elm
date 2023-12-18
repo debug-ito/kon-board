@@ -167,7 +167,7 @@ viewRecipe locale br =
     let result = [Html.div [Attr.class "recipe-box"] recipeContent]
         recipeContent = viewName br.name ++ viewIngDescs br.ings ++ viewDesc br.desc ++ viewRefs br.ref
         viewName n =
-            [ Html.h1 [] ([Html.text n] ++ [copyButton RecipeSelectName [Attr.class "float-right"]])
+            [ Html.h1 [] ([Html.text n] ++ [copyButton RecipeSelectName [Attr.class "ml-3"]])
             ]
         viewIngDescs ings =
             if List.isEmpty ings
