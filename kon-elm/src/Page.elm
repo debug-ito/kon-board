@@ -313,7 +313,7 @@ viewRecipeSearch locale m =
           in Html.a
              [Attr.href <| recipePageLink r.id, Attr.class "list-group-item", Attr.class "list-group-item-action", Attr.class "text-primary"]
              [Html.span [Attr.id itemId] [Html.text r.name], searchAnswerItemCopyButton itemId]
-        searchAnswerItemCopyButton itemId = copyButton (RSSelectElem itemId) [Attr.class "float-right"]
+        searchAnswerItemCopyButton itemId = copyButton (RSSelectElem itemId) [Attr.class "ml-3"]
         searchResultContainer e =
           [ Html.div [Attr.class "row"] [Html.div [Attr.class "col", Attr.class "px-0"] e] ]
         searchResultTotalNum a =
