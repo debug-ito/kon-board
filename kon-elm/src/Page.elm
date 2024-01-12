@@ -76,7 +76,7 @@ type alias PRecipeModel =
 
 type MsgRecipe =
        RecipeLoaded (Result String (BRecipeId, BRecipeStored))
-     | RecipeSelectName
+     | RecipeSelectName String
 
 type alias PDayModel =
     { day : Date
@@ -167,7 +167,10 @@ viewRecipe locale br =
     let result = [Html.div [Attr.class "recipe-box"] recipeContent]
         recipeContent = viewName br.name ++ viewIngDescs br.ings ++ viewDesc br.desc ++ viewRefs br.ref
         viewName n =
-            [ Html.h1 [] ([Html.text n] ++ [copyButton RecipeSelectName [Attr.class "ml-3"]])
+            [ Html.h1 []
+              ( [Html.span [Attr.id "recipe-name"] [Html.text n]]
+                ++ [copyButton (RecipeSelectName "recipe-name") [Attr.class "ml-3"]]
+              )
             ]
         viewIngDescs ings =
             if List.isEmpty ings
@@ -240,7 +243,7 @@ updateReactPRecipe msg rp =
                                 then { rp | recipe = Success r }
                                 else setError ("Got recipe for " ++ rid ++ ", but expects " ++ rp.recipeID)
             in (resultModel, [])
-        RecipeSelectName -> (rp, []) -- TODO
+        RecipeSelectName nameId -> (rp, [portSelectElement nameId])
 
 updateReactPRecipeSearch : Nav.Key -> MsgRecipeSearch -> UpdateM PRecipeSearchModel MsgRecipeSearch
 updateReactPRecipeSearch key msg model =
