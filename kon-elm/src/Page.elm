@@ -157,8 +157,8 @@ viewRecipePage locale rmodel =
     let result = recipe_body
                  ++ [Html.div [Attr.class "recipe-id-box"] [Html.text ("Recipe ID: " ++ rmodel.recipeID)]]
         recipe_body =
-            case Coming.success rmodel.recipe of -- TODO: handle Failure case and render error message.
-                Nothing -> []
+            case Coming.success rmodel.recipe of
+                Nothing -> [] -- failure case is handled by Main. It shows an error message.
                 Just r -> viewRecipe locale r
     in result
 
