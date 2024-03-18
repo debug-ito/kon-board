@@ -1,6 +1,6 @@
 # Revision history for kon-board
 
-## 0.7.3.0  -- ?
+## 0.7.3.0  -- 2024-03-18
 
 ### Frontend
 
